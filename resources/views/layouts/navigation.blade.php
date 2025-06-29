@@ -18,6 +18,9 @@
                      <x-nav-link :href="route('sellers.index')" :active="request()->routeIs('sellers.index')">
                         {{ __('Vendedores') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('sales.bulk.create')" :active="request()->routeIs('sales.bulk.creates')">
+                        {{ __('Registro de ventas') }}
+                    </x-nav-link>
                     <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.index')">
                         {{ __('Reporte de ventas') }}
                     </x-nav-link>

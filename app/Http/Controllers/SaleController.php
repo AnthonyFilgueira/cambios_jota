@@ -35,23 +35,28 @@ class SaleController extends Controller
         $sellers = Seller::all();
         return view('sales.bulk-create', compact('sellers'));
     }
-
     public function bulkStore(Request $request)
-    {
-        $data = $request->validate([
-            'sales.*.seller_id' => 'required|exists:sellers,id',
-            'sales.*.amount' => 'required|numeric|min:0.01',
-            'sales.*.sale_date' => 'required|date',
-        ]);
+{
+    $sales = collect($request->input('sales', []));
 
-        foreach ($data['sales'] as $saleData) {
-            Sale::create($saleData);
-        }
+    $validSales = $sales->filter(function ($sale) {
+        return isset($sale['amount']) && $sale['amount'] > 0 && !empty($sale['sale_date']);
+    });
 
-        return redirect()->route('sales.index')->with('success', 'Ventas registradas correctamente.');
+    $validated = $validSales->map(function ($sale) {
+        return validator($sale, [
+            'seller_id' => 'required|exists:sellers,id',
+            'amount' => 'required|numeric|min:0.01',
+            'sale_date' => 'required|date',
+        ])->validate();
+    });
+
+    foreach ($validated as $saleData) {
+        Sale::create($saleData);
     }
 
-
+    return redirect()->route('sales.index')->with('success', 'Ventas registradas correctamente.');
+}
     public function destroy(Sale $sale)
     {
         $sale->delete();

@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-5xl mx-auto px-4 py-6">
-        <h1 class="text-2xl font-bold mb-6">Registrar Ventas en Lote</h1>
+        <h1 class="text-2xl font-bold mb-6">Registrar Ventas</h1>
 
         <form method="POST" action="{{ route('sales.bulk.store') }}">
             @csrf
@@ -27,7 +27,7 @@
                                         name="sales[{{ $index }}][amount]"
                                         step="0.01"
                                         placeholder="0.00"
-                                        class="w-full border-gray-300 rounded p-2 focus:ring focus:ring-blue-200"
+                                        class="w-full border-gray-300 rounded p-2"
                                     >
                                 </td>
                                 <td class="px-4 py-2">
@@ -35,7 +35,7 @@
                                         type="date"
                                         name="sales[{{ $index }}][sale_date]"
                                         value="{{ now()->toDateString() }}"
-                                        class="w-full border-gray-300 rounded p-2 focus:ring focus:ring-blue-200"
+                                        class="w-full border-gray-300 rounded p-2"
                                     >
                                 </td>
                             </tr>
