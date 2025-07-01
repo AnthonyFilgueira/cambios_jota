@@ -79,6 +79,15 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('sellers.index')" :active="request()->routeIs('sellers.index')">
+                        {{ __('Vendedores') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('sales.bulk.create')" :active="request()->routeIs('sales.bulk.creates')">
+                        {{ __('Registro de ventas') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.index')">
+                        {{ __('Reporte de ventas') }}
+                    </x-responsive-nav-link>
         </div>
 
         <!-- Responsive Settings Options -->
