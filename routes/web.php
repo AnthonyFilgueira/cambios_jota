@@ -1,12 +1,18 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
+use App\Models\Seller;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SellerController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SellerController;
+use App\Http\Controllers\ProfileController;
 
 Route::resource('sellers', SellerController::class);
+
+Route::get('/sellers-api', function () {
+    return Seller::all();
+});
+
 Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
 Route::resource('sales', SaleController::class);
 Route::get('sales-bulk', [SaleController::class, 'bulkCreate'])->name('sales.bulk.create');

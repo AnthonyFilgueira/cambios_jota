@@ -27,9 +27,22 @@ class SaleController extends Controller
             'sale_date' => 'required|date',
         ]);
 
-        Sale::create($request->all());
+        $sale = Sale::create($validated);
+
+        // Si es una petición AJAX, respondemos con JSON
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Venta registrada exitosamente.',
+                'sale' => $sale,
+            ]);
+        }
+
+        // Si por alguna razón no es AJAX, redirige (fallback)  
         return redirect()->route('sales.index');
     }
+
+
+    
     public function bulkCreate()
     {
         $sellers = Seller::all();
