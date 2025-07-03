@@ -68,8 +68,6 @@
                             name: seller.name,
                             amount: '',
                             sale_date:limaDate, // Use the Lima date format
-
-new Date().toISOString().split('T')[0],
                         }));
                     } catch (e) {
                         this.error = 'Error al cargar vendedores.';
