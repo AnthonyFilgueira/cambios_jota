@@ -45,6 +45,15 @@
     </div>
 
     <script>
+       const limaDate = new Date().toLocaleString('en-CA', {
+                        timeZone: 'America/Lima',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                        }).replace(/\//g, '-');
+
+
+
         function bulkSalesForm() {
             return {
                 sales: [],
@@ -58,7 +67,9 @@
                             seller_id: seller.id,
                             name: seller.name,
                             amount: '',
-                            sale_date: new Date().toISOString().split('T')[0],
+                            sale_date:limaDate, // Use the Lima date format
+
+new Date().toISOString().split('T')[0],
                         }));
                     } catch (e) {
                         this.error = 'Error al cargar vendedores.';
