@@ -20,11 +20,11 @@
                                 </td>
                                 <td class="px-4 py-2">
                                     <input type="number" step="0.01" class="w-full border-gray-300 rounded p-2"
-                                           x-model="sale.amount" placeholder="0.00">
+                                            x-model="sale.amount" placeholder="0.00">
                                 </td>
                                 <td class="px-4 py-2">
                                     <input type="date" class="w-full border-gray-300 rounded p-2"
-                                           x-model="sale.sale_date">
+                                            x-model="sale.sale_date">
                                 </td>
                             </tr>
                         </template>
@@ -45,13 +45,13 @@
     </div>
 
     <script>
-       const limaDate = new Date().toLocaleString('en-CA', {
-                        timeZone: 'America/Lima',
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit'
-                        }).replace(/\//g, '-');
-
+        // Get the current date in Lima, Peru, formatted as YYYY-MM-DD
+        const limaDate = new Date().toLocaleString('en-CA', {
+            timeZone: 'America/Lima',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).replace(/\//g, '-');
 
 
         function bulkSalesForm() {
@@ -60,22 +60,31 @@
                 message: '',
                 error: '',
 
+                // Fetches seller data from an API and initializes the sales array
                 async fetchSellers() {
                     try {
+                        // Assuming 'axios' is available globally for API calls
                         const res = await axios.get('sellers-api');
+                        // Map the fetched seller data to the sales array,
+                        // initializing amount to empty and sale_date to the current Lima date
                         this.sales = res.data.map(seller => ({
                             seller_id: seller.id,
                             name: seller.name,
                             amount: '',
-                            sale_date:limaDate, // Use the Lima date format
+                            sale_date: limaDate, // Use the Lima date format for initial load
                         }));
                     } catch (e) {
+                        // Display an error message if fetching sellers fails
                         this.error = 'Error al cargar vendedores.';
+                        console.error('Error fetching sellers:', e);
                     }
                 },
 
+                // Handles the form submission
                 async submit() {
                     try {
+                        // Prepare the payload for the API request,
+                        // including only necessary fields for each sale
                         const payload = {
                             sales: this.sales.map(({ seller_id, amount, sale_date }) => ({
                                 seller_id,
@@ -84,21 +93,29 @@
                             }))
                         };
 
+                        // Send the sales data to the '/sales/bulk' endpoint
                         const res = await axios.post('/sales/bulk', payload);
+                        // Display success message
                         this.message = res.data.message;
-                        this.error = '';
+                        this.error = ''; // Clear any previous errors
+
+                        // Reset amounts after successful submission, but keep the selected date
                         this.sales.forEach(s => {
                             s.amount = '';
-                            s.sale_date = new Date().toISOString().split('T')[0];
+                            // s.sale_date is intentionally NOT reset here,
+                            // so the user's selected date persists.
                         });
                     } catch (e) {
+                        // Display error message if submission fails
                         this.error = e.response?.data?.message || 'Error al registrar ventas.';
-                        this.message = '';
+                        this.message = ''; // Clear any previous success messages
+                        console.error('Error submitting sales:', e);
                     }
                 },
 
+                // Initialization function called when the Alpine.js component is mounted
                 init() {
-                    this.fetchSellers();
+                    this.fetchSellers(); // Fetch sellers when the component initializes
                 }
             }
         }
