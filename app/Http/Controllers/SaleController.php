@@ -13,6 +13,15 @@ class SaleController extends Controller
         return view('sales.index', compact('sales'));
     }
 
+    public function pendingSeller()
+    {
+        $sales = Sale::with('seller')
+            ->where('approval_status', 'pending_seller')
+            ->latest('sale_date')
+            ->paginate(20);
+        return view('sales.pending-seller', compact('sales'));
+    }
+
     public function create()
     {
         $sellers = Seller::all();
