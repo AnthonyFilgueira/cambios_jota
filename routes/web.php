@@ -15,11 +15,15 @@ use App\Http\Controllers\OwnerDashboardController;
 use App\Http\Controllers\SellerReportController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\CurrencyController;
+use App\Http\Controllers\CorridorController;
 
 Route::resource('sellers', SellerController::class);
 Route::resource('liquidations', LiquidationController::class);
 Route::resource('currencies', CurrencyController::class)->except(['show', 'destroy']);
 Route::patch('currencies/{currency}/toggle-status', [CurrencyController::class, 'toggleStatus'])->name('currencies.toggleStatus');
+
+Route::resource('corridors', CorridorController::class)->except(['show']);
+Route::patch('corridors/{corridor}/toggle-status', [CorridorController::class, 'toggleStatus'])->name('corridors.toggleStatus');
 
 Route::get('/sellers-api', function () {
     return Seller::all();
