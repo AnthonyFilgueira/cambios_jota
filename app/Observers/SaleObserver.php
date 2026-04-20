@@ -50,6 +50,17 @@ class SaleObserver
             if ($newStatus === 'completed') {
                 event(new SaleCompleted($sale));
             }
+
+            // Agregar comisión al monedero cuando se aprueba o completa
+            if (in_array($newStatus, ['approved', 'completed']) && !in_array($oldStatus, ['approved', 'completed'])) {
+                $commission = $sale->sellerCommissionAmount();
+                $sale->seller->addToWallet(
+                    $commission,
+                    'commission',
+                    "Comisión por venta #{$sale->id} - S/. " . number_format($sale->amount, 2),
+                    $sale
+                );
+            }
         }
     }
 

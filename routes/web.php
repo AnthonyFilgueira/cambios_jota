@@ -9,6 +9,7 @@ use App\Http\Controllers\SellerController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ExchangeRateController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\WalletController;
 
 Route::resource('sellers', SellerController::class);
 
@@ -51,6 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
 });
 
 require __DIR__.'/auth.php';

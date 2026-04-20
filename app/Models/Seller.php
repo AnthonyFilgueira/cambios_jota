@@ -159,6 +159,11 @@ class Seller extends Model
         return $this->hasMany(Sale::class);
     }
 
+    public function walletTransactions()
+    {
+        return $this->hasMany(WalletTransaction::class)->orderBy('created_at', 'desc');
+    }
+
     // Total vendido en un rango de fechas
     public function totalSalesBetween($start, $end)
     {
@@ -344,5 +349,107 @@ class Seller extends Model
             'seller_commission' => $this->sellerCommissionTotal($start, $end),
             'boss_commission' => $this->bossCommissionTotal($start, $end),
         ];
+    }
+
+    // ===============================================
+    // MONEDERO VIRTUAL
+    // ===============================================
+
+    /**
+     * Obtener saldo actual del monedero
+     * (Basado en la última transacción registrada)
+     *
+     * @return float
+     */
+    public function walletBalance()
+    {
+        $lastTransaction = $this->walletTransactions()->latest('created_at')->first();
+        return $lastTransaction ? $lastTransaction->balance_after : 0;
+    }
+
+    /**
+     * Agregar fondos al monedero
+     *
+     * @param float $amount
+     * @param string $type (commission, liquidation, adjustment)
+     * @param string $description
+     * @param mixed $reference (Sale, Liquidation, etc.)
+     * @return WalletTransaction
+     */
+    public function addToWallet($amount, $type, $description, $reference = null)
+    {
+        $currentBalance = $this->walletBalance();
+        $newBalance = $currentBalance + abs($amount); // Siempre sumar positivo
+
+        return $this->walletTransactions()->create([
+            'type' => $type,
+            'amount' => abs($amount),
+            'balance_after' => $newBalance,
+            'description' => $description,
+            'reference_id' => $reference ? $reference->id : null,
+            'reference_type' => $reference ? get_class($reference) : null,
+        ]);
+    }
+
+    /**
+     * Restar fondos del monedero
+     *
+     * @param float $amount
+     * @param string $type
+     * @param string $description
+     * @param mixed $reference
+     * @return WalletTransaction
+     * @throws \Exception Si no hay saldo suficiente
+     */
+    public function deductFromWallet($amount, $type, $description, $reference = null)
+    {
+        $currentBalance = $this->walletBalance();
+        $deductAmount = abs($amount);
+
+        if ($currentBalance < $deductAmount) {
+            throw new \Exception("Saldo insuficiente. Saldo actual: S/. {$currentBalance}, Intentando restar: S/. {$deductAmount}");
+        }
+
+        $newBalance = $currentBalance - $deductAmount;
+
+        return $this->walletTransactions()->create([
+            'type' => $type,
+            'amount' => -$deductAmount, // Negativo para indicar egreso
+            'balance_after' => $newBalance,
+            'description' => $description,
+            'reference_id' => $reference ? $reference->id : null,
+            'reference_type' => $reference ? get_class($reference) : null,
+        ]);
+    }
+
+    /**
+     * Ajustar saldo manualmente (corrección)
+     *
+     * @param float $amount (positivo o negativo)
+     * @param string $description
+     * @return WalletTransaction
+     */
+    public function adjustWallet($amount, $description)
+    {
+        $currentBalance = $this->walletBalance();
+        $newBalance = $currentBalance + $amount;
+
+        return $this->walletTransactions()->create([
+            'type' => 'adjustment',
+            'amount' => $amount,
+            'balance_after' => $newBalance,
+            'description' => $description,
+        ]);
+    }
+
+    /**
+     * Verificar si tiene saldo suficiente
+     *
+     * @param float $amount
+     * @return bool
+     */
+    public function hasSufficientBalance($amount)
+    {
+        return $this->walletBalance() >= $amount;
     }
 }
