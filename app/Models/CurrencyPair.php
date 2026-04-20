@@ -38,7 +38,7 @@ class CurrencyPair extends Model
 
     public function corridors()
     {
-        return $this->belongsToMany(Corridor::class, 'corridor_pair')
+        return $this->belongsToMany(Corridor::class, 'corridor_currency_pair')
             ->withPivot('is_enabled')
             ->withTimestamps();
     }

@@ -28,8 +28,19 @@ class Corridor extends Model
         return $query->where('is_active', false);
     }
 
-    // Relaciones (se agregarán en tarea 6.4)
-    // public function currencyPairs() { ... }
+    // Relaciones
+    public function currencyPairs()
+    {
+        return $this->belongsToMany(CurrencyPair::class, 'corridor_currency_pair')
+            ->withPivot('is_enabled')
+            ->withTimestamps();
+    }
+
+    // Obtener solo pares habilitados para este corredor
+    public function enabledCurrencyPairs()
+    {
+        return $this->currencyPairs()->wherePivot('is_enabled', true);
+    }
 
     // Métodos de utilidad
     public function activate()
