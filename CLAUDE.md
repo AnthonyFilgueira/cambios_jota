@@ -208,20 +208,113 @@ docs/
 
 ---
 
-## Plan de Trabajo (8 REQ)
+## Plan de Trabajo (Requerimientos Principales)
 
-| REQ | Nombre | Estado | Horas | Notas |
-|-----|--------|--------|-------|-------|
-| 1 | Simulador de Divisas | ✅ COMPLETO | 30h | `welcome.blade.php` + `ExchangeRateController` |
-| 2 | Registro y Autenticación | 🔄 PARCIAL | 46h | Breeze instalado, falta historial |
-| 3 | Venta Indirecta | ⏸️ PENDIENTE | 50h | - |
-| 4 | Observaciones y Feedback | ⏸️ PENDIENTE | 39h | - |
-| 5 | Gestión de Vendedores | ⏸️ PENDIENTE | 47h | - |
-| 6 | Matriz de Divisas | ⏸️ PENDIENTE | 33h | - |
-| 7 | Consola de Tasas | ✅ COMPLETO | 37h | CRUD tasas, filtros, historial, validaciones |
-| 8 | Incentivos y Bonos | ⏸️ PENDIENTE | 37h | - |
+### Requerimientos Completados ✅
+
+| REQ | Nombre | Estado | Horas | Características Clave |
+|-----|--------|--------|-------|----------------------|
+| 1 | Simulador de Divisas | ✅ | 30h | Selector dinámico de países, cálculos en tiempo real |
+| 2 | Registro y Transacciones | ✅ | 46h | Breeze, historial, perfil de usuario |
+| 3 | Venta Indirecta | ✅ | 50h | Aprobación multi-nivel, notificaciones, estados |
+| 4 | Observaciones y Feedback | ✅ | 39h | Trazabilidad, logs, notificaciones por email |
+| 5 | Gestión de Vendedores | ✅ | 47h | Códigos únicos, comisiones, monedero, rankings |
+| 6 | Matriz de Divisas | ✅ | 33h | CRUD divisas, pares, corredores, matriz interactiva |
+| 7 | Consola de Tasas | ✅ | 37h | CRUD tasas, filtros, historial de auditoría |
+| 9 | Historicidad de Tasas | ✅ | ~8h | Snapshots en ventas, comisiones inmutables |
+| 10 | UI/UX Mejorada | ✅ | ~12h | Landing, navbar, efectos visuales |
+
+**Total Completado:** 302h / ~347h ≈ **87%**
+
+### Requerimientos Pendientes ⏸️
+
+| REQ | Nombre | Estado | Horas Est. | Descripción |
+|-----|--------|--------|-----------|-------------|
+| 8 | Incentivos y Bonos | ⏸️ | 37h | Metas, bonos variables, liquidaciones |
+| 11 | Datos de Demostración | ⏸️ | ~8h | Seeders completos, casos de prueba |
+
+**Pendiente:** ~45h
 
 **Plan completo:** `/docs/work_plans/plan_trabajo.md`
+
+---
+
+## Detalle de Requerimientos Completados
+
+### REQ 1: Simulador de Divisas ✅
+**Ubicación:** `resources/views/welcome.blade.php`
+- Selector dinámico de países (🇵🇪 Perú, 🇦🇷 Argentina, 🇨🇱 Chile)
+- Cálculos automáticos con tasas desde BD
+- Labels y símbolos dinámicos por país
+- Mobile-first responsive
+
+### REQ 2: Registro y Transacciones ✅
+**Archivos:** `app/Models/Transaction.php`, `TransactionController.php`
+- Laravel Breeze (autenticación)
+- Modelo Transaction con migración
+- Vista de historial de transacciones
+- Factory y seeder de datos de prueba
+
+### REQ 3: Venta Indirecta ✅
+**Archivos:** `app/Models/Sale.php`, `SaleController.php`
+- Campo `approval_status` (pending/approved/rejected/observed)
+- Métodos `approve()` y `reject()` en modelo
+- Vista tablero de vendedor
+- Vista cola de aprobación para admin
+- Sistema de notificaciones básico
+- Paleta de colores Cambio J aplicada
+
+### REQ 4: Observaciones y Feedback ✅
+**Archivos:** `app/Models/SaleLog.php`, Notificaciones
+- Sistema de observaciones con trazabilidad
+- Logs de quién observó, qué, cuándo
+- Notificaciones por email
+- Re-edición rápida de ventas observadas
+- Carga de comprobantes
+
+### REQ 5: Gestión de Vendedores ✅
+**Archivos:** `app/Models/Seller.php`, comisiones
+- Generador de código único alfanumérico
+- Motor de cálculo de comisiones
+- Monedero virtual con saldo en tiempo real
+- Registro de liquidaciones
+- Dashboard del dueño con métricas BI
+- Reportes de rendimiento y rankings
+- Exportación CSV/PDF
+
+### REQ 6: Matriz de Divisas ✅
+**Archivos:** `Currency.php`, `CurrencyPair.php`, `Corridor.php`
+- CRUD completo de divisas
+- Modelo de pares de conversión
+- Modelo de corredores
+- Tabla pivot par-corredor (many-to-many)
+- Interfaz de gestión de pares con asignación
+- Matriz interactiva con AJAX
+
+### REQ 7: Consola de Tasas ✅
+**Archivos:** `ExchangeRate.php`, `ExchangeRateHistory.php`
+- CRUD tasas con validaciones dobles
+- Filtros inteligentes (activas/inactivas/todas)
+- Sistema de auditoría completo
+- Observer para registro automático
+- Vista de historial con timeline
+- Integración con simulador público
+- Solo 1 tasa activa por par (exclusividad)
+
+### REQ 9: Historicidad de Tasas ✅
+**Implementación:** Snapshots en ventas
+- Campo `exchange_rate_snapshot` en sales
+- Campo `commission_snapshots` en sales
+- Tasas y comisiones inmutables en ventas
+- Las viejas tasas se mantienen en BD
+
+### REQ 10: UI/UX Mejorada ✅
+**Archivos:** Landing, navbar, efectos CSS
+- Mejora de landing page
+- Navbar con efectos visuales modernos
+- Fondo mejorado con gradientes
+- Paleta de colores Cambio J aplicada
+- Responsive design mejorado
 
 ---
 
