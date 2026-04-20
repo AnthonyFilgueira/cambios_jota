@@ -47,7 +47,7 @@ class DemoDataSeeder extends Seeder
         // Admin
         $this->admin = User::create([
             'name' => 'Admin Cambio J',
-            'email' => 'cambios_jota@innodite.com',
+            'email' => 'cambios_jotta@innodite.com',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
         ]);
@@ -226,7 +226,7 @@ class DemoDataSeeder extends Seeder
         $this->command->info('');
         $this->command->info('🔑 CREDENCIALES DE ACCESO:');
         $this->command->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        $this->command->info('📧 Admin: cambios_jota@innodite.com');
+        $this->command->info('📧 Admin: cambios_jotta@innodite.com');
         $this->command->info('🔒 Password: password');
         $this->command->info('');
     }
