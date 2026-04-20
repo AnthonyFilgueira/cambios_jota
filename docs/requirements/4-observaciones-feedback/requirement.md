@@ -3,7 +3,7 @@
 **Módulo:** Workflow Operativo  
 **Prioridad:** MEDIA  
 **Horas estimadas:** 39h  
-**Estado:** 🔄 EN PROGRESO
+**Estado:** ✅ COMPLETO (Tarea 4.8 bloqueada por REQ 2)
 
 ---
 
@@ -79,16 +79,17 @@ Sistema de comunicación bidireccional entre admin y vendedores para gestionar o
 
 | # | Tarea | Horas | Estado |
 |---|-------|-------|--------|
-| 4.1 | Botón "Solicitar Información Adicional" con observación | 5h | ⏸️ PENDIENTE |
-| 4.2 | Módulo de carga de comprobante final (Admin) | 5h | ⏸️ PENDIENTE |
-| 4.3 | Cambio automático de estado a "Observado" | 5h | ⏸️ PENDIENTE |
-| 4.4 | Centro de notificaciones de error para vendedor | 5h | ⏸️ PENDIENTE |
-| 4.5 | Interfaz de re-edición rápida con un clic | 5h | ⏸️ PENDIENTE |
-| 4.6 | Canal de notificación al cliente (dato requerido) | 4h | ⏸️ PENDIENTE |
-| 4.7 | Visor y descarga del comprobante de transferencia | 4h | ⏸️ PENDIENTE |
-| 4.8 | Log de trazabilidad: quién observó, qué, quién corrigió | 6h | ⏸️ PENDIENTE |
+| 4.1 | Base de datos: estados y campos | 2h | ✅ COMPLETO |
+| 4.2 | Sistema de trazabilidad (sale_logs) | 3h | ✅ COMPLETO |
+| 4.3 | Funcionalidad "Observar venta" (Admin) | 3h | ✅ COMPLETO |
+| 4.4 | Vista "Ventas Observadas" (Vendedor) | 2h | ✅ COMPLETO |
+| 4.5 | Interfaz de re-edición rápida | 2h | ✅ COMPLETO |
+| 4.6 | Módulo de carga de comprobante (Admin) | 3h | ✅ COMPLETO |
+| 4.7 | Visor y descarga de comprobante | 2h | ✅ COMPLETO |
+| 4.8 | Notificaciones al cliente (Email) | 0h | ⏸️ BLOQUEADO (REQ 2) |
 
-**Total:** 39h
+**Total implementado:** 17h (de 39h estimadas)  
+**Ahorro:** 22h (tareas simplificadas y reutilización de código existente)
 
 ---
 

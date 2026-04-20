@@ -40,6 +40,70 @@ class SaleController extends Controller
         return view('sales.observed', compact('sales'));
     }
 
+    public function approved()
+    {
+        $sales = Sale::with('seller')
+            ->where('approval_status', 'approved')
+            ->latest('updated_at')
+            ->paginate(20);
+        return view('sales.approved', compact('sales'));
+    }
+
+    public function uploadVoucher(Request $request, Sale $sale)
+    {
+        $request->validate([
+            'voucher' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB
+        ]);
+
+        try {
+            if (!$sale->canBeCompleted()) {
+                throw new \Exception('Solo se pueden cargar comprobantes en ventas aprobadas.');
+            }
+
+            // Almacenar el archivo
+            $file = $request->file('voucher');
+            $filename = 'voucher_' . $sale->id . '_' . time() . '.' . $file->extension();
+            $path = $file->storeAs('vouchers', $filename, 'local');
+
+            // Marcar venta como completada
+            $sale->complete($path);
+
+            return redirect()->back()->with('success', 'Comprobante cargado exitosamente. Venta marcada como completada.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function showVoucher(Sale $sale)
+    {
+        if (!$sale->voucher_path) {
+            abort(404, 'No hay comprobante disponible para esta venta.');
+        }
+
+        $path = storage_path('app/' . $sale->voucher_path);
+
+        if (!file_exists($path)) {
+            abort(404, 'El archivo del comprobante no existe.');
+        }
+
+        return response()->file($path);
+    }
+
+    public function downloadVoucher(Sale $sale)
+    {
+        if (!$sale->voucher_path) {
+            abort(404, 'No hay comprobante disponible para esta venta.');
+        }
+
+        $path = storage_path('app/' . $sale->voucher_path);
+
+        if (!file_exists($path)) {
+            abort(404, 'El archivo del comprobante no existe.');
+        }
+
+        return response()->download($path, 'comprobante_venta_' . $sale->id . '.' . pathinfo($path, PATHINFO_EXTENSION));
+    }
+
     public function create()
     {
         $sellers = Seller::all();
