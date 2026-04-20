@@ -12,6 +12,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\LiquidationController;
 use App\Http\Controllers\OwnerDashboardController;
+use App\Http\Controllers\SellerReportController;
 
 Route::resource('sellers', SellerController::class);
 Route::resource('liquidations', LiquidationController::class);
@@ -57,6 +58,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
     Route::get('/owner-dashboard', [OwnerDashboardController::class, 'index'])->name('owner.dashboard');
+
+    // Reportes de vendedores
+    Route::get('/reports/sellers/{seller}/performance', [SellerReportController::class, 'performance'])->name('reports.performance');
+    Route::get('/reports/sellers/rankings', [SellerReportController::class, 'rankings'])->name('reports.rankings');
 });
 
 require __DIR__.'/auth.php';
