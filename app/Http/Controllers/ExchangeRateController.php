@@ -8,11 +8,41 @@ use Illuminate\Http\Request;
 
 class ExchangeRateController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $rates = ExchangeRate::orderBy('created_at', 'desc')->get();
+        // Query base: tasas con sus pares
+        $query = ExchangeRate::with(['currencyPair.fromCurrency', 'currencyPair.toCurrency', 'updatedBy'])
+            ->orderBy('is_active', 'desc')
+            ->orderBy('updated_at', 'desc');
+
+        // Filtro por divisa origen
+        if ($request->filled('from_currency')) {
+            $query->whereHas('currencyPair', function ($q) use ($request) {
+                $q->where('from_currency_id', $request->from_currency);
+            });
+        }
+
+        // Filtro por divisa destino
+        if ($request->filled('to_currency')) {
+            $query->whereHas('currencyPair', function ($q) use ($request) {
+                $q->where('to_currency_id', $request->to_currency);
+            });
+        }
+
+        // Filtro por estado
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status === 'active');
+        }
+
+        $rates = $query->get();
         $activeRate = ExchangeRate::getActive();
-        return view('exchange_rates.index', compact('rates', 'activeRate'));
+
+        // Divisas para filtros (desde CurrencyPair)
+        $currencies = \App\Models\Currency::where('is_active', true)
+            ->orderBy('code')
+            ->get();
+
+        return view('exchange_rates.index', compact('rates', 'activeRate', 'currencies'));
     }
 
     public function create()
