@@ -22,8 +22,10 @@ Route::get('sales-bulk', [SaleController::class, 'bulkCreate'])->name('sales.bul
 Route::post('sales/bulk', [SaleController::class, 'bulkStore'])->name('sales.bulk.store');
 Route::get('sales-pending-seller', [SaleController::class, 'pendingSeller'])->name('sales.pending.seller');
 Route::get('sales-pending-admin', [SaleController::class, 'pendingAdmin'])->name('sales.pending.admin');
+Route::get('sales-observed', [SaleController::class, 'observed'])->name('sales.observed');
 Route::post('sales/{sale}/approve', [SaleController::class, 'approve'])->name('sales.approve');
 Route::post('sales/{sale}/reject', [SaleController::class, 'reject'])->name('sales.reject');
+Route::post('sales/{sale}/observe', [SaleController::class, 'observe'])->name('sales.observe');
 
 // Tasas de cambio
 Route::resource('exchange_rates', ExchangeRateController::class);

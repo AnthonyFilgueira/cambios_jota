@@ -13,6 +13,8 @@ class Sale extends Model
         'amount',
         'sale_date',
         'approval_status',
+        'voucher_path',
+        'admin_observation',
     ];
 
     protected $casts = [
@@ -24,6 +26,11 @@ class Sale extends Model
     public function seller()
     {
         return $this->belongsTo(Seller::class);
+    }
+
+    public function logs()
+    {
+        return $this->hasMany(SaleLog::class);
     }
 
     // Cálculo de comisión del vendedor
@@ -67,6 +74,30 @@ class Sale extends Model
         throw new \Exception("No se puede rechazar una venta con estado: {$this->approval_status}");
     }
 
+    public function observe(string $observation)
+    {
+        if ($this->approval_status === 'pending_admin') {
+            $this->admin_observation = $observation;
+            $this->approval_status = 'observed';
+            $this->save();
+            return true;
+        }
+
+        throw new \Exception("Solo se pueden observar ventas en estado pending_admin");
+    }
+
+    public function complete(string $voucherPath)
+    {
+        if ($this->approval_status === 'approved') {
+            $this->voucher_path = $voucherPath;
+            $this->approval_status = 'completed';
+            $this->save();
+            return true;
+        }
+
+        throw new \Exception("Solo se pueden completar ventas en estado approved");
+    }
+
     // Helpers de estado
     public function isPendingSeller(): bool
     {
@@ -88,6 +119,16 @@ class Sale extends Model
         return $this->approval_status === 'rejected';
     }
 
+    public function isObserved(): bool
+    {
+        return $this->approval_status === 'observed';
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->approval_status === 'completed';
+    }
+
     public function canBeApproved(): bool
     {
         return in_array($this->approval_status, ['pending_seller', 'pending_admin']);
@@ -96,5 +137,15 @@ class Sale extends Model
     public function canBeRejected(): bool
     {
         return in_array($this->approval_status, ['pending_seller', 'pending_admin']);
+    }
+
+    public function canBeObserved(): bool
+    {
+        return $this->approval_status === 'pending_admin';
+    }
+
+    public function canBeCompleted(): bool
+    {
+        return $this->approval_status === 'approved';
     }
 }
