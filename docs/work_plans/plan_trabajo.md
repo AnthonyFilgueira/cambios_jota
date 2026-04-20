@@ -139,9 +139,10 @@ Incluye además: setup de infraestructura, pruebas QA, documentación técnica b
 | REQ 6: Matriz de Divisas y Corredores | 33h | S/ 825 |
 | REQ 7: Consola de Tasas y Márgenes | 37h | S/ 925 |
 | REQ 8: Incentivos y Beneficios Variables | 37h | S/ 925 |
+| REQ 11: Sistema de Datos de Demostración | 8h | S/ 200 |
 | Setup Infraestructura y DevOps | 10h | S/ 350 |
 | QA, Pruebas y Entrega Final | 15h | S/ 450 |
-| **TOTAL DEL PROYECTO** | **390h** | **S/ 9,925** |
+| **TOTAL DEL PROYECTO** | **398h** | **S/ 10,125** |
 
 * Tarifa promedio aplicada: S/ 25/hora (desarrollador Senior Full-Stack en mercado peruano, rango de mercado S/ 20-35/hora para perfil Laravel + Vue 3).
 
