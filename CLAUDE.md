@@ -1,184 +1,292 @@
 # CLAUDE.md — Proyecto Cambio J
 
-Este archivo provee contexto completo para Claude Code. Léelo antes de tocar cualquier archivo.
+**Plataforma de gestión de divisas PEN → VES**
 
 ---
 
-## Stack técnico
+## Stack Técnico (REAL - Implementado)
 
-- **Backend:** Laravel 12
-- **Frontend:** Vue 3 (Composition API + `<script setup>`)
-- **Estilos:** Tailwind CSS
-- **Build:** Vite
-- **Package manager:** npm
-- **sail para ejecutar comanos**
-
----
-
-## Tarea actual: Simulador de Tasas (Requerimiento 1)
-
-Construir el componente `SimuladorEnvio.vue` — una vista mobile-first que permite al usuario calcular cuántos soles debe enviar y cuántos bolívares recibirá su familiar en Venezuela.
-
----
-
-## Lógica de negocio — CRÍTICO leer antes de escribir código
-
-### Las 3 tasas del sistema
-
-| Variable | Descripción | Quién la define | Editable |
-|---|---|---|---|
-| `tasaUSD` | Tasa BCV del dólar (ej: 479.77750) | Dueño del negocio | Sí, manual |
-| `tasaEUR` | Tasa BCV del euro (ej: 565.98392) | Dueño del negocio | Sí, manual |
-| `tasaVES` | Tasa propia de Cambio J (ej: 173.71) | Dueño del negocio | Sí, en cualquier momento |
-
-### Las 3 fórmulas de cálculo
-
-El resultado siempre muestra DOS valores:
-- **TÚ ENVÍAS** → monto en PEN (soles peruanos) que el cliente deposita
-- **TU FAMILIAR RECIBE** → monto en VES (bolívares) que llega a Venezuela
-
-```
-// CASO 1: Cliente ingresa SOLES directamente
-PEN ingresados × tasaVES = VES a recibir
-
-// CASO 2: Cliente ingresa DÓLARES (quiere convertir a tasa BCV dólar)
-USD × tasaUSD = VES intermedios
-VES intermedios ÷ tasaVES = PEN a enviar
-// El VES intermedios también es el VES final que recibe el familiar
-
-// CASO 3: Cliente ingresa DÓLARES (quiere convertir a tasa BCV euro)
-USD × tasaEUR = VES intermedios
-VES intermedios ÷ tasaVES = PEN a enviar
-// El VES intermedios también es el VES final que recibe el familiar
-```
-
-### Regla importante
-Los 3 inputs (USD, EUR, PEN) conviven en pantalla al mismo tiempo.
-Cuando el usuario escribe en uno, los otros dos se limpian automáticamente.
-Solo un input activo a la vez.
-
----
-
-## Parámetros fijos del negocio (hardcodeados en esta versión)
-
-```js
-const paisOrigen = { nombre: 'Perú', bandera: '🇵🇪', moneda: 'PEN', simbolo: 'S/' }
-const paisDestino = { nombre: 'Venezuela', bandera: '🇻🇪', moneda: 'VES', simbolo: 'Bs.' }
-```
-
-No hay selectores de país ni de moneda en esta versión. Son fijos.
-
----
-
-## Estructura de archivos esperada
-
-```
-resources/
-└── js/
-    ├── components/
-    │   └── SimuladorEnvio.vue   ← componente principal
-    ├── composables/
-    │   └── useSimulador.js      ← lógica de cálculo extraída
-    └── Pages/
-        └── Simulador.vue        ← página que monta el componente (si usas Inertia)
+```yaml
+Backend:   Laravel 12
+Frontend:  Alpine.js 3.x (NO Vue 3, NO Inertia)
+Vistas:    Blade templates
+Estilos:   Tailwind CSS con variables custom
+Base de datos: MySQL
+Build:     Vite
+Package manager: npm
+Comandos:  sail (Docker)
 ```
 
 ---
 
-## Diseño visual — Branding Cambio J
+## Paleta de Colores Cambio J
 
-### Paleta de colores
 ```css
---cj-verde:        #1A3A2A;   /* fondo header, cajas oscuras */
---cj-verde-medio:  #3A7A5A;   /* bordes, acentos */
---cj-verde-claro:  #8BAF96;   /* textos secundarios sobre verde */
---cj-verde-mint:   #F0F7F3;   /* fondos suaves */
---cj-dorado:       #D4A843;   /* acento principal, botón swap, caja "recibe" */
---cj-dorado-texto: #7A5A10;   /* texto sobre fondo dorado */
---cj-crema:        #F7F5F0;   /* fondo general de la app */
---cj-blanco:       #FFFFFF;   /* fondo de la card principal */
---cj-borde:        #E0DDD5;   /* bordes suaves */
---cj-gris:         #8A8880;   /* labels, textos terciarios */
+/* Morados */
+--cj-morado-profundo: #5B21B6;
+--cj-morado-medio:    #7C3AED;
+--cj-morado-claro:    #DDD6FE;
+
+/* Acentos */
+--cj-turquesa:        #14B8A6;
+--cj-rosa:            #EC4899;
+
+/* Neutros */
+--cj-fondo:           #F3F4F6;
+--cj-texto:           #374151;
+--cj-texto-claro:     #6B7280;
 ```
 
-### Tipografía
-- Fuente: sistema (sans-serif nativo)
-- Labels: 9-10px, uppercase, letter-spacing
-- Valores: 18-20px, font-weight 500
-- Todo en español
-
-### Layout
-- Mobile-first, ancho máximo del contenedor: 400px centrado
-- Card principal: fondo blanco, border-radius 20px, borde 0.5px
-- Header: fondo `--cj-verde`, logo "CJ" en cuadro dorado
+Configuradas en: `tailwind.config.js`
 
 ---
 
-## Estructura del componente SimuladorEnvio.vue
+## Patrón de Desarrollo Establecido
 
-```vue
-<template>
-  <!-- Header verde con logo Cambio J -->
-  <!-- Sección tasas del día: USD | EUR | VES con botón "Editar" -->
-  <!-- Ruta: 🇵🇪 Perú → 🇻🇪 Venezuela (fija, no editable) -->
-  <!-- Inputs: En dólares / En euros / En soles (los 3 visibles) -->
-  <!-- Caja verde oscura: TÚ ENVÍAS → X,XX PEN -->
-  <!-- Separador con tasa aplicada: 173,71 VES/PEN -->
-  <!-- Caja dorada: TU FAMILIAR RECIBE → X,XX VES 🇻🇪 -->
-  <!-- Botón: Iniciar envío -->
-</template>
+### Estructura de archivos por módulo:
+
+```
+app/
+├── Models/
+│   └── NombreModelo.php
+├── Http/Controllers/
+│   └── NombreController.php
+└── ...
+
+database/migrations/
+└── xxxx_create_tabla.php
+
+resources/views/
+├── nombre-modulo/
+│   ├── index.blade.php
+│   ├── create.blade.php
+│   └── edit.blade.php
+└── ...
+
+routes/
+└── web.php
 ```
 
----
+### Patrón Alpine.js en Blade:
 
-## Comportamiento del botón "Editar" tasas
+```html
+<div x-data="nombreComponente()">
+    <!-- HTML con directivas Alpine: x-model, x-text, @click, etc. -->
+</div>
 
-1. Al hacer clic en "✎ Editar": los displays de las 3 tasas se reemplazan por inputs numéricos editables
-2. Al hacer clic en "✓ Guardar": se guardan los nuevos valores, se vuelven a mostrar como texto y se recalcula automáticamente
-3. Las tasas editadas deben persistir en `localStorage` con la clave `cambioJ_tasas`
-4. Al montar el componente, leer primero de `localStorage`; si no existe, usar los valores por defecto
-
-### Valores por defecto de las tasas
-```js
-const defaultTasas = {
-  usd: 479.77750,
-  eur: 565.98392,
-  ves: 173.71000
+<script>
+function nombreComponente() {
+    return {
+        // Estado reactivo
+        dato: '',
+        
+        // Métodos
+        metodo() {
+            // lógica
+        }
+    }
 }
+</script>
+```
+
+**Referencia:** `resources/views/welcome.blade.php` (REQ 1 - Simulador)
+
+---
+
+## Sistema de Gestión de Requerimientos
+
+### Estructura de documentación:
+
+```
+docs/
+├── work_plans/
+│   └── plan_trabajo.md              # Plan maestro con 8 REQ
+├── requirements/
+│   ├── 00-sistema-gestion-pm/
+│   │   └── requirement.md
+│   ├── 01-analisis-estado-actual/
+│   │   └── requirement.md
+│   ├── 02-simulador-envio/         # REQ 1 del plan
+│   │   ├── requirement.md
+│   │   ├── 1.1-maquetado/
+│   │   │   ├── task.md
+│   │   │   └── implementation.md
+│   │   └── ...
+│   └── ...
+└── checkpoints/
+    └── checkpoint-YYYY-MM-DD-HHmm.md
+```
+
+### Por cada REQ:
+
+1. **Crear carpeta:** `XX-nombre-descriptivo/`
+2. **Crear `requirement.md`:** Descripción general del requerimiento
+3. **Por cada tarea:**
+   - Crear carpeta: `X.Y-nombre-tarea/`
+   - Crear `task.md`: Descripción corta de la tarea
+   - Ejecutar tarea
+   - Crear `implementation.md`: Detalle completo (código, comandos, decisiones)
+   - Commit: "REQ X.Y: Descripción de la tarea"
+
+---
+
+## Gestión de Cambios
+
+### Caso 1: Error en implementación
+- **Acción:** Editar `implementation.md` de la tarea
+- **Commit:** "REQ X.Y: Corregir implementación - [descripción]"
+
+### Caso 2: Cambio de requerimiento
+- **Acción:** 
+  1. Documentar cambio en `requirement.md` del REQ
+  2. Crear nueva tarea: `X.YY-ajuste-descripcion/`
+  3. Crear `task.md` + `implementation.md`
+- **Commit:** "REQ X.YY: Ajuste por cambio de requerimiento - [descripción]"
+
+**Beneficio:** Trazabilidad total de qué era original vs. cambios del cliente
+
+---
+
+## ⚠️ REGLA CRÍTICA: Checkpoint de Contexto
+
+### Cuando el uso de tokens llegue al 50-60% (100K-120K tokens):
+
+1. **PAUSAR** trabajo actual
+2. **CREAR checkpoint:**
+   ```bash
+   # Crear archivo
+   touch docs/checkpoints/checkpoint-$(date +%Y-%m-%d-%H%M).md
+   ```
+
+3. **Documentar en el checkpoint:**
+   ```markdown
+   # Checkpoint - [Fecha y Hora]
+   
+   ## Uso de contexto
+   - Tokens usados: XXX / 200,000 (XX%)
+   
+   ## Estado del proyecto
+   - REQ completados: [lista con commits]
+   - REQ en progreso: XX - Tarea X.Y
+   - Última tarea completada: [descripción]
+   - Último commit: [hash] - [mensaje]
+   
+   ## Decisiones técnicas tomadas
+   - [Lista de decisiones importantes de esta sesión]
+   
+   ## Archivos modificados en esta sesión
+   - [Lista de archivos]
+   
+   ## Próximo paso
+   [Descripción específica y detallada de qué hacer al retomar]
+   
+   ## Prompt de reanudación
+   ```
+   Continuar proyecto Cambio J desde checkpoint [fecha].
+   
+   Leer primero:
+   - /home/anthony_filgueira/cambios_jota/docs/checkpoints/checkpoint-[fecha].md
+   - /home/anthony_filgueira/cambios_jota/CLAUDE.md
+   - /home/anthony_filgueira/cambios_jota/docs/requirements/[req-actual]/requirement.md
+   
+   Contexto rápido:
+   [Resumen de 2-3 líneas del estado actual]
+   
+   Ejecutar: [Próximo paso específico]
+   ```
+   ```
+
+4. **Hacer commit:**
+   ```bash
+   git add .
+   git commit -m "Checkpoint: Sesión [fecha] - Estado antes de limpiar contexto"
+   ```
+
+5. **CERRAR esta conversación**
+
+6. **ABRIR nueva conversación** con el "Prompt de reanudación"
+
+---
+
+## Plan de Trabajo (8 REQ)
+
+| REQ | Nombre | Estado | Horas | Notas |
+|-----|--------|--------|-------|-------|
+| 1 | Simulador de Divisas | ✅ COMPLETO | 30h | `welcome.blade.php` + `ExchangeRateController` |
+| 2 | Registro y Autenticación | 🔄 PARCIAL | 46h | Breeze instalado, falta historial |
+| 3 | Venta Indirecta | ⏸️ PENDIENTE | 50h | - |
+| 4 | Observaciones y Feedback | ⏸️ PENDIENTE | 39h | - |
+| 5 | Gestión de Vendedores | ⏸️ PENDIENTE | 47h | - |
+| 6 | Matriz de Divisas | ⏸️ PENDIENTE | 33h | - |
+| 7 | Consola de Tasas | ⏸️ PENDIENTE | 37h | - |
+| 8 | Incentivos y Bonos | ⏸️ PENDIENTE | 37h | - |
+
+**Plan completo:** `/docs/work_plans/plan_trabajo.md`
+
+---
+
+## Convenciones de Código
+
+### Commits
+- Formato: `REQ X.Y: Descripción específica de la tarea`
+- Ejemplo: `REQ 2.3: Crear modelo Transaction y migración`
+- Commits atómicos: uno por tarea completada
+
+### Nombres de archivos
+- Controladores: `PascalCase` → `ExchangeRateController.php`
+- Modelos: `PascalCase` → `Transaction.php`
+- Vistas: `kebab-case` → `exchange-rates/index.blade.php`
+- Migraciones: Snake case → `create_transactions_table.php`
+
+### Alpine.js
+- Funciones componentes: `camelCase` → `function simulador()`
+- Variables reactivas: `camelCase` → `inputUSD`, `penEnviar`
+
+### CSS/Tailwind
+- Variables custom: `cj-nombre-descriptivo`
+- Clases utility-first, evitar CSS custom innecesario
+
+---
+
+## Comandos Útiles
+
+```bash
+# Desarrollo
+./vendor/bin/sail up -d
+./vendor/bin/sail npm run dev
+./vendor/bin/sail artisan migrate
+./vendor/bin/sail artisan migrate:fresh --seed
+
+# Estado del proyecto
+git status
+git log --oneline -10
+php artisan route:list --compact
+
+# Verificar tokens (aproximado)
+wc -w docs/**/*.md  # 1 token ≈ 0.75 palabras
 ```
 
 ---
 
-## Formateo de números
+## Recursos del Proyecto
 
-Usar `Intl.NumberFormat` con locale `es-PE` para todos los valores mostrados:
-
-```js
-// Para tasas (5 decimales)
-new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 5 }).format(valor)
-
-// Para montos PEN y VES (2 decimales)
-new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(valor)
-```
+- **Plan de trabajo:** `/docs/work_plans/plan_trabajo.md`
+- **Requerimientos:** `/docs/requirements/`
+- **Checkpoints:** `/docs/checkpoints/`
+- **Simulador (REQ 1):** `resources/views/welcome.blade.php`
+- **Modelo tasas:** `app/Models/ExchangeRate.php`
 
 ---
 
-## Lo que NO hacer
+## Notas Importantes
 
-- No conectar a ninguna API externa en esta versión (las tasas son manuales)
-- No agregar selectores de país ni de moneda (están hardcodeados)
-- No usar opciones de Swap en esta versión
-- No implementar autenticación ni rutas protegidas en esta tarea
-- No instalar librerías adicionales — solo Vue 3 + Tailwind que ya están en el proyecto
+- **NO usar Vue 3:** El proyecto usa Alpine.js
+- **NO instalar librerías sin consultar:** Mantener stack simple
+- **Commits frecuentes:** Uno por tarea, no acumular
+- **Documentar TODO:** Cada tarea tiene su `implementation.md`
+- **Checkpoints obligatorios:** Al 50-60% de contexto
 
 ---
 
-## Verificación final — prueba estos casos antes de dar por terminado
-
-| Input | Valor | PEN esperado | VES esperado |
-|---|---|---|---|
-| PEN | 100 | 100,00 | 17.371,00 |
-| USD (BCV) | 100 | 281,51 | 47.977,50 |
-| USD (EUR) | 100 | 332,33 | 56.598,39 |
-
-*(Calculado con tasas por defecto: USD=479.77750, EUR=565.98392, VES=173.71)*
+**Última actualización:** 2026-04-20  
+**Estado actual:** Definiendo sistema de gestión de requerimientos
