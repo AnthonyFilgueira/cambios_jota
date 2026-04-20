@@ -59,7 +59,27 @@ Route::post('exchange_rates/{exchangeRate}/activate', [ExchangeRateController::c
 
 Route::get('/', function () {
     $rates = ExchangeRate::getActive();
-    return view('welcome', compact('rates'));
+
+    // Cargar todos los pares con sus divisas para el selector
+    $pairs = \App\Models\ExchangeRate::with(['currencyPair.fromCurrency', 'currencyPair.toCurrency'])
+        ->whereNotNull('currency_pair_id')
+        ->get()
+        ->map(function($rate) {
+            return [
+                'id' => $rate->id,
+                'from_code' => $rate->currencyPair->fromCurrency->code,
+                'from_name' => $rate->currencyPair->fromCurrency->name,
+                'from_country' => $rate->currencyPair->fromCurrency->country,
+                'from_symbol' => $rate->currencyPair->fromCurrency->symbol,
+                'flag' => $rate->currencyPair->fromCurrency->flag_emoji,
+                'ves_rate' => $rate->ves_rate,
+                'usd_rate' => $rate->usd_rate,
+                'eur_rate' => $rate->eur_rate,
+                'is_active' => $rate->is_active,
+            ];
+        });
+
+    return view('welcome', compact('rates', 'pairs'));
 });
 
 Route::get('/dashboard', function () {

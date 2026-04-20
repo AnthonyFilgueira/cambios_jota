@@ -99,15 +99,26 @@
                     </div>
                 </div>
 
-                <!-- Ruta fija: Perú → Venezuela -->
-                <div class="bg-cj-morado-claro p-4 flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <span class="text-2xl">🇵🇪</span>
-                        <span class="font-semibold text-cj-texto">Perú (PEN)</span>
-                    </div>
-                    <div class="text-cj-morado-profundo text-xl font-bold">→</div>
-                    <div class="flex items-center gap-2">
-                        <span class="font-semibold text-cj-texto">Venezuela (VES)</span>
+                <!-- Selector de País Origen -->
+                <div class="bg-cj-morado-claro p-4">
+                    <label class="block text-xs uppercase tracking-wider font-semibold text-cj-texto mb-2">
+                        Selecciona el país de origen
+                    </label>
+                    <select
+                        x-model="selectedPairId"
+                        @change="cambiarPar()"
+                        class="w-full p-3 border-2 border-cj-morado-profundo/20 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all font-semibold text-cj-texto">
+                        <template x-for="pair in pairs" :key="pair.id">
+                            <option :value="pair.id" x-text="`${pair.flag} ${pair.from_country} (${pair.from_code})`"></option>
+                        </template>
+                    </select>
+
+                    <!-- Indicador visual de ruta -->
+                    <div class="mt-3 flex items-center justify-center gap-3 text-sm">
+                        <span x-text="currentPair.flag" class="text-2xl"></span>
+                        <span x-text="currentPair.from_country" class="font-semibold text-cj-texto"></span>
+                        <span class="text-cj-morado-profundo text-xl font-bold">→</span>
+                        <span class="font-semibold text-cj-texto">Venezuela</span>
                         <span class="text-2xl">🇻🇪</span>
                     </div>
                 </div>
@@ -153,19 +164,19 @@
                         </div>
                     </div>
 
-                    <!-- Fila: PEN solo (ancho completo) -->
+                    <!-- Fila: Moneda origen (dinámico) -->
                     <div>
                         <label class="block text-xs uppercase tracking-wider font-semibold text-cj-texto-claro mb-2">
-                            En soles (Directo)
+                            <span x-text="`En ${currentPair.from_name} (Directo)`"></span>
                         </label>
                         <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-cj-texto-claro font-medium">S/</span>
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-cj-texto-claro font-medium" x-text="currentPair.from_symbol"></span>
                             <input
                                 type="number"
                                 step="0.01"
                                 placeholder="0.00"
-                                x-model="inputPEN"
-                                @input="calcularDesdePEN()"
+                                x-model="inputOrigen"
+                                @input="calcularDesdeOrigen()"
                                 class="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
                             >
                         </div>
@@ -176,16 +187,16 @@
                 <div class="bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio text-white p-6">
                     <div class="text-xs uppercase tracking-widest opacity-90 mb-2 font-semibold">Tú envías</div>
                     <div class="text-4xl font-bold">
-                        S/ <span x-text="formatearMonto(penEnviar)">0.00</span>
+                        <span x-text="currentPair.from_symbol"></span> <span x-text="formatearMonto(montoEnviar)">0.00</span>
                     </div>
-                    <div class="text-xs opacity-75 mt-1">Soles peruanos</div>
+                    <div class="text-xs opacity-75 mt-1" x-text="currentPair.from_name"></div>
                 </div>
 
                 <!-- Separador con tasa aplicada -->
                 <div class="bg-cj-morado-medio text-white text-center py-3">
                     <div class="text-xs uppercase tracking-wider opacity-90 mb-1">Tasa de conversión</div>
                     <div class="font-mono text-lg font-bold">
-                        1 PEN = <span x-text="tasas.ves.toFixed(2)">0.00</span> VES
+                        1 <span x-text="currentPair.from_code"></span> = <span x-text="currentPair.ves_rate.toFixed(2)">0.00</span> VES
                     </div>
                 </div>
 
@@ -218,7 +229,12 @@
         <script>
             function simulador() {
                 return {
-                    // Tasas del día (cargadas desde el backend)
+                    // Pares disponibles (cargados desde backend)
+                    pairs: @json($pairs),
+                    selectedPairId: {{ $pairs->firstWhere('is_active', true)->id ?? $pairs->first()->id }},
+                    currentPair: {},
+
+                    // Tasas de referencia BCV
                     tasas: {
                         usd: {{ $rates->usd_rate }},
                         eur: {{ $rates->eur_rate }},
@@ -228,38 +244,57 @@
                     // Inputs del usuario
                     inputUSD: '',
                     inputEUR: '',
-                    inputPEN: '',
+                    inputOrigen: '',
 
                     // Resultados calculados
-                    penEnviar: 0,
+                    montoEnviar: 0,
                     vesRecibir: 0,
 
-                    // CASO 1: Cliente ingresa PEN directamente
-                    calcularDesdePEN() {
+                    // Inicializar
+                    init() {
+                        this.cambiarPar();
+                    },
+
+                    // Cambiar par seleccionado
+                    cambiarPar() {
+                        this.currentPair = this.pairs.find(p => p.id == this.selectedPairId) || this.pairs[0];
+                        this.limpiarInputs();
+                    },
+
+                    limpiarInputs() {
                         this.inputUSD = '';
                         this.inputEUR = '';
-                        const pen = parseFloat(this.inputPEN) || 0;
-                        this.penEnviar = pen;
-                        this.vesRecibir = pen * this.tasas.ves;
+                        this.inputOrigen = '';
+                        this.montoEnviar = 0;
+                        this.vesRecibir = 0;
+                    },
+
+                    // CASO 1: Cliente ingresa moneda origen directamente
+                    calcularDesdeOrigen() {
+                        this.inputUSD = '';
+                        this.inputEUR = '';
+                        const monto = parseFloat(this.inputOrigen) || 0;
+                        this.montoEnviar = monto;
+                        this.vesRecibir = monto * this.currentPair.ves_rate;
                     },
 
                     // CASO 2: Cliente ingresa USD (conversión a tasa BCV dólar)
                     calcularDesdeUSD() {
                         this.inputEUR = '';
-                        this.inputPEN = '';
+                        this.inputOrigen = '';
                         const usd = parseFloat(this.inputUSD) || 0;
-                        const vesIntermedios = usd * this.tasas.usd;
-                        this.penEnviar = vesIntermedios / this.tasas.ves;
+                        const vesIntermedios = usd * this.currentPair.usd_rate;
+                        this.montoEnviar = vesIntermedios / this.currentPair.ves_rate;
                         this.vesRecibir = vesIntermedios;
                     },
 
                     // CASO 3: Cliente ingresa EUR (conversión a tasa BCV euro)
                     calcularDesdeEUR() {
                         this.inputUSD = '';
-                        this.inputPEN = '';
+                        this.inputOrigen = '';
                         const eur = parseFloat(this.inputEUR) || 0;
-                        const vesIntermedios = eur * this.tasas.eur;
-                        this.penEnviar = vesIntermedios / this.tasas.ves;
+                        const vesIntermedios = eur * this.currentPair.eur_rate;
+                        this.montoEnviar = vesIntermedios / this.currentPair.ves_rate;
                         this.vesRecibir = vesIntermedios;
                     },
 

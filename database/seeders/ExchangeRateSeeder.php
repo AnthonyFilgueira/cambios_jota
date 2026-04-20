@@ -15,37 +15,62 @@ class ExchangeRateSeeder extends Seeder
      */
     public function run(): void
     {
-        // Obtener divisas (deben existir del REQ 6)
+        // Obtener divisas
         $pen = Currency::where('code', 'PEN')->first();
         $ves = Currency::where('code', 'VES')->first();
+        $ars = Currency::where('code', 'ARS')->first();
+        $clp = Currency::where('code', 'CLP')->first();
 
-        if (!$pen || !$ves) {
-            $this->command->warn('⚠️  Las divisas PEN y VES deben existir primero. Ejecuta CurrencySeeder.');
+        if (!$pen || !$ves || !$ars || !$clp) {
+            $this->command->warn('⚠️  Las divisas deben existir primero. Ejecuta CurrencySeeder.');
             return;
         }
 
-        // Obtener o crear par PEN → VES
-        $penVesPair = CurrencyPair::firstOrCreate([
-            'from_currency_id' => $pen->id,
-            'to_currency_id' => $ves->id,
-        ], [
-            'is_active' => true,
-        ]);
+        // Tasas de referencia BCV (iguales para todos)
+        $usdRate = 479.78;
+        $eurRate = 565.98;
 
-        // Crear tasa inicial para par PEN → VES con tasas BCV de referencia
-        ExchangeRate::create([
-            'currency_pair_id' => $penVesPair->id,
+        // Crear pares y tasas
+        $pairs = [
+            [
+                'from' => $pen,
+                'to' => $ves,
+                'ves_rate' => 173.71,
+                'is_active' => true,
+            ],
+            [
+                'from' => $ars,
+                'to' => $ves,
+                'ves_rate' => 2.50,
+                'is_active' => false,
+            ],
+            [
+                'from' => $clp,
+                'to' => $ves,
+                'ves_rate' => 0.55,
+                'is_active' => false,
+            ],
+        ];
 
-            // Tasas de referencia BCV (iguales para todos los pares)
-            'usd_rate' => 479.77750,            // Tasa BCV USD→VES (Bs./USD)
-            'eur_rate' => 565.98392,            // Tasa BCV EUR→VES (Bs./EUR)
+        foreach ($pairs as $pairData) {
+            // Crear o encontrar par
+            $pair = CurrencyPair::firstOrCreate([
+                'from_currency_id' => $pairData['from']->id,
+                'to_currency_id' => $pairData['to']->id,
+            ], [
+                'is_active' => true,
+            ]);
 
-            // Tasa específica del par PEN→VES
-            'ves_rate' => 173.71000,            // 1 PEN = 173.71 VES
+            // Crear tasa
+            ExchangeRate::create([
+                'currency_pair_id' => $pair->id,
+                'ves_rate' => $pairData['ves_rate'],
+                'usd_rate' => $usdRate,
+                'eur_rate' => $eurRate,
+                'is_active' => $pairData['is_active'],
+            ]);
 
-            'is_active' => true,
-        ]);
-
-        $this->command->info('✅ Tasa inicial PEN→VES creada con tasas BCV de referencia');
+            $this->command->info("✅ Tasa {$pairData['from']->code}→{$pairData['to']->code} creada");
+        }
     }
 }
