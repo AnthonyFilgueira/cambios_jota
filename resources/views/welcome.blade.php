@@ -8,14 +8,25 @@
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="bg-cj-fondo min-h-screen">
-        <!-- Navbar Superior -->
-        <nav class="bg-white shadow-md sticky top-0 z-50">
+    <body class="min-h-screen relative overflow-x-hidden">
+        <!-- Fondo principal con gradiente animado -->
+        <div class="fixed inset-0 -z-20 bg-gradient-to-br from-purple-600 via-pink-500 to-teal-400 animate-gradient-shift"></div>
+
+        <!-- Capa de overlay semitransparente -->
+        <div class="fixed inset-0 -z-10 bg-white/40 backdrop-blur-sm"></div>
+
+        <!-- Círculos decorativos flotantes -->
+        <div class="fixed top-20 left-10 w-72 h-72 bg-purple-400/30 rounded-full blur-3xl animate-float"></div>
+        <div class="fixed bottom-20 right-10 w-96 h-96 bg-teal-400/30 rounded-full blur-3xl animate-float" style="animation-delay: 2s;"></div>
+        <div class="fixed top-1/2 left-1/2 w-64 h-64 bg-pink-400/20 rounded-full blur-3xl animate-float" style="animation-delay: 4s;"></div>
+
+        <!-- Navbar Superior con glassmorphism mejorado -->
+        <nav class="bg-white/70 backdrop-blur-xl shadow-2xl sticky top-0 z-50 border-b-2 border-white/50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
                     <!-- Logo y Marca -->
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio rounded-lg flex items-center justify-center shadow-md">
+                        <div class="w-10 h-10 bg-gradient-to-br from-cj-morado-profundo to-cj-turquesa rounded-lg flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300">
                             <span class="text-lg font-bold text-white">CJ</span>
                         </div>
                         <div>
@@ -31,11 +42,11 @@
                                 Dashboard
                             </a>
                         @else
-                            <a href="{{ route('login') }}" class="text-sm font-semibold text-cj-texto-claro hover:text-cj-morado-profundo transition">
+                            <a href="{{ route('login') }}" class="text-sm font-semibold text-cj-morado-profundo hover:text-cj-turquesa transition-all duration-300 relative after:content-[''] after:absolute after:w-0 after:h-0.5 after:bg-cj-turquesa after:left-0 after:-bottom-1 after:transition-all after:duration-300 hover:after:w-full">
                                 Ingresar
                             </a>
-                            <a href="{{ route('register') }}" class="bg-gradient-to-r from-cj-morado-profundo to-cj-morado-medio text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-lg transform hover:-translate-y-0.5 transition-all">
-                                Registrarse
+                            <a href="{{ route('register') }}" class="bg-gradient-to-r from-cj-morado-profundo via-cj-rosa to-cj-turquesa text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 animate-gradient-x">
+                                Registrarse ✨
                             </a>
                         @endauth
                     </div>

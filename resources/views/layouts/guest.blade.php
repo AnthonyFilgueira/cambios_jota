@@ -14,8 +14,18 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gradient-to-br from-cj-fondo via-purple-50 to-teal-50">
+    <body class="font-sans antialiased relative overflow-hidden">
+        <!-- Fondo principal con gradiente animado -->
+        <div class="fixed inset-0 -z-20 bg-gradient-to-br from-purple-600 via-pink-500 to-teal-400 animate-gradient-shift"></div>
+
+        <!-- Capa de overlay semitransparente -->
+        <div class="fixed inset-0 -z-10 bg-white/40 backdrop-blur-sm"></div>
+
+        <!-- Círculos decorativos flotantes -->
+        <div class="fixed top-20 left-10 w-72 h-72 bg-purple-400/30 rounded-full blur-3xl animate-float"></div>
+        <div class="fixed bottom-20 right-10 w-96 h-96 bg-teal-400/30 rounded-full blur-3xl animate-float" style="animation-delay: 2s;"></div>
+
+        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0">
             <!-- Botón Volver al Inicio -->
             <div class="w-full sm:max-w-md px-6 mb-4">
                 <a href="/" class="inline-flex items-center gap-2 text-sm text-cj-texto-claro hover:text-cj-morado-profundo transition">
@@ -26,8 +36,8 @@
                 </a>
             </div>
 
-            <!-- Card Principal -->
-            <div class="w-full sm:max-w-md px-6 py-8 bg-white shadow-2xl overflow-hidden sm:rounded-2xl border border-gray-100">
+            <!-- Card Principal con efecto glassmorphism -->
+            <div class="w-full sm:max-w-md px-6 py-8 bg-white/90 backdrop-blur-lg shadow-2xl overflow-hidden sm:rounded-2xl border-2 border-white/50 hover:shadow-purple-500/20 hover:shadow-3xl transition-all duration-300">
                 {{ $slot }}
             </div>
 
