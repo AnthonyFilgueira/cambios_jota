@@ -231,7 +231,7 @@
                 return {
                     // Pares disponibles (cargados desde backend)
                     pairs: @json($pairs),
-                    selectedPairId: {{ $pairs->firstWhere('is_active', true)->id ?? $pairs->first()->id }},
+                    selectedPairId: {{ collect($pairs)->firstWhere('is_active', true)['id'] ?? collect($pairs)->first()['id'] }},
                     currentPair: {},
 
                     // Tasas de referencia BCV
