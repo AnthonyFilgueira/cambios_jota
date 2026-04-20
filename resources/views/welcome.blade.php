@@ -8,22 +8,58 @@
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="bg-cj-fondo min-h-screen flex items-center justify-center p-4">
-        <div x-data="simulador()" class="w-full max-w-md">
-            <!-- Header con logo y marca -->
-            <header class="bg-gradient-to-r from-cj-morado-profundo to-cj-morado-medio rounded-t-3xl p-6 shadow-lg">
-                <div class="flex items-center justify-between">
+    <body class="bg-cj-fondo min-h-screen">
+        <!-- Navbar Superior -->
+        <nav class="bg-white shadow-md sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo y Marca -->
                     <div class="flex items-center gap-3">
-                        <div class="w-14 h-14 bg-cj-turquesa rounded-xl flex items-center justify-center shadow-md">
-                            <span class="text-2xl font-bold text-white">CJ</span>
+                        <div class="w-10 h-10 bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio rounded-lg flex items-center justify-center shadow-md">
+                            <span class="text-lg font-bold text-white">CJ</span>
                         </div>
-                        <div class="text-white">
-                            <h1 class="text-xl font-bold">Cambios JottaA</h1>
-                            <p class="text-xs opacity-90">Simulador de envíos</p>
+                        <div>
+                            <h1 class="text-lg font-bold text-cj-texto">Cambios Jotta</h1>
+                            <p class="text-xs text-cj-texto-claro hidden sm:block">Envíos Perú - Venezuela</p>
                         </div>
                     </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="flex items-center gap-3">
+                        @auth
+                            <a href="{{ url('/dashboard') }}" class="text-sm font-semibold text-cj-morado-profundo hover:text-cj-morado-medio transition">
+                                Dashboard
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="text-sm font-semibold text-cj-texto-claro hover:text-cj-morado-profundo transition">
+                                Ingresar
+                            </a>
+                            <a href="{{ route('register') }}" class="bg-gradient-to-r from-cj-morado-profundo to-cj-morado-medio text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-lg transform hover:-translate-y-0.5 transition-all">
+                                Registrarse
+                            </a>
+                        @endauth
+                    </div>
                 </div>
-            </header>
+            </div>
+        </nav>
+
+        <!-- Contenido Principal -->
+        <div class="flex items-center justify-center p-4 py-8">
+            <div x-data="simulador()" class="w-full max-w-md">
+                <!-- Header del Simulador -->
+                <header class="bg-gradient-to-r from-cj-morado-profundo to-cj-morado-medio rounded-t-3xl p-6 shadow-lg">
+                    <div class="text-center">
+                        <div class="flex justify-center mb-3">
+                            <div class="w-14 h-14 bg-cj-turquesa rounded-xl flex items-center justify-center shadow-md">
+                                <span class="text-2xl font-bold text-white">CJ</span>
+                            </div>
+                        </div>
+                        <div class="text-white">
+                            <h2 class="text-xl font-bold">Simulador de Envíos</h2>
+                            <p class="text-xs opacity-90">Calcula cuánto recibirá tu familiar</p>
+                        </div>
+                    </div>
+                </header>
 
             <!-- Card principal con sombra -->
             <div class="bg-white shadow-xl">
