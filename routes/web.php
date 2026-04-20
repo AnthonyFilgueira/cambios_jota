@@ -17,6 +17,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\CorridorController;
 use App\Http\Controllers\CurrencyPairController;
+use App\Http\Controllers\CorridorMatrixController;
 
 Route::resource('sellers', SellerController::class);
 Route::resource('liquidations', LiquidationController::class);
@@ -28,6 +29,9 @@ Route::patch('corridors/{corridor}/toggle-status', [CorridorController::class, '
 
 Route::resource('currency-pairs', CurrencyPairController::class)->except(['show']);
 Route::patch('currency-pairs/{currency_pair}/toggle-status', [CurrencyPairController::class, 'toggleStatus'])->name('currency-pairs.toggleStatus');
+
+Route::get('corridor-matrix', [CorridorMatrixController::class, 'index'])->name('corridor-matrix.index');
+Route::post('corridor-matrix/toggle', [CorridorMatrixController::class, 'toggle'])->name('corridor-matrix.toggle');
 
 Route::get('/sellers-api', function () {
     return Seller::all();

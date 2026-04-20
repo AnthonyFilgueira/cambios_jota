@@ -13,6 +13,10 @@
                    class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
                     Corredores
                 </a>
+                <a href="{{ route('corridor-matrix.index') }}"
+                   class="px-4 py-2 bg-white border border-cj-turquesa text-cj-turquesa rounded-md hover:bg-cj-turquesa hover:bg-opacity-10">
+                    🎯 Matriz
+                </a>
                 <a href="{{ route('currency-pairs.create') }}"
                    class="px-4 py-2 bg-gradient-to-r from-cj-morado-profundo to-cj-morado-medio text-white rounded-md hover:opacity-90">
                     + Nuevo Par
