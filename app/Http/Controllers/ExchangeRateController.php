@@ -11,7 +11,7 @@ class ExchangeRateController extends Controller
     public function index(Request $request)
     {
         // Query base: tasas con sus pares
-        $query = ExchangeRate::with(['currencyPair.fromCurrency', 'currencyPair.toCurrency', 'updatedBy'])
+        $query = ExchangeRate::with(['currencyPair.fromCurrency', 'currencyPair.toCurrency'])
             ->orderBy('is_active', 'desc')
             ->orderBy('updated_at', 'desc');
 
@@ -37,7 +37,7 @@ class ExchangeRateController extends Controller
         $rates = $query->get();
         $activeRate = ExchangeRate::getActive();
 
-        // Divisas para filtros (desde CurrencyPair)
+        // Divisas para filtros
         $currencies = \App\Models\Currency::where('is_active', true)
             ->orderBy('code')
             ->get();

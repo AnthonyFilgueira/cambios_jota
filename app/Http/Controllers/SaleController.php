@@ -170,7 +170,7 @@ class SaleController extends Controller
             // Snapshots de tasas (para trazabilidad)
             'usd_rate_snapshot' => $activeRate->usd_rate ?? null,
             'eur_rate_snapshot' => $activeRate->eur_rate ?? null,
-            'ves_rate_snapshot' => $activeRate->ves_rate ?? $activeRate->base_rate ?? null,
+            'ves_rate_snapshot' => $activeRate->ves_rate ?? null,
         ]);
 
         // Si es una petición AJAX, respondemos con JSON
@@ -231,7 +231,7 @@ class SaleController extends Controller
             // Snapshots de tasas (para trazabilidad)
             'usd_rate_snapshot' => $activeRate->usd_rate ?? null,
             'eur_rate_snapshot' => $activeRate->eur_rate ?? null,
-            'ves_rate_snapshot' => $activeRate->ves_rate ?? $activeRate->base_rate ?? null,
+            'ves_rate_snapshot' => $activeRate->ves_rate ?? null,
         ]);
     }
 

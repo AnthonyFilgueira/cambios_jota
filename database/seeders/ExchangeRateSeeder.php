@@ -34,20 +34,16 @@ class ExchangeRateSeeder extends Seeder
 
         // Crear tasa inicial para par PEN → VES con tasas BCV de referencia
         ExchangeRate::create([
-            // Nuevo sistema (REQ 7)
             'currency_pair_id' => $penVesPair->id,
-            'base_rate' => 0.1200,              // Tasa base PEN→VES (mercado paralelo)
-            'margin_type' => 'percentage',
-            'margin_value' => 3.00,             // 3% de margen
-            'final_rate' => 0.1236,             // 0.12 + (0.12 × 0.03) = 0.1236
 
-            // Tasas BCV de referencia (para cálculos del simulador)
-            'usd_rate' => 479.77750,            // Tasa BCV USD (Bs./USD)
-            'eur_rate' => 565.98392,            // Tasa BCV EUR (Bs./EUR)
-            'ves_rate' => 173.71000,            // Tasa directa VES/PEN (histórica, ahora en base_rate)
+            // Tasas de referencia BCV (iguales para todos los pares)
+            'usd_rate' => 479.77750,            // Tasa BCV USD→VES (Bs./USD)
+            'eur_rate' => 565.98392,            // Tasa BCV EUR→VES (Bs./EUR)
+
+            // Tasa específica del par PEN→VES
+            'ves_rate' => 173.71000,            // 1 PEN = 173.71 VES
 
             'is_active' => true,
-            'notes' => 'Tasa inicial del sistema - migración de legacy',
         ]);
 
         $this->command->info('✅ Tasa inicial PEN→VES creada con tasas BCV de referencia');
