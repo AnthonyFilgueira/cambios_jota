@@ -11,6 +11,7 @@ use App\Http\Controllers\ExchangeRateController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\LiquidationController;
+use App\Http\Controllers\OwnerDashboardController;
 
 Route::resource('sellers', SellerController::class);
 Route::resource('liquidations', LiquidationController::class);
@@ -55,6 +56,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
+    Route::get('/owner-dashboard', [OwnerDashboardController::class, 'index'])->name('owner.dashboard');
 });
 
 require __DIR__.'/auth.php';
