@@ -164,6 +164,11 @@ class Seller extends Model
         return $this->hasMany(WalletTransaction::class)->orderBy('created_at', 'desc');
     }
 
+    public function liquidations()
+    {
+        return $this->hasMany(Liquidation::class)->orderBy('payment_date', 'desc');
+    }
+
     // Total vendido en un rango de fechas
     public function totalSalesBetween($start, $end)
     {

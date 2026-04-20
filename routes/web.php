@@ -10,8 +10,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ExchangeRateController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\WalletController;
+use App\Http\Controllers\LiquidationController;
 
 Route::resource('sellers', SellerController::class);
+Route::resource('liquidations', LiquidationController::class);
 
 Route::get('/sellers-api', function () {
     return Seller::all();
