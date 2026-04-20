@@ -228,7 +228,7 @@ class SaleController extends Controller
         ]);
 
         try {
-            $sale->observe($request->observation);
+            $sale->markAsObserved($request->observation);
             return redirect()->back()->with('success', 'Venta devuelta al vendedor con observación.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());

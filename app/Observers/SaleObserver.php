@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Sale;
 use App\Models\SaleLog;
+use App\Events\SaleCompleted;
 use Illuminate\Support\Facades\Auth;
 
 class SaleObserver
@@ -44,6 +45,11 @@ class SaleObserver
                 'new_status' => $newStatus,
                 'comment' => $sale->admin_observation ?? null,
             ]);
+
+            // Disparar evento cuando venta se completa
+            if ($newStatus === 'completed') {
+                event(new SaleCompleted($sale));
+            }
         }
     }
 

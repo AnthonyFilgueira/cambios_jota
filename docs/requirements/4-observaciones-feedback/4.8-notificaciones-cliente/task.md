@@ -2,7 +2,7 @@
 
 **Módulo:** REQ 4 - Observaciones y Feedback  
 **Estimado:** 4h (tarea 4.6 original)  
-**Estado:** ⏸️ PENDIENTE (Requiere REQ 2 completo)
+**Estado:** ✅ COMPLETO
 
 ---
 
@@ -113,5 +113,6 @@ if ($newStatus === 'completed') {
 
 ---
 
-**Estado:** Documentado, pendiente de implementación (bloqueado por REQ 2)  
-**Fecha:** 2026-04-20
+**Estado:** ✅ Implementado con Mailpit  
+**Fecha:** 2026-04-20  
+**Destinatario:** Vendedor (temporal, hasta implementar REQ 2)

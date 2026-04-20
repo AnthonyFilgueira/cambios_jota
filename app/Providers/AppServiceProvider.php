@@ -3,8 +3,11 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Event;
 use App\Models\Sale;
 use App\Observers\SaleObserver;
+use App\Events\SaleCompleted;
+use App\Listeners\SendVoucherUploadedNotification;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,5 +25,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Sale::observe(SaleObserver::class);
+
+        // Registrar listener de SaleCompleted
+        Event::listen(
+            SaleCompleted::class,
+            SendVoucherUploadedNotification::class,
+        );
     }
 }

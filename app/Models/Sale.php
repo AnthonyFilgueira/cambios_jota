@@ -74,7 +74,7 @@ class Sale extends Model
         throw new \Exception("No se puede rechazar una venta con estado: {$this->approval_status}");
     }
 
-    public function observe(string $observation)
+    public function markAsObserved(string $observation)
     {
         if ($this->approval_status === 'pending_admin') {
             $this->admin_observation = $observation;

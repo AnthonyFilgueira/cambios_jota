@@ -3,7 +3,7 @@
 **Módulo:** Workflow Operativo  
 **Prioridad:** MEDIA  
 **Horas estimadas:** 39h  
-**Estado:** ✅ COMPLETO (Tarea 4.8 bloqueada por REQ 2)
+**Estado:** ✅ COMPLETO (8/8 tareas)
 
 ---
 
@@ -86,10 +86,10 @@ Sistema de comunicación bidireccional entre admin y vendedores para gestionar o
 | 4.5 | Interfaz de re-edición rápida | 2h | ✅ COMPLETO |
 | 4.6 | Módulo de carga de comprobante (Admin) | 3h | ✅ COMPLETO |
 | 4.7 | Visor y descarga de comprobante | 2h | ✅ COMPLETO |
-| 4.8 | Notificaciones al cliente (Email) | 0h | ⏸️ BLOQUEADO (REQ 2) |
+| 4.8 | Notificaciones al cliente (Email) | 3h | ✅ COMPLETO |
 
-**Total implementado:** 17h (de 39h estimadas)  
-**Ahorro:** 22h (tareas simplificadas y reutilización de código existente)
+**Total implementado:** 20h (de 39h estimadas)  
+**Ahorro:** 19h (tareas simplificadas y reutilización de código existente)
 
 ---
 
