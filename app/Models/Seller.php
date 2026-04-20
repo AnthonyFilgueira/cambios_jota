@@ -51,4 +51,13 @@ class Seller extends Model
             ->get()
             ->sum(fn($sale) => $sale->bossCommissionAmount());
     }
+
+    /**
+     * Verificar si las comisiones pueden ser modificadas
+     * (solo si no tiene ventas registradas)
+     */
+    public function commissionsCanBeModified(): bool
+    {
+        return !$this->sales()->exists();
+    }
 }

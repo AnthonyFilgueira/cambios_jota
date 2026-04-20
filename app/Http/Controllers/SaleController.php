@@ -141,13 +141,28 @@ class SaleController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'seller_id' => 'required|exists:sellers,id',
-            'amount' => 'required|numeric',
+            'amount' => 'required|numeric|min:0.01',
             'sale_date' => 'required|date',
         ]);
 
-        $sale = Sale::create($validated);
+        // Obtener seller para calcular comisiones
+        $seller = Seller::findOrFail($validated['seller_id']);
+
+        // Crear venta con snapshots de comisiones
+        $sale = Sale::create([
+            'seller_id' => $validated['seller_id'],
+            'amount' => $validated['amount'],
+            'sale_date' => $validated['sale_date'],
+            'approval_status' => 'pending_seller',
+
+            // Snapshots de comisiones (valores en el momento de la venta)
+            'seller_commission_percent' => $seller->seller_commission,
+            'admin_commission_percent' => $seller->boss_commission,
+            'seller_commission_amount' => $validated['amount'] * ($seller->seller_commission / 100),
+            'admin_commission_amount' => $validated['amount'] * ($seller->boss_commission / 100),
+        ]);
 
         // Si es una petición AJAX, respondemos con JSON
         if ($request->expectsJson()) {
@@ -157,7 +172,7 @@ class SaleController extends Controller
             ]);
         }
 
-        // Si por alguna razón no es AJAX, redirige (fallback)  
+        // Si por alguna razón no es AJAX, redirige (fallback)
         return redirect()->route('sales.index');
     }
 
@@ -185,7 +200,22 @@ class SaleController extends Controller
     });
 
     foreach ($validated as $saleData) {
-        Sale::create($saleData);
+        // Obtener seller para calcular comisiones
+        $seller = Seller::findOrFail($saleData['seller_id']);
+
+        // Crear venta con snapshots de comisiones
+        Sale::create([
+            'seller_id' => $saleData['seller_id'],
+            'amount' => $saleData['amount'],
+            'sale_date' => $saleData['sale_date'],
+            'approval_status' => 'pending_seller',
+
+            // Snapshots de comisiones (valores en el momento de la venta)
+            'seller_commission_percent' => $seller->seller_commission,
+            'admin_commission_percent' => $seller->boss_commission,
+            'seller_commission_amount' => $saleData['amount'] * ($seller->seller_commission / 100),
+            'admin_commission_amount' => $saleData['amount'] * ($seller->boss_commission / 100),
+        ]);
     }
 
     return redirect()->route('sales.index')->with('success', 'Ventas registradas correctamente.');

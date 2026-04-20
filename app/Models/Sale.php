@@ -15,6 +15,10 @@ class Sale extends Model
         'approval_status',
         'voucher_path',
         'admin_observation',
+        'seller_commission_percent',
+        'admin_commission_percent',
+        'seller_commission_amount',
+        'admin_commission_amount',
     ];
 
     protected $casts = [
@@ -36,13 +40,17 @@ class Sale extends Model
     // Cálculo de comisión del vendedor
     public function sellerCommissionAmount()
     {
-        return $this->amount * ($this->seller->seller_commission / 100);
+        // Usar snapshot si existe, sino calcular (fallback para ventas antiguas)
+        return $this->seller_commission_amount ??
+               $this->amount * ($this->seller->seller_commission / 100);
     }
 
     // Cálculo de comisión del jefe
     public function bossCommissionAmount()
     {
-        return $this->amount * ($this->seller->boss_commission / 100);
+        // Usar snapshot si existe, sino calcular (fallback para ventas antiguas)
+        return $this->admin_commission_amount ??
+               $this->amount * ($this->seller->boss_commission / 100);
     }
 
     // Workflow de aprobación

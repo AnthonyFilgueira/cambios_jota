@@ -51,4 +51,20 @@ class ExchangeRate extends Model
         self::where('id', '!=', $this->id)->update(['is_active' => false]);
         $this->update(['is_active' => true]);
     }
+
+    /**
+     * Relación: transacciones que usan esta tasa
+     */
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    /**
+     * Verificar si la tasa puede ser modificada/eliminada
+     */
+    public function canBeModified(): bool
+    {
+        return !$this->transactions()->exists();
+    }
 }

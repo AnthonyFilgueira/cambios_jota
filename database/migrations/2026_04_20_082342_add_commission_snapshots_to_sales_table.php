@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sales', function (Blueprint $table) {
-            //
+            $table->decimal('seller_commission_percent', 5, 2)->nullable()->after('approval_status');
+            $table->decimal('admin_commission_percent', 5, 2)->nullable()->after('seller_commission_percent');
+            $table->decimal('seller_commission_amount', 10, 2)->nullable()->comment('En SOLES')->after('admin_commission_percent');
+            $table->decimal('admin_commission_amount', 10, 2)->nullable()->comment('En SOLES')->after('seller_commission_amount');
         });
     }
 
@@ -22,7 +25,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('sales', function (Blueprint $table) {
-            //
+            $table->dropColumn([
+                'seller_commission_percent',
+                'admin_commission_percent',
+                'seller_commission_amount',
+                'admin_commission_amount',
+            ]);
         });
     }
 };

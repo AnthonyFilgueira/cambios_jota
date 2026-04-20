@@ -44,6 +44,12 @@ class ExchangeRateController extends Controller
 
     public function update(Request $request, ExchangeRate $exchangeRate)
     {
+        // Proteger historicidad: no permitir editar si tiene transacciones
+        if (!$exchangeRate->canBeModified()) {
+            return redirect()->route('exchange_rates.index')->with('error',
+                'No se puede modificar esta tasa. Ya tiene transacciones asociadas. Crea una nueva tasa en su lugar.');
+        }
+
         $request->validate([
             'usd_rate' => 'required|numeric|min:0',
             'eur_rate' => 'required|numeric|min:0',
@@ -60,6 +66,12 @@ class ExchangeRateController extends Controller
         // No permitir eliminar la tasa activa
         if ($exchangeRate->is_active) {
             return redirect()->route('exchange_rates.index')->with('error', 'No puedes eliminar la tasa activa');
+        }
+
+        // Proteger historicidad: no permitir eliminar si tiene transacciones
+        if (!$exchangeRate->canBeModified()) {
+            return redirect()->route('exchange_rates.index')->with('error',
+                'No se puede eliminar esta tasa. Ya tiene transacciones asociadas.');
         }
 
         $exchangeRate->delete();

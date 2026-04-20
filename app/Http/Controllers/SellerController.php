@@ -37,8 +37,25 @@ class SellerController extends Controller
 
     public function update(Request $request, Seller $seller)
     {
+        $request->validate([
+            'name' => 'required',
+            'seller_commission' => 'required|numeric|min:0|max:100',
+            'boss_commission' => 'required|numeric|min:0|max:100',
+        ]);
+
+        // Proteger historicidad: verificar si intenta cambiar comisiones
+        $changingCommissions = (
+            $request->seller_commission != $seller->seller_commission ||
+            $request->boss_commission != $seller->boss_commission
+        );
+
+        if ($changingCommissions && !$seller->commissionsCanBeModified()) {
+            return redirect()->route('sellers.index')->with('error',
+                'No se pueden modificar las comisiones de este vendedor. Ya tiene ventas registradas. Crea un nuevo vendedor con las nuevas comisiones.');
+        }
+
         $seller->update($request->except('_token'));
-        return redirect()->route('sellers.index');
+        return redirect()->route('sellers.index')->with('success', 'Vendedor actualizado correctamente.');
     }
 
     public function destroy(Seller $seller)
