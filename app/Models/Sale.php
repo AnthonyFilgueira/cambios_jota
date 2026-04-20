@@ -12,6 +12,7 @@ class Sale extends Model
         'seller_id',
         'amount',
         'sale_date',
+        'approval_status',
     ];
 
     protected $casts = [
