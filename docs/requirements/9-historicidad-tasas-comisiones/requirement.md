@@ -59,66 +59,82 @@
 
 ---
 
-## Solución Propuesta
+## Solución Propuesta (REVISADA)
 
-### 1. Proteger tasas de cambio
+### 1. Proteger tasas de cambio - Impedir edición si ya se usaron
 
-#### Opción A: Impedir edición de tasas usadas
 ```php
-// ExchangeRateController@update
-if ($exchangeRate->transactions()->exists()) {
+// ExchangeRateController@update y @destroy
+if ($exchangeRate->transactions()->exists() || $exchangeRate->sales()->exists()) {
     return redirect()->back()->with('error', 
-        'No se puede modificar una tasa con transacciones. Crea una nueva.');
+        'No se puede modificar/eliminar esta tasa. Ya tiene transacciones asociadas. Crea una nueva tasa.');
 }
 ```
 
-#### Opción B: Snapshot en transacciones (adicional)
-Agregar campos a `transactions`:
-```php
-$table->decimal('exchange_rate_snapshot', 10, 5);
-// Valor exacto de ves_rate en el momento de la transacción
-```
-
-**Decisión:** Implementar AMBAS (A + B) para máxima seguridad.
+**Nota:** NO es necesario agregar `exchange_rate_snapshot` a transacciones porque ya guardan `exchange_rate_id`, y la tasa no se puede modificar.
 
 ---
 
-### 2. Snapshot de comisiones en ventas
+### 2. Proteger comisiones de sellers - Impedir edición si ya tienen ventas
 
-Agregar campos a `sales`:
 ```php
-$table->decimal('seller_commission_percent', 5, 2);
-$table->decimal('boss_commission_percent', 5, 2);
-$table->decimal('seller_commission_amount', 10, 2);
-$table->decimal('boss_commission_amount', 10, 2);
+// SellerController@update
+if ($seller->sales()->exists()) {
+    return redirect()->back()->with('error', 
+        'No se puede modificar las comisiones de este vendedor. Ya tiene ventas registradas. 
+        Crea un nuevo vendedor con las nuevas comisiones.');
+}
 ```
 
-**Al crear venta:**
+---
+
+### 3. Snapshot de comisiones en cada venta
+
+Agregar campos a tabla `sales`:
+```php
+$table->decimal('seller_commission_percent', 5, 2)->nullable();
+$table->decimal('admin_commission_percent', 5, 2)->nullable();
+$table->decimal('seller_commission_amount', 10, 2)->nullable()->comment('En SOLES');
+$table->decimal('admin_commission_amount', 10, 2)->nullable()->comment('En SOLES');
+```
+
+**Al crear venta (SaleController@store):**
 ```php
 Sale::create([
-    'amount' => $request->amount,
+    'amount' => $request->amount,  // Monto en SOLES
     'seller_id' => $request->seller_id,
+    'sale_date' => $request->sale_date,
+    'approval_status' => 'pending_seller',
+    
+    // Snapshots de comisiones (guardados en el momento de la venta)
     'seller_commission_percent' => $seller->seller_commission,
-    'boss_commission_percent' => $seller->boss_commission,
+    'admin_commission_percent' => $seller->boss_commission,
     'seller_commission_amount' => $amount * ($seller->seller_commission / 100),
-    'boss_commission_amount' => $amount * ($seller->boss_commission / 100),
+    'admin_commission_amount' => $amount * ($seller->boss_commission / 100),
 ]);
 ```
 
 **Modificar métodos del modelo Sale:**
 ```php
-// Antes (incorrecto):
+// Usar valores guardados en lugar de calcular en tiempo real
 public function sellerCommissionAmount()
 {
-    return $this->amount * ($this->seller->seller_commission / 100);
+    return $this->seller_commission_amount ?? 
+           $this->amount * ($this->seller->seller_commission / 100); // Fallback para ventas viejas
 }
 
-// Después (correcto):
-public function sellerCommissionAmount()
+public function bossCommissionAmount()
 {
-    return $this->seller_commission_amount; // Usar valor guardado
+    return $this->admin_commission_amount ?? 
+           $this->amount * ($this->seller->boss_commission / 100); // Fallback
 }
 ```
+
+**Beneficios:**
+- ✅ Vendedor ve su comisión en tiempo real
+- ✅ Admin ve su ganancia en tiempo real
+- ✅ Búsquedas y reportes más rápidos (no recalcular)
+- ✅ Auditoría: se sabe exactamente qué % se aplicó en cada venta
 
 ---
 
@@ -149,21 +165,21 @@ ExchangeRate::create([
 
 ---
 
-## Tareas de Implementación
+## Tareas de Implementación (REVISADAS)
 
 | ID | Tarea | Tiempo | Prioridad |
 |----|-------|--------|-----------|
-| 9.1 | Migración: agregar campos snapshot a `sales` | 1h | Alta |
-| 9.2 | Migración: agregar `exchange_rate_snapshot` a `transactions` | 30min | Alta |
-| 9.3 | Modificar SaleController para guardar comisiones | 1h | Alta |
-| 9.4 | Modificar métodos del modelo Sale (usar snapshots) | 1h | Alta |
-| 9.5 | Validación: impedir editar/eliminar tasas usadas | 1h | Alta |
-| 9.6 | Botón "Clonar tasa" en vista de tasas | 1h | Media |
-| 9.7 | Crear ExchangeRateSeeder (Perú-Venezuela) | 30min | Alta |
-| 9.8 | Testing: verificar historicidad | 1h | Media |
-| 9.9 | Documentación y casos edge | 1h | Baja |
+| 9.1 | Migración: agregar campos snapshot de comisiones a `sales` | 1h | Alta |
+| 9.2 | Modificar SaleController@store para guardar snapshots | 1h | Alta |
+| 9.3 | Modificar SaleController@bulkStore para guardar snapshots | 30min | Alta |
+| 9.4 | Modificar métodos del modelo Sale (usar snapshots con fallback) | 1h | Alta |
+| 9.5 | Validación: impedir editar/eliminar tasas con transacciones/ventas | 1h | Alta |
+| 9.6 | Validación: impedir editar comisiones de sellers con ventas | 1h | Alta |
+| 9.7 | Botón "Crear Nueva Tasa" en vista (opcional, mejora UX) | 1h | Media |
+| 9.8 | Crear ExchangeRateSeeder (Perú-Venezuela) | 30min | Alta |
+| 9.9 | Testing: verificar historicidad y validaciones | 1h | Media |
 
-**Total estimado:** 8 horas
+**Total estimado:** 8.5 horas
 
 ---
 

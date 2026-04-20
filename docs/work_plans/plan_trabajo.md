@@ -225,8 +225,9 @@ Para la aceptación formal, se requiere la firma de un Acuerdo de Servicio (Serv
 | 6 | Matriz de Divisas | 33h | 0h | 0% | ⏸️ PENDIENTE |
 | 7 | Consola de Tasas | 37h | 18h | 50% | 🔄 EN PROGRESO |
 | 8 | Incentivos y Bonos | 37h | 0h | 0% | ⏸️ PENDIENTE |
-| **9** | **Historicidad Tasas/Comisiones** | **8h** | **0h** | **0%** | **⏸️ PENDIENTE** |
-| **TOTAL** | **Desarrollo** | **327h** | **113h** | **~52%** | **EN PROGRESO** |
+| **9** | **Historicidad Tasas/Comisiones** | **8.5h** | **0h** | **0%** | **⏸️ PENDIENTE** |
+| **10** | **Sistema Roles y Permisos** | **20h** | **0h** | **0%** | **⏸️ PENDIENTE (al final)** |
+| **TOTAL** | **Desarrollo** | **347.5h** | **113h** | **~52%** | **EN PROGRESO** |
 
 ### Componentes Implementados
 
@@ -251,7 +252,7 @@ Para la aceptación formal, se requiere la firma de un Acuerdo de Servicio (Serv
 
 **Rutas (48 activas)**
 
-### REQ 9: Historicidad de Tasas y Comisiones (NUEVO)
+### REQ 9: Historicidad de Tasas y Comisiones (ACTUALIZADO)
 
 **Problema identificado:** Las tasas de cambio y comisiones de vendedores son editables, lo que rompe la integridad de datos históricos.
 
@@ -260,16 +261,54 @@ Para la aceptación formal, se requiere la firma de un Acuerdo de Servicio (Serv
 - Ventas muestran comisiones incorrectas si admin cambia % de vendedor
 - Reportes financieros y liquidaciones quedan inconsistentes
 
-**Solución:**
-1. Impedir editar/eliminar tasas con transacciones asociadas
-2. Guardar snapshots de comisiones en cada venta
-3. Guardar snapshot de tasa en cada transacción
+**Solución (revisada 2026-04-20):**
+1. Impedir editar/eliminar tasas con transacciones/ventas asociadas
+2. Impedir editar comisiones de sellers con ventas registradas
+3. Guardar snapshots de comisiones en cada venta (4 campos):
+   - `seller_commission_percent`, `admin_commission_percent`
+   - `seller_commission_amount` (en SOLES), `admin_commission_amount` (en SOLES)
 4. Crear seeder inicial Perú → Venezuela
+5. NO es necesario snapshot de tasa en transacciones (ya tienen exchange_rate_id)
 
-**Horas estimadas:** 8h  
+**Horas estimadas:** 8.5h  
 **Prioridad:** ALTA (Debe implementarse antes de producción)
 
 📄 **Documentación:** `/docs/requirements/9-historicidad-tasas-comisiones/requirement.md`
+
+---
+
+### REQ 10: Sistema de Roles y Permisos (NUEVO)
+
+**Problema:** NO existe control de acceso granular. Todos los usuarios tienen acceso completo.
+
+**Necesidad:**
+- Admin debe poder crear usuarios y asignarles roles
+- Roles personalizados con permisos granulares
+- Ejemplo: Contador solo ve ventas (readonly), Vendedor solo ve sus propias ventas
+
+**Solución:**
+- Implementar Spatie Laravel Permission
+- Panel admin de usuarios/roles/permisos
+- Middleware de autorización en rutas
+- Blade directives en vistas
+- Permisos por recurso: `recurso.acción` (ej: `sales.approve`, `exchange_rates.edit`)
+
+**Roles ejemplo:**
+- Super Admin (acceso total)
+- Administrador (gestiona tasas, aprueba ventas)
+- Contador (solo lectura ventas/reportes)
+- Vendedor (solo sus ventas)
+- Cliente (solo su historial)
+
+**Horas estimadas:** 20h  
+**Prioridad:** MEDIA (Implementar AL FINAL, cuando todas las funcionalidades estén completas)
+
+**Razón de implementar al final:**
+- Requiere conocer TODAS las acciones del sistema para definir permisos
+- Evita refactorización constante
+- Más eficiente: una sola pasada asignando permisos
+
+📄 **Documentación:** `/docs/requirements/10-roles-permisos/requirement.md`
 
 ---
 
@@ -289,14 +328,15 @@ Para la aceptación formal, se requiere la firma de un Acuerdo de Servicio (Serv
 8. Incentivos y bonos REQ 8 (37h est.)
 
 ### Horas Restantes Estimadas
-- **Total pendiente:** 214 horas (incluye REQ 9)
-- **Progreso actual:** ~52% completado
-- **Tiempo proyectado para completar:** ~14 días hábiles (15h/día)
+- **Total pendiente:** 234.5 horas (incluye REQ 9 y 10)
+- **Progreso actual:** ~52% completado (3 de 10 REQ completos)
+- **Tiempo proyectado para completar:** ~16 días hábiles (15h/día)
 
 ### Cambios Recientes (2026-04-20)
-- ✅ REQ 3 completado (Workflow de aprobación multi-nivel)
+- ✅ REQ 3 completado (Workflow de aprobación multi-nivel - 8 commits)
 - ✅ REQ 2 completado (Módulo de transacciones agregado)
-- ➕ REQ 9 agregado (Historicidad de tasas y comisiones)
+- ➕ REQ 9 agregado (Historicidad de tasas y comisiones - revisado)
+- ➕ REQ 10 agregado (Sistema de Roles y Permisos - para implementar al final)
 
 ### Documentación Generada
 - `/docs/requirements/0-analisis-estado-actual/reporte-final.md` - Análisis completo
