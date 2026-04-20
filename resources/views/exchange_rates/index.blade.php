@@ -92,9 +92,9 @@
                     <div>
                         <label class="block text-sm font-medium text-cj-texto mb-1">Estado</label>
                         <select name="status" class="w-full rounded-lg border-gray-300">
-                            <option value="">Todos</option>
-                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Activos</option>
-                            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactivos</option>
+                            <option value="active" {{ request('status', 'active') == 'active' ? 'selected' : '' }}>✓ Activas (actual)</option>
+                            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>✕ Inactivas (historial)</option>
+                            <option value="all" {{ request('status') == 'all' ? 'selected' : '' }}>Todas (activas + historial)</option>
                         </select>
                     </div>
 

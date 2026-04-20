@@ -29,9 +29,18 @@ class ExchangeRateController extends Controller
             });
         }
 
-        // Filtro por estado
+        // Filtro por estado: SOLO ACTIVAS POR DEFECTO
+        // (las inactivas se mantienen en BD por snapshots de ventas,
+        // pero no se muestran para no confundir al usuario)
         if ($request->filled('status')) {
-            $query->where('is_active', $request->status === 'active');
+            if ($request->status === 'all') {
+                // Mostrar todas (activas + inactivas)
+            } else {
+                $query->where('is_active', $request->status === 'active');
+            }
+        } else {
+            // Por defecto: SOLO ACTIVAS
+            $query->where('is_active', true);
         }
 
         $rates = $query->get();
