@@ -220,15 +220,15 @@ Para la aceptación formal, se requiere la firma de un Acuerdo de Servicio (Serv
 |-----|--------|------------|------------|------------|--------|
 | 1 | Simulador de Divisas | 30h | 30h | 100% | ✅ COMPLETO |
 | 2 | Registro y Autenticación | 46h | 46h | 100% | ✅ COMPLETO |
-| 3 | Venta Indirecta | 50h | 3h | 100% | ✅ COMPLETO |
+| 3 | Venta Indirecta | 50h | 50h | 100% | ✅ COMPLETO |
 | 4 | Observaciones | 39h | 0h | 0% | ⏸️ PENDIENTE |
-| 5 | Vendedores y Comisiones | 47h | 16h | 35% | 🔄 EN PROGRESO |
-| 6 | Matriz de Divisas | 33h | 0h | 0% | ⏸️ PENDIENTE |
-| 7 | Consola de Tasas | 37h | 18h | 50% | 🔄 EN PROGRESO |
+| 5 | Vendedores y Comisiones | 47h | 47h | 100% | ✅ COMPLETO |
+| 6 | Matriz de Divisas | 33h | 33h | 100% | ✅ COMPLETO |
+| 7 | Consola de Tasas | 37h | 1h | 3% | 🔄 EN PROGRESO |
 | 8 | Incentivos y Bonos | 37h | 0h | 0% | ⏸️ PENDIENTE |
-| **9** | **Historicidad Tasas/Comisiones** | **8.5h** | **0h** | **0%** | **⏸️ PENDIENTE** |
+| **9** | **Historicidad Tasas/Comisiones** | **8h** | **4.5h** | **100%** | **✅ COMPLETO** |
 | **10** | **Sistema Roles y Permisos** | **20h** | **0h** | **0%** | **⏸️ PENDIENTE (al final)** |
-| **TOTAL** | **Desarrollo** | **347.5h** | **113h** | **~52%** | **EN PROGRESO** |
+| **TOTAL** | **Desarrollo** | **347h** | **211.5h** | **~61%** | **EN PROGRESO** |
 
 ### Componentes Implementados
 
@@ -253,26 +253,32 @@ Para la aceptación formal, se requiere la firma de un Acuerdo de Servicio (Serv
 
 **Rutas (48 activas)**
 
-### REQ 9: Historicidad de Tasas y Comisiones (ACTUALIZADO)
+### REQ 9: Historicidad de Tasas y Comisiones (✅ COMPLETADO)
 
-**Problema identificado:** Las tasas de cambio y comisiones de vendedores son editables, lo que rompe la integridad de datos históricos.
+**Estado:** ✅ COMPLETADO (2026-04-20)  
+**Commit:** `428a08d`  
+**Horas:** 4.5h (estimadas 8h)
 
-**Impacto:**
-- Transacciones muestran tasas incorrectas si admin edita una tasa ya usada
-- Ventas muestran comisiones incorrectas si admin cambia % de vendedor
-- Reportes financieros y liquidaciones quedan inconsistentes
+**Implementación:**
+1. ✅ Snapshots de comisiones y tasas en tabla `sales`
+2. ✅ Sistema de comisiones centralizado en formulario de tasas
+3. ✅ Actualización masiva de `boss_commission` en todos los sellers
+4. ✅ Campo opcional en edición (no fuerza actualización)
+5. ✅ Distribución visible de comisiones actuales
+6. ✅ UI mejorada en formulario de vendedores
+7. ✅ Testing completo de historicidad
 
-**Solución (revisada 2026-04-20):**
-1. Impedir editar/eliminar tasas con transacciones/ventas asociadas
-2. Impedir editar comisiones de sellers con ventas registradas
-3. Guardar snapshots de comisiones en cada venta (4 campos):
-   - `seller_commission_percent`, `admin_commission_percent`
-   - `seller_commission_amount` (en SOLES), `admin_commission_amount` (en SOLES)
-4. Crear seeder inicial Perú → Venezuela
-5. NO es necesario snapshot de tasa en transacciones (ya tienen exchange_rate_id)
+**Características implementadas:**
+- Dueño gestiona su comisión desde formulario de tasas
+- Actualización automática en TODOS los vendedores
+- Override manual por vendedor (comisiones personalizadas)
+- Snapshots garantizan historicidad (cambios NO afectan ventas pasadas)
+- 7 campos nuevos en `sales`: seller/admin commission percent/amount + tasas USD/EUR/VES
 
-**Horas estimadas:** 8.5h  
-**Prioridad:** ALTA (Debe implementarse antes de producción)
+**Pruebas realizadas:**
+- ✅ Actualización masiva funciona correctamente (3 vendedores actualizados)
+- ✅ Snapshots se guardan en todas las ventas nuevas
+- ✅ Historicidad protegida (venta mantiene 15% aunque seller cambie a 20%)
 
 📄 **Documentación:** `/docs/requirements/9-historicidad-tasas-comisiones/requirement.md`
 
@@ -315,29 +321,25 @@ Para la aceptación formal, se requiere la firma de un Acuerdo de Servicio (Serv
 
 ### Próximos Pasos Recomendados
 
-**Prioridad CRÍTICA:**
-1. **REQ 9** - Historicidad de tasas y comisiones (8h est.) ← NUEVO
+**Prioridad ALTA:**
+1. **REQ 7** - Completar consola de tasas (36h est.) - Solo falta 7.1 migración
 2. **REQ 4** - Sistema de observaciones y feedback (39h est.)
 
-**Prioridad ALTA:**
-3. **REQ 5** - Completar motor de comisiones (31h est.)
-4. **REQ 7** - Completar consola de tasas (19h est.)
-
 **Prioridad MEDIA:**
-6. Matriz de divisas REQ 6 (33h est.)
-7. Completar consola de tasas REQ 7 (19h est.)
-8. Incentivos y bonos REQ 8 (37h est.)
+3. **REQ 8** - Incentivos y bonos (37h est.)
+4. **REQ 10** - Sistema de roles y permisos (20h est.) - Implementar AL FINAL
 
 ### Horas Restantes Estimadas
-- **Total pendiente:** 234.5 horas (incluye REQ 9 y 10)
-- **Progreso actual:** ~52% completado (3 de 10 REQ completos)
-- **Tiempo proyectado para completar:** ~16 días hábiles (15h/día)
+- **Total pendiente:** ~132h (REQ 4 + REQ 7 + REQ 8 + REQ 10)
+- **Progreso actual:** ~61% completado (6 de 10 REQ completos)
+- **Tiempo proyectado para completar:** ~9 días hábiles (15h/día)
 
 ### Cambios Recientes (2026-04-20)
-- ✅ REQ 3 completado (Workflow de aprobación multi-nivel - 8 commits)
-- ✅ REQ 2 completado (Módulo de transacciones agregado)
-- ➕ REQ 9 agregado (Historicidad de tasas y comisiones - revisado)
-- ➕ REQ 10 agregado (Sistema de Roles y Permisos - para implementar al final)
+- ✅ REQ 9 completado (Sistema de comisiones centralizado + snapshots - Commit 428a08d)
+- ✅ REQ 6 completado (Matriz de divisas y corredores - 100%)
+- ✅ REQ 5 completado (Gestión de vendedores y comisiones - 100%)
+- ✅ REQ 3 completado (Workflow de aprobación multi-nivel)
+- ✅ REQ 2 completado (Registro y autenticación)
 
 ### Documentación Generada
 - `/docs/requirements/0-analisis-estado-actual/reporte-final.md` - Análisis completo
