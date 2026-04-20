@@ -13,6 +13,7 @@ use App\Http\Controllers\WalletController;
 use App\Http\Controllers\LiquidationController;
 use App\Http\Controllers\OwnerDashboardController;
 use App\Http\Controllers\SellerReportController;
+use App\Http\Controllers\ExportController;
 
 Route::resource('sellers', SellerController::class);
 Route::resource('liquidations', LiquidationController::class);
@@ -62,6 +63,13 @@ Route::middleware('auth')->group(function () {
     // Reportes de vendedores
     Route::get('/reports/sellers/{seller}/performance', [SellerReportController::class, 'performance'])->name('reports.performance');
     Route::get('/reports/sellers/rankings', [SellerReportController::class, 'rankings'])->name('reports.rankings');
+
+    // Exportaciones
+    Route::get('/export/rankings/csv', [ExportController::class, 'rankingsCSV'])->name('export.rankings.csv');
+    Route::get('/export/rankings/pdf', [ExportController::class, 'rankingsPDF'])->name('export.rankings.pdf');
+    Route::get('/export/seller/{seller}/pdf', [ExportController::class, 'sellerReportPDF'])->name('export.seller.pdf');
+    Route::get('/export/dashboard/csv', [ExportController::class, 'ownerDashboardCSV'])->name('export.dashboard.csv');
+    Route::get('/export/dashboard/pdf', [ExportController::class, 'ownerDashboardPDF'])->name('export.dashboard.pdf');
 });
 
 require __DIR__.'/auth.php';
