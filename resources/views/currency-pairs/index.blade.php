@@ -2,16 +2,20 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                💱 Gestión de Divisas
+                🔄 Gestión de Pares de Divisas
             </h2>
             <div class="flex gap-2">
-                <a href="{{ route('currency-pairs.index') }}"
-                   class="px-4 py-2 bg-white border border-cj-morado-medio text-cj-morado-medio rounded-md hover:bg-cj-morado-claro hover:bg-opacity-20">
-                    Ver Pares
+                <a href="{{ route('currencies.index') }}"
+                   class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
+                    Divisas
                 </a>
-                <a href="{{ route('currencies.create') }}"
+                <a href="{{ route('corridors.index') }}"
+                   class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
+                    Corredores
+                </a>
+                <a href="{{ route('currency-pairs.create') }}"
                    class="px-4 py-2 bg-gradient-to-r from-cj-morado-profundo to-cj-morado-medio text-white rounded-md hover:opacity-90">
-                    + Nueva Divisa
+                    + Nuevo Par
                 </a>
             </div>
         </div>
@@ -36,44 +40,56 @@
                 <table class="w-full">
                     <thead class="bg-gradient-to-r from-cj-morado-profundo to-cj-morado-medio text-white">
                         <tr>
-                            <th class="px-6 py-4 text-left text-xs font-medium uppercase">Código</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium uppercase">Nombre</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium uppercase">Símbolo</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium uppercase">País</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium uppercase">Par</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium uppercase">Origen</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium uppercase">Destino</th>
+                            <th class="px-6 py-4 text-center text-xs font-medium uppercase">Corredores</th>
                             <th class="px-6 py-4 text-center text-xs font-medium uppercase">Estado</th>
                             <th class="px-6 py-4 text-center text-xs font-medium uppercase">Acciones</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
-                        @forelse($currencies as $currency)
+                        @forelse($pairs as $pair)
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4">
                                     <span class="text-lg font-bold text-cj-morado-profundo">
-                                        {{ $currency->flag_emoji }} {{ $currency->code }}
+                                        {{ $pair->full_display }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    {{ $currency->name }}
+                                    <div class="text-sm">
+                                        <span class="font-semibold">{{ $pair->fromCurrency->code }}</span>
+                                        <span class="text-gray-500">- {{ $pair->fromCurrency->name }}</span>
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="font-semibold">{{ $currency->symbol }}</span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    {{ $currency->country }}
+                                    <div class="text-sm">
+                                        <span class="font-semibold">{{ $pair->toCurrency->code }}</span>
+                                        <span class="text-gray-500">- {{ $pair->toCurrency->name }}</span>
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <form action="{{ route('currencies.toggleStatus', $currency) }}" method="POST" class="inline">
+                                    @php
+                                        $enabledCount = $pair->corridors->where('pivot.is_enabled', true)->count();
+                                        $totalCount = $pair->corridors->count();
+                                    @endphp
+                                    <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $enabledCount > 0 ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' }}">
+                                        {{ $enabledCount }} / {{ $totalCount }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <form action="{{ route('currency-pairs.toggleStatus', $pair) }}" method="POST" class="inline">
                                         @csrf
                                         @method('PATCH')
                                         <button type="submit"
-                                                class="px-3 py-1 rounded-full text-xs font-semibold {{ $currency->is_active ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-gray-100 text-gray-800 hover:bg-gray-200' }}">
-                                            {{ $currency->is_active ? 'Activa' : 'Inactiva' }}
+                                                class="px-3 py-1 rounded-full text-xs font-semibold {{ $pair->is_active ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-gray-100 text-gray-800 hover:bg-gray-200' }}">
+                                            {{ $pair->is_active ? 'Activo' : 'Inactivo' }}
                                         </button>
                                     </form>
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <div class="flex justify-center gap-2">
-                                        <a href="{{ route('currencies.edit', $currency) }}"
+                                        <a href="{{ route('currency-pairs.edit', $pair) }}"
                                            class="text-cj-morado-medio hover:text-cj-morado-profundo font-medium">
                                             Editar
                                         </a>
@@ -83,9 +99,9 @@
                         @empty
                             <tr>
                                 <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                                    No hay divisas registradas.
-                                    <a href="{{ route('currencies.create') }}" class="text-cj-morado-medio hover:underline">
-                                        Crear la primera divisa
+                                    No hay pares de divisas registrados.
+                                    <a href="{{ route('currency-pairs.create') }}" class="text-cj-morado-medio hover:underline">
+                                        Crear el primer par
                                     </a>
                                 </td>
                             </tr>
@@ -93,11 +109,11 @@
                     </tbody>
                 </table>
 
-                @if($currencies->count() > 0)
+                @if($pairs->count() > 0)
                     <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
                         <p class="text-sm text-gray-600">
-                            Total de divisas: <strong>{{ $currencies->count() }}</strong>
-                            ({{ $currencies->where('is_active', true)->count() }} activas)
+                            Total de pares: <strong>{{ $pairs->count() }}</strong>
+                            ({{ $pairs->where('is_active', true)->count() }} activos)
                         </p>
                     </div>
                 @endif
