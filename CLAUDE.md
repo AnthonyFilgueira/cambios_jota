@@ -223,17 +223,17 @@ docs/
 | 7 | Consola de Tasas | ✅ | 37h | CRUD tasas, filtros, historial de auditoría |
 | 9 | Historicidad de Tasas | ✅ | ~8h | Snapshots en ventas, comisiones inmutables |
 | 10 | UI/UX Mejorada | ✅ | ~12h | Landing, navbar, efectos visuales |
+| 11 | Datos de Demostración | ✅ | ~8h | Seeder con 30 ventas, usuarios, vendedores |
 
-**Total Completado:** 302h / ~347h ≈ **87%**
+**Total Completado:** 310h / ~347h ≈ **89%**
 
 ### Requerimientos Pendientes ⏸️
 
 | REQ | Nombre | Estado | Horas Est. | Descripción |
 |-----|--------|--------|-----------|-------------|
 | 8 | Incentivos y Bonos | ⏸️ | 37h | Metas, bonos variables, liquidaciones |
-| 11 | Datos de Demostración | ⏸️ | ~8h | Seeders completos, casos de prueba |
 
-**Pendiente:** ~45h
+**Pendiente:** ~37h
 
 **Plan completo:** `/docs/work_plans/plan_trabajo.md`
 
@@ -315,6 +315,17 @@ docs/
 - Fondo mejorado con gradientes
 - Paleta de colores Cambio J aplicada
 - Responsive design mejorado
+
+### REQ 11: Datos de Demostración ✅
+**Archivos:** `database/seeders/DemoDataSeeder.php`
+- 30 ventas distribuidas en 5 estados
+- 5 usuarios (admin + 4 clientes)
+- 4 vendedores (VEND001-VEND004)
+- Snapshots de comisiones inmutables
+- 8 logs de observaciones/rechazos
+- Distribución temporal realista (13 días)
+- Credenciales: cambios_jota@innodite.com / password
+- Comando: `sail artisan db:seed --class=DemoDataSeeder`
 
 ---
 
