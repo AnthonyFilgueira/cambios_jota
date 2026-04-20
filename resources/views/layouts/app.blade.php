@@ -18,6 +18,9 @@
         <div class="min-h-screen bg-gray-100">
             @include('layouts.navigation')
 
+            <!-- Notificaciones Flash -->
+            <x-notifications />
+
             <!-- Page Heading -->
             @isset($header)
                 <header class="bg-white shadow">
