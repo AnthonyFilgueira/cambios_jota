@@ -161,6 +161,78 @@
             </form>
         </div>
 
+        <!-- Historial de Cambios -->
+        @if($history && $history->isNotEmpty())
+        <div class="mt-6 bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold text-cj-texto mb-4 flex items-center">
+                📜 Historial de Cambios
+                <span class="ml-2 text-xs font-normal text-cj-texto-claro">({{ $history->count() }} registro{{ $history->count() > 1 ? 's' : '' }})</span>
+            </h3>
+
+            <div class="space-y-3">
+                @foreach($history as $entry)
+                    <div class="flex items-start gap-4 p-3 rounded-lg {{ $entry->action === 'deleted' ? 'bg-red-50 border border-red-200' : ($entry->action === 'created' ? 'bg-green-50 border border-green-200' : ($entry->action === 'activated' ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50 border border-gray-200')) }}">
+                        <!-- Icono de acción -->
+                        <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full {{ $entry->action === 'deleted' ? 'bg-red-200' : ($entry->action === 'created' ? 'bg-green-200' : ($entry->action === 'activated' ? 'bg-blue-200' : 'bg-gray-200')) }}">
+                            @if($entry->action === 'created')
+                                ✨
+                            @elseif($entry->action === 'updated')
+                                ✏️
+                            @elseif($entry->action === 'activated')
+                                ✓
+                            @elseif($entry->action === 'deactivated')
+                                ✕
+                            @elseif($entry->action === 'deleted')
+                                🗑️
+                            @endif
+                        </div>
+
+                        <!-- Información del cambio -->
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-semibold text-sm text-cj-texto">{{ $entry->action_label }}</span>
+                                <span class="text-xs text-cj-texto-claro">{{ $entry->created_at->diffForHumans() }}</span>
+                            </div>
+
+                            @if($entry->description)
+                                <p class="text-xs text-cj-texto-claro mb-2">{{ $entry->description }}</p>
+                            @endif
+
+                            <!-- Mostrar cambios específicos -->
+                            @if($entry->changes && count($entry->changes) > 0)
+                                <div class="mt-2 space-y-1">
+                                    @foreach($entry->changes as $field => $change)
+                                        <div class="flex items-center gap-2 text-xs">
+                                            <span class="font-medium text-cj-texto">{{ $change['label'] }}:</span>
+                                            <span class="px-2 py-0.5 bg-red-100 text-red-700 rounded">{{ is_bool($change['from']) ? ($change['from'] ? 'Sí' : 'No') : $change['from'] }}</span>
+                                            <span>→</span>
+                                            <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded">{{ is_bool($change['to']) ? ($change['to'] ? 'Sí' : 'No') : $change['to'] }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            <!-- Usuario -->
+                            <div class="mt-2 text-xs text-cj-texto-claro">
+                                👤 {{ $entry->user_name }}
+                                @if($entry->ip_address)
+                                    • IP: {{ $entry->ip_address }}
+                                @endif
+                                • {{ $entry->created_at->format('d/m/Y H:i:s') }}
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            @if($exchangeRate->history()->count() > 20)
+                <p class="text-xs text-center text-cj-texto-claro mt-4">
+                    Mostrando los 20 cambios más recientes de {{ $exchangeRate->history()->count() }} total
+                </p>
+            @endif
+        </div>
+        @endif
+
         <div class="mt-6 bg-cj-morado-claro rounded-lg p-4">
             <h3 class="font-semibold text-sm text-cj-texto mb-2">💡 Cómo Funciona</h3>
             <ul class="text-xs text-cj-texto-claro space-y-1">

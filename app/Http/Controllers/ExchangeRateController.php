@@ -87,7 +87,14 @@ class ExchangeRateController extends Controller
 
     public function edit(ExchangeRate $exchangeRate)
     {
-        return view('exchange_rates.edit', compact('exchangeRate'));
+        // Cargar historial de cambios
+        $history = $exchangeRate->history()
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        return view('exchange_rates.edit', compact('exchangeRate', 'history'));
     }
 
     public function update(Request $request, ExchangeRate $exchangeRate)

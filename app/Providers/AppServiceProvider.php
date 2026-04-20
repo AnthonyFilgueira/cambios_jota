@@ -5,7 +5,9 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
 use App\Models\Sale;
+use App\Models\ExchangeRate;
 use App\Observers\SaleObserver;
+use App\Observers\ExchangeRateObserver;
 use App\Events\SaleCompleted;
 use App\Listeners\SendVoucherUploadedNotification;
 
@@ -25,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Sale::observe(SaleObserver::class);
+        ExchangeRate::observe(ExchangeRateObserver::class);
 
         // Registrar listener de SaleCompleted
         Event::listen(

@@ -45,6 +45,14 @@ class ExchangeRate extends Model
         return $this->hasMany(Transaction::class);
     }
 
+    /**
+     * Historial de cambios de esta tasa
+     */
+    public function history()
+    {
+        return $this->hasMany(ExchangeRateHistory::class)->orderBy('created_at', 'desc');
+    }
+
     // =====================================
     // SCOPES
     // =====================================
