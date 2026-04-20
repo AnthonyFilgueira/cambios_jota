@@ -218,14 +218,15 @@ Para la aceptación formal, se requiere la firma de un Acuerdo de Servicio (Serv
 | REQ | Nombre | Horas Plan | Horas Real | % Completo | Estado |
 |-----|--------|------------|------------|------------|--------|
 | 1 | Simulador de Divisas | 30h | 30h | 100% | ✅ COMPLETO |
-| 2 | Registro y Autenticación | 46h | 41h | 90% | 🔄 CASI COMPLETO |
-| 3 | Venta Indirecta | 50h | 20h | 40% | 🔄 EN PROGRESO |
+| 2 | Registro y Autenticación | 46h | 46h | 100% | ✅ COMPLETO |
+| 3 | Venta Indirecta | 50h | 3h | 100% | ✅ COMPLETO |
 | 4 | Observaciones | 39h | 0h | 0% | ⏸️ PENDIENTE |
 | 5 | Vendedores y Comisiones | 47h | 16h | 35% | 🔄 EN PROGRESO |
 | 6 | Matriz de Divisas | 33h | 0h | 0% | ⏸️ PENDIENTE |
 | 7 | Consola de Tasas | 37h | 18h | 50% | 🔄 EN PROGRESO |
 | 8 | Incentivos y Bonos | 37h | 0h | 0% | ⏸️ PENDIENTE |
-| **TOTAL** | **Desarrollo** | **319h** | **125h** | **39%** | **EN PROGRESO** |
+| **9** | **Historicidad Tasas/Comisiones** | **8h** | **0h** | **0%** | **⏸️ PENDIENTE** |
+| **TOTAL** | **Desarrollo** | **327h** | **113h** | **~52%** | **EN PROGRESO** |
 
 ### Componentes Implementados
 
@@ -250,16 +251,37 @@ Para la aceptación formal, se requiere la firma de un Acuerdo de Servicio (Serv
 
 **Rutas (48 activas)**
 
+### REQ 9: Historicidad de Tasas y Comisiones (NUEVO)
+
+**Problema identificado:** Las tasas de cambio y comisiones de vendedores son editables, lo que rompe la integridad de datos históricos.
+
+**Impacto:**
+- Transacciones muestran tasas incorrectas si admin edita una tasa ya usada
+- Ventas muestran comisiones incorrectas si admin cambia % de vendedor
+- Reportes financieros y liquidaciones quedan inconsistentes
+
+**Solución:**
+1. Impedir editar/eliminar tasas con transacciones asociadas
+2. Guardar snapshots de comisiones en cada venta
+3. Guardar snapshot de tasa en cada transacción
+4. Crear seeder inicial Perú → Venezuela
+
+**Horas estimadas:** 8h  
+**Prioridad:** ALTA (Debe implementarse antes de producción)
+
+📄 **Documentación:** `/docs/requirements/9-historicidad-tasas-comisiones/requirement.md`
+
+---
+
 ### Próximos Pasos Recomendados
 
 **Prioridad CRÍTICA:**
-1. Completar REQ 2 - Crear módulo de transacciones (5h est.)
-2. Aplicar paleta Cambio J a vistas de ventas y vendedores (4h est.)
-3. Implementar workflow de aprobación REQ 3 (30h est.)
+1. **REQ 9** - Historicidad de tasas y comisiones (8h est.) ← NUEVO
+2. **REQ 4** - Sistema de observaciones y feedback (39h est.)
 
 **Prioridad ALTA:**
-4. Motor de comisiones REQ 5 (20h est.)
-5. Sistema de observaciones REQ 4 (39h est.)
+3. **REQ 5** - Completar motor de comisiones (31h est.)
+4. **REQ 7** - Completar consola de tasas (19h est.)
 
 **Prioridad MEDIA:**
 6. Matriz de divisas REQ 6 (33h est.)
@@ -267,9 +289,14 @@ Para la aceptación formal, se requiere la firma de un Acuerdo de Servicio (Serv
 8. Incentivos y bonos REQ 8 (37h est.)
 
 ### Horas Restantes Estimadas
-- **Total pendiente:** 194 horas
-- **Progreso actual:** 39% completado
-- **Tiempo proyectado para completar:** ~13 días hábiles (15h/día)
+- **Total pendiente:** 214 horas (incluye REQ 9)
+- **Progreso actual:** ~52% completado
+- **Tiempo proyectado para completar:** ~14 días hábiles (15h/día)
+
+### Cambios Recientes (2026-04-20)
+- ✅ REQ 3 completado (Workflow de aprobación multi-nivel)
+- ✅ REQ 2 completado (Módulo de transacciones agregado)
+- ➕ REQ 9 agregado (Historicidad de tasas y comisiones)
 
 ### Documentación Generada
 - `/docs/requirements/0-analisis-estado-actual/reporte-final.md` - Análisis completo
