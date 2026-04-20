@@ -62,27 +62,37 @@ class ExchangeRateController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'usd_rate' => 'required|numeric|min:0',
-            'eur_rate' => 'required|numeric|min:0',
-            'ves_rate' => 'required|numeric|min:0',
-            'boss_commission_default' => 'required|numeric|min:0|max:100',
+            'currency_pair_id' => 'required|exists:currency_pairs,id',
+            'usd_rate' => 'required|numeric|min:0.01',
+            'eur_rate' => 'required|numeric|min:0.01',
+            'ves_rate' => 'required|numeric|min:0.00001',
+            'boss_commission_default' => 'nullable|numeric|min:0|max:100',
+        ], [
+            'currency_pair_id.required' => 'Debes seleccionar un par de divisas',
+            'currency_pair_id.exists' => 'El par de divisas seleccionado no existe',
+            'usd_rate.min' => 'La tasa USD debe ser mayor a 0',
+            'eur_rate.min' => 'La tasa EUR debe ser mayor a 0',
+            'ves_rate.min' => 'La tasa VES debe ser mayor a 0',
         ]);
 
         // 1. Crear tasa (sin guardar comisión en exchange_rates)
-        $rate = ExchangeRate::create($request->only(['usd_rate', 'eur_rate', 'ves_rate']));
+        $rate = ExchangeRate::create($request->only(['currency_pair_id', 'usd_rate', 'eur_rate', 'ves_rate']));
 
-        // 2. Actualizar comisión del dueño en TODOS los vendedores
-        $updated = Seller::query()->update([
-            'boss_commission' => $request->boss_commission_default
-        ]);
+        // 2. Activar automáticamente la nueva tasa (desactiva las demás del mismo par)
+        $rate->activate();
 
-        // 3. Activar si es la primera
-        if (ExchangeRate::count() === 1) {
-            $rate->activate();
+        // 3. Solo actualizar comisiones si el campo fue enviado
+        if ($request->filled('boss_commission_default')) {
+            $updated = Seller::query()->update([
+                'boss_commission' => $request->boss_commission_default
+            ]);
+
+            return redirect()->route('exchange_rates.index')->with('success',
+                "Tasa creada y activada correctamente. Comisión del dueño ({$request->boss_commission_default}%) actualizada en {$updated} vendedor(es).");
         }
 
         return redirect()->route('exchange_rates.index')->with('success',
-            "Tasa creada correctamente. Comisión del dueño ({$request->boss_commission_default}%) actualizada en {$updated} vendedor(es).");
+            'Tasa creada y activada correctamente. Las tasas anteriores del mismo par se desactivaron automáticamente.');
     }
 
     public function edit(ExchangeRate $exchangeRate)
@@ -106,10 +116,14 @@ class ExchangeRateController extends Controller
         }
 
         $request->validate([
-            'usd_rate' => 'required|numeric|min:0',
-            'eur_rate' => 'required|numeric|min:0',
-            'ves_rate' => 'required|numeric|min:0',
+            'usd_rate' => 'required|numeric|min:0.01',
+            'eur_rate' => 'required|numeric|min:0.01',
+            'ves_rate' => 'required|numeric|min:0.00001',
             'boss_commission_default' => 'nullable|numeric|min:0|max:100',
+        ], [
+            'usd_rate.min' => 'La tasa USD debe ser mayor a 0',
+            'eur_rate.min' => 'La tasa EUR debe ser mayor a 0',
+            'ves_rate.min' => 'La tasa VES debe ser mayor a 0',
         ]);
 
         // 1. Actualizar tasa

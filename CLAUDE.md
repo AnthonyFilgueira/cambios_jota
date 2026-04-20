@@ -218,7 +218,7 @@ docs/
 | 4 | Observaciones y Feedback | ⏸️ PENDIENTE | 39h | - |
 | 5 | Gestión de Vendedores | ⏸️ PENDIENTE | 47h | - |
 | 6 | Matriz de Divisas | ⏸️ PENDIENTE | 33h | - |
-| 7 | Consola de Tasas | ⏸️ PENDIENTE | 37h | - |
+| 7 | Consola de Tasas | ✅ COMPLETO | 37h | CRUD tasas, filtros, historial, validaciones |
 | 8 | Incentivos y Bonos | ⏸️ PENDIENTE | 37h | - |
 
 **Plan completo:** `/docs/work_plans/plan_trabajo.md`

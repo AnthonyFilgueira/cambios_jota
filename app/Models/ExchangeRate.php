@@ -25,6 +25,35 @@ class ExchangeRate extends Model
     ];
 
     // =====================================
+    // BOOT METHOD (Validaciones)
+    // =====================================
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Validar antes de crear
+        static::creating(function ($rate) {
+            if ($rate->ves_rate <= 0 || $rate->usd_rate <= 0 || $rate->eur_rate <= 0) {
+                throw new \InvalidArgumentException('Las tasas deben ser mayores a 0');
+            }
+        });
+
+        // Validar antes de actualizar
+        static::updating(function ($rate) {
+            if ($rate->isDirty('ves_rate') && $rate->ves_rate <= 0) {
+                throw new \InvalidArgumentException('La tasa VES debe ser mayor a 0');
+            }
+            if ($rate->isDirty('usd_rate') && $rate->usd_rate <= 0) {
+                throw new \InvalidArgumentException('La tasa USD debe ser mayor a 0');
+            }
+            if ($rate->isDirty('eur_rate') && $rate->eur_rate <= 0) {
+                throw new \InvalidArgumentException('La tasa EUR debe ser mayor a 0');
+            }
+        });
+    }
+
+    // =====================================
     // RELACIONES (REQ 6 + REQ 7)
     // =====================================
 

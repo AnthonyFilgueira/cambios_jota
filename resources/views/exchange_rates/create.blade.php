@@ -11,6 +11,42 @@
             <form method="POST" action="{{ route('exchange_rates.store') }}" class="space-y-6">
                 @csrf
 
+                <!-- Selección de Par de Divisas -->
+                <div class="bg-cj-morado-claro rounded-lg p-4 border-2 border-cj-morado-profundo">
+                    <h3 class="text-sm font-semibold text-cj-texto mb-3">🔀 Seleccionar Par de Divisas</h3>
+                    <p class="text-xs text-cj-texto-claro mb-4">Elige qué conversión estás configurando</p>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Par de Divisas
+                        </label>
+                        <select
+                            name="currency_pair_id"
+                            class="w-full border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-cj-turquesa focus:border-transparent text-lg"
+                            required
+                        >
+                            <option value="">Selecciona un par...</option>
+                            @php
+                                $pairs = \App\Models\CurrencyPair::with(['fromCurrency', 'toCurrency'])
+                                    ->orderBy('id')
+                                    ->get();
+                            @endphp
+                            @foreach($pairs as $pair)
+                                <option value="{{ $pair->id }}" {{ old('currency_pair_id') == $pair->id ? 'selected' : '' }}>
+                                    {{ $pair->fromCurrency->code }} → {{ $pair->toCurrency->code }}
+                                    ({{ $pair->fromCurrency->name }} a {{ $pair->toCurrency->name }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('currency_pair_id')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                        <p class="text-xs text-gray-500 mt-1">
+                            💡 Solo puedes tener 1 tasa activa por par. Al crear, las tasas anteriores del mismo par se desactivarán automáticamente.
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Referencias BCV -->
                 <div class="bg-cj-fondo rounded-lg p-4 border-l-4 border-cj-morado-profundo">
                     <h3 class="text-sm font-semibold text-cj-texto mb-3">📊 Tasas de Referencia BCV (Venezuela)</h3>
