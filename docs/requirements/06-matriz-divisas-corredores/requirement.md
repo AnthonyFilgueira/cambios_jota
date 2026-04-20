@@ -1,9 +1,9 @@
 # REQ 6: Matriz de Divisas y Corredores
 
-**Estado:** 🔄 EN PROGRESO (66.7% completado)  
+**Estado:** 🔄 EN PROGRESO (84.8% completado)  
 **Horas estimadas:** 33h  
-**Horas completadas:** 22h  
-**Horas restantes:** 11h  
+**Horas completadas:** 28h  
+**Horas restantes:** 5h  
 **Prioridad:** ALTA
 
 ---
@@ -158,10 +158,10 @@ GET /api/available-pairs
 | 6.2 | Modelo y migración de pares | 5h | ✅ COMPLETO | CurrencyPair model |
 | 6.3 | Modelo y migración de corredores | 6h | ✅ COMPLETO | Corridor model |
 | 6.4 | Tabla intermedia par-corredor | 5h | ✅ COMPLETO | Pivot table |
-| 6.5 | Interfaz de gestión de divisas | 6h | ⏸️ PENDIENTE | CRUD completo |
+| 6.5 | Interfaz de gestión de divisas | 6h | ✅ COMPLETO | CRUD completo |
 | 6.6 | Interfaz matriz de corredores | 5h | ⏸️ PENDIENTE | Vista interactiva |
 
-**Total:** 33h (22h completadas, 11h restantes)
+**Total:** 33h (28h completadas, 5h restantes)
 
 ---
 
