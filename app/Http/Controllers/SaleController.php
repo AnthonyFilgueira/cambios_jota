@@ -75,4 +75,29 @@ class SaleController extends Controller
         $sale->delete();
         return redirect()->route('sales.index');
     }
+
+    public function approve(Sale $sale)
+    {
+        try {
+            $sale->approve();
+
+            $message = $sale->isApproved()
+                ? 'Venta aprobada exitosamente.'
+                : 'Venta escalada a administrador para aprobación final.';
+
+            return redirect()->back()->with('success', $message);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function reject(Sale $sale)
+    {
+        try {
+            $sale->reject();
+            return redirect()->back()->with('success', 'Venta rechazada exitosamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
 }

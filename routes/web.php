@@ -20,6 +20,8 @@ Route::get('reports', [ReportController::class, 'index'])->name('reports.index')
 Route::resource('sales', SaleController::class);
 Route::get('sales-bulk', [SaleController::class, 'bulkCreate'])->name('sales.bulk.create');
 Route::post('sales/bulk', [SaleController::class, 'bulkStore'])->name('sales.bulk.store');
+Route::post('sales/{sale}/approve', [SaleController::class, 'approve'])->name('sales.approve');
+Route::post('sales/{sale}/reject', [SaleController::class, 'reject'])->name('sales.reject');
 
 // Tasas de cambio
 Route::resource('exchange_rates', ExchangeRateController::class);
