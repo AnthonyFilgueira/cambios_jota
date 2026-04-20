@@ -14,12 +14,29 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->command->info('🌱 Seeding database...');
 
+        // 1. Usuario principal del sistema
         User::factory()->create([
             'name' => 'abreu',
             'email' => 'cambiosjottaa@innodite.com',
             'password' => Hash::make('CambiosJota2026!'),
         ]);
+
+        // 2. Seeders de configuración base (REQ 6 y 7)
+        $this->call([
+            CurrencySeeder::class,           // Divisas (PEN, VES, USD, etc.)
+            CurrencyPairSeeder::class,       // Pares de conversión
+            CorridorSeeder::class,           // Corredores
+            CorridorCurrencyPairSeeder::class, // Asignación de pares a corredores
+            ExchangeRateSeeder::class,       // Tasas de cambio activas
+        ]);
+
+        // 3. Seeder de datos de demostración (REQ 11)
+        $this->call([
+            DemoDataSeeder::class,           // Usuarios, vendedores, ventas
+        ]);
+
+        $this->command->info('✅ Database seeding completed!');
     }
 }
