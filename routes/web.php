@@ -14,9 +14,12 @@ use App\Http\Controllers\LiquidationController;
 use App\Http\Controllers\OwnerDashboardController;
 use App\Http\Controllers\SellerReportController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\CurrencyController;
 
 Route::resource('sellers', SellerController::class);
 Route::resource('liquidations', LiquidationController::class);
+Route::resource('currencies', CurrencyController::class)->except(['show', 'destroy']);
+Route::patch('currencies/{currency}/toggle-status', [CurrencyController::class, 'toggleStatus'])->name('currencies.toggleStatus');
 
 Route::get('/sellers-api', function () {
     return Seller::all();
