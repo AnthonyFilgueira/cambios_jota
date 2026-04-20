@@ -1,8 +1,10 @@
 # REQ 3: Venta Indirecta - Workflow de Aprobación
 
-**Estado:** 🔄 EN PROGRESO (40% → 100%)  
+**Estado:** ✅ COMPLETO (100%)  
 **Horas estimadas:** 30h  
-**Prioridad:** CRÍTICA
+**Horas reales:** ~3h  
+**Prioridad:** CRÍTICA  
+**Fecha completado:** 2026-04-20
 
 ---
 
@@ -60,13 +62,13 @@ Implementar un sistema de aprobación multi-nivel para las ventas indirectas, pe
 
 | ID | Tarea | Archivo | Estado |
 |----|-------|---------|--------|
-| 3.1 | Migración: campo approval_status | Migration | ⏸️ |
-| 3.2 | Métodos approve/reject en Sale | Model | ⏸️ |
-| 3.3 | Rutas y métodos approve/reject | Controller | ⏸️ |
-| 3.4 | Vista: Tablero vendedor | Blade | ⏸️ |
-| 3.5 | Vista: Cola aprobación admin | Blade | ⏸️ |
-| 3.6 | Sistema de notificaciones básico | Controller | ⏸️ |
-| 3.7 | Aplicar paleta Cambio J | CSS/Blade | ⏸️ |
+| 3.1 | Migración: campo approval_status | Migration | ✅ |
+| 3.2 | Métodos approve/reject en Sale | Model | ✅ |
+| 3.3 | Rutas y métodos approve/reject | Controller | ✅ |
+| 3.4 | Vista: Tablero vendedor | Blade | ✅ |
+| 3.5 | Vista: Cola aprobación admin | Blade | ✅ |
+| 3.6 | Sistema de notificaciones básico | Component | ✅ |
+| 3.7 | Aplicar paleta Cambio J | CSS/Blade | ✅ |
 
 ---
 
@@ -83,14 +85,14 @@ Estilos:  Tailwind CSS + Paleta Cambio J
 
 ## Criterios de Aceptación
 
-- [ ] Campo `approval_status` en tabla `sales`
-- [ ] Métodos `approve()` y `reject()` en modelo `Sale`
-- [ ] Rutas `/sales/{id}/approve` y `/sales/{id}/reject`
-- [ ] Vista de vendedor muestra solo ventas `pending_seller`
-- [ ] Vista de admin muestra solo ventas `pending_admin`
-- [ ] Notificaciones visuales (sin email por ahora)
-- [ ] Paleta Cambio J aplicada a todas las vistas de ventas
-- [ ] Estados muestran colores distintivos (pending=amarillo, approved=verde, rejected=rojo)
+- [x] Campo `approval_status` en tabla `sales`
+- [x] Métodos `approve()` y `reject()` en modelo `Sale`
+- [x] Rutas `/sales/{id}/approve` y `/sales/{id}/reject`
+- [x] Vista de vendedor muestra solo ventas `pending_seller`
+- [x] Vista de admin muestra solo ventas `pending_admin`
+- [x] Notificaciones visuales (componente reutilizable)
+- [x] Paleta Cambio J aplicada a todas las vistas de ventas
+- [x] Estados muestran colores distintivos (pending=amarillo, approved=verde, rejected=rojo)
 
 ---
 
