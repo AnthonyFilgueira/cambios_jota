@@ -15,15 +15,33 @@ class Sale extends Model
         'approval_status',
         'voucher_path',
         'admin_observation',
+
+        // Snapshots de comisiones
         'seller_commission_percent',
         'admin_commission_percent',
         'seller_commission_amount',
         'admin_commission_amount',
+
+        // Snapshots de tasas (para trazabilidad)
+        'usd_rate_snapshot',
+        'eur_rate_snapshot',
+        'ves_rate_snapshot',
     ];
 
     protected $casts = [
         'amount' => 'float',
         'sale_date' => 'date',
+
+        // Snapshots de comisiones
+        'seller_commission_percent' => 'float',
+        'admin_commission_percent' => 'float',
+        'seller_commission_amount' => 'float',
+        'admin_commission_amount' => 'float',
+
+        // Snapshots de tasas
+        'usd_rate_snapshot' => 'float',
+        'eur_rate_snapshot' => 'float',
+        'ves_rate_snapshot' => 'float',
     ];
 
     // Relaciones

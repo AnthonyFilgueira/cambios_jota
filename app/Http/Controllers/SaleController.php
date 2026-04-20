@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Sale;
 use App\Models\Seller;
+use App\Models\ExchangeRate;
 use Illuminate\Http\Request;
 
 class SaleController extends Controller
@@ -150,7 +151,10 @@ class SaleController extends Controller
         // Obtener seller para calcular comisiones
         $seller = Seller::findOrFail($validated['seller_id']);
 
-        // Crear venta con snapshots de comisiones
+        // Obtener tasa activa para snapshots
+        $activeRate = ExchangeRate::getActive();
+
+        // Crear venta con snapshots de comisiones y tasas
         $sale = Sale::create([
             'seller_id' => $validated['seller_id'],
             'amount' => $validated['amount'],
@@ -162,6 +166,11 @@ class SaleController extends Controller
             'admin_commission_percent' => $seller->boss_commission,
             'seller_commission_amount' => $validated['amount'] * ($seller->seller_commission / 100),
             'admin_commission_amount' => $validated['amount'] * ($seller->boss_commission / 100),
+
+            // Snapshots de tasas (para trazabilidad)
+            'usd_rate_snapshot' => $activeRate->usd_rate ?? null,
+            'eur_rate_snapshot' => $activeRate->eur_rate ?? null,
+            'ves_rate_snapshot' => $activeRate->ves_rate ?? $activeRate->base_rate ?? null,
         ]);
 
         // Si es una petición AJAX, respondemos con JSON
@@ -199,11 +208,14 @@ class SaleController extends Controller
         ])->validate();
     });
 
+    // Obtener tasa activa una sola vez para todas las ventas
+    $activeRate = ExchangeRate::getActive();
+
     foreach ($validated as $saleData) {
         // Obtener seller para calcular comisiones
         $seller = Seller::findOrFail($saleData['seller_id']);
 
-        // Crear venta con snapshots de comisiones
+        // Crear venta con snapshots de comisiones y tasas
         Sale::create([
             'seller_id' => $saleData['seller_id'],
             'amount' => $saleData['amount'],
@@ -215,6 +227,11 @@ class SaleController extends Controller
             'admin_commission_percent' => $seller->boss_commission,
             'seller_commission_amount' => $saleData['amount'] * ($seller->seller_commission / 100),
             'admin_commission_amount' => $saleData['amount'] * ($seller->boss_commission / 100),
+
+            // Snapshots de tasas (para trazabilidad)
+            'usd_rate_snapshot' => $activeRate->usd_rate ?? null,
+            'eur_rate_snapshot' => $activeRate->eur_rate ?? null,
+            'ves_rate_snapshot' => $activeRate->ves_rate ?? $activeRate->base_rate ?? null,
         ]);
     }
 

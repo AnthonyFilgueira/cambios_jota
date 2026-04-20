@@ -60,6 +60,35 @@
                     <p class="text-xs text-gray-500 mt-1">Tu tasa de conversión VES/PEN (ej: 173.71000)</p>
                 </div>
 
+                <!-- Separador visual -->
+                <div class="border-t pt-6 mt-6">
+                    <h3 class="text-lg font-semibold text-cj-texto mb-4">
+                        💼 Configuración de Comisiones
+                    </h3>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Comisión del Dueño (%)
+                        </label>
+                        <input
+                            type="number"
+                            name="boss_commission_default"
+                            step="0.01"
+                            min="0"
+                            max="100"
+                            value="{{ old('boss_commission_default', 15.00) }}"
+                            class="w-full border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-cj-turquesa focus:border-transparent"
+                            required
+                        >
+                        @error('boss_commission_default')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                        <p class="text-xs text-gray-500 mt-1">
+                            Esta comisión se aplicará AUTOMÁTICAMENTE a todos los vendedores existentes
+                        </p>
+                    </div>
+                </div>
+
                 <div class="flex gap-3 pt-4">
                     <button
                         type="submit"
@@ -83,6 +112,9 @@
                 <li>• La primera tasa que crees se activará automáticamente</li>
                 <li>• Solo puede haber una tasa activa a la vez</li>
                 <li>• Los clientes verán la tasa activa en el simulador</li>
+                <li>• La comisión del dueño se guardará en cada vendedor individualmente</li>
+                <li>• Si necesitas una comisión especial para un vendedor, edítala después en "Vendedores"</li>
+                <li>• Las ventas guardan un snapshot de la comisión usada (historicidad)</li>
             </ul>
         </div>
     </div>

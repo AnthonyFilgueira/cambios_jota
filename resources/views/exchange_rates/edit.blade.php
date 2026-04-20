@@ -61,6 +61,58 @@
                     <p class="text-xs text-gray-500 mt-1">Tu tasa de conversión VES/PEN</p>
                 </div>
 
+                <!-- Separador visual -->
+                <div class="border-t pt-6 mt-6">
+                    <h3 class="text-lg font-semibold text-cj-texto mb-4">
+                        💼 Configuración de Comisiones
+                    </h3>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Comisión del Dueño (%)
+                        </label>
+                        <input
+                            type="number"
+                            name="boss_commission_default"
+                            step="0.01"
+                            min="0"
+                            max="100"
+                            placeholder="Dejar vacío para no cambiar"
+                            value="{{ old('boss_commission_default') }}"
+                            class="w-full border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-cj-turquesa focus:border-transparent"
+                        >
+                        @error('boss_commission_default')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                        <p class="text-xs text-gray-500 mt-1">
+                            💡 Solo completa este campo si quieres actualizar la comisión de TODOS los vendedores.
+                            Si lo dejas vacío, las comisiones actuales no cambiarán.
+                        </p>
+                    </div>
+
+                    @php
+                        $commissionGroups = \App\Models\Seller::select('boss_commission')
+                            ->groupBy('boss_commission')
+                            ->selectRaw('boss_commission, count(*) as count')
+                            ->orderBy('count', 'desc')
+                            ->get();
+                    @endphp
+
+                    @if($commissionGroups->isNotEmpty())
+                    <div class="mt-3 bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs font-semibold text-gray-600 mb-2">📊 Comisiones actuales de vendedores:</p>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($commissionGroups as $group)
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-cj-morado-claro text-cj-texto">
+                                    {{ number_format($group->boss_commission, 2) }}%
+                                    <span class="ml-1 text-cj-texto-claro">({{ $group->count }} vendedor{{ $group->count > 1 ? 'es' : '' }})</span>
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+                </div>
+
                 @if($exchangeRate->is_active)
                     <div class="bg-cj-turquesa/10 border border-cj-turquesa rounded-lg p-3">
                         <p class="text-sm text-cj-texto">

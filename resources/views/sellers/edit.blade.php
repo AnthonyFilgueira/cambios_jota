@@ -21,9 +21,42 @@
                 <input type="number" name="seller_commission" step="0.01" value="{{ old('seller_commission', $seller->seller_commission) }}" class="w-full border-gray-300 rounded p-2" required>
             </div>
 
+            @php
+                $commissionGroups = \App\Models\Seller::select('boss_commission')
+                    ->groupBy('boss_commission')
+                    ->selectRaw('boss_commission, count(*) as count')
+                    ->orderBy('count', 'desc')
+                    ->get();
+                $mostCommon = $commissionGroups->first();
+            @endphp
+
             <div>
-                <label class="block text-sm font-medium mb-1">Comisión Jefe (%)</label>
-                <input type="number" name="boss_commission" step="0.01" value="{{ old('boss_commission', $seller->boss_commission) }}" class="w-full border-gray-300 rounded p-2" required>
+                <label class="block text-sm font-medium mb-1">Comisión Dueño (%)</label>
+                <input
+                    type="number"
+                    name="boss_commission"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    value="{{ old('boss_commission', $seller->boss_commission) }}"
+                    class="w-full border-gray-300 rounded p-2 focus:ring-2 focus:ring-purple-500"
+                    required
+                >
+                @if($mostCommon)
+                <p class="text-xs text-gray-500 mt-1">
+                    💡 La comisión más común es <strong>{{ number_format($mostCommon->boss_commission, 2) }}%</strong>
+                    ({{ $mostCommon->count }} vendedor{{ $mostCommon->count > 1 ? 'es' : '' }}).
+                    Edítala aquí solo si este vendedor necesita un porcentaje especial.
+                </p>
+                @endif
+
+                @if($seller->sales()->exists())
+                <div class="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-2">
+                    <p class="text-xs text-blue-800">
+                        ℹ️ Este vendedor ya tiene ventas registradas. Cambiar la comisión NO afectará las ventas pasadas (se guardan snapshots).
+                    </p>
+                </div>
+                @endif
             </div>
 
             <button class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">Actualizar</button>
