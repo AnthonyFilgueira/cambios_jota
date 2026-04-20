@@ -49,6 +49,110 @@ class Seller extends Model
         return $code;
     }
 
+    // ===============================================
+    // MÉTODOS ESTÁTICOS - RANKINGS Y COMPARACIONES
+    // ===============================================
+
+    /**
+     * Ranking de vendedores por total vendido en un rango
+     *
+     * @param string $start
+     * @param string $end
+     * @param int $limit
+     * @return \Illuminate\Support\Collection
+     */
+    public static function rankingByTotalSales($start, $end, $limit = 10)
+    {
+        return self::all()->map(function ($seller) use ($start, $end) {
+            return [
+                'seller' => $seller,
+                'total_sales' => $seller->totalSalesBetween($start, $end),
+                'sales_count' => $seller->salesCountBetween($start, $end),
+                'commission' => $seller->sellerCommissionTotal($start, $end),
+            ];
+        })->sortByDesc('total_sales')->take($limit);
+    }
+
+    /**
+     * Ranking de vendedores por número de ventas
+     *
+     * @param string $start
+     * @param string $end
+     * @param int $limit
+     * @return \Illuminate\Support\Collection
+     */
+    public static function rankingBySalesCount($start, $end, $limit = 10)
+    {
+        return self::all()->map(function ($seller) use ($start, $end) {
+            return [
+                'seller' => $seller,
+                'sales_count' => $seller->salesCountBetween($start, $end),
+                'total_sales' => $seller->totalSalesBetween($start, $end),
+                'commission' => $seller->sellerCommissionTotal($start, $end),
+            ];
+        })->sortByDesc('sales_count')->take($limit);
+    }
+
+    /**
+     * Ranking de vendedores por comisiones generadas
+     *
+     * @param string $start
+     * @param string $end
+     * @param int $limit
+     * @return \Illuminate\Support\Collection
+     */
+    public static function rankingByCommissions($start, $end, $limit = 10)
+    {
+        return self::all()->map(function ($seller) use ($start, $end) {
+            return [
+                'seller' => $seller,
+                'commission' => $seller->sellerCommissionTotal($start, $end),
+                'total_sales' => $seller->totalSalesBetween($start, $end),
+                'sales_count' => $seller->salesCountBetween($start, $end),
+            ];
+        })->sortByDesc('commission')->take($limit);
+    }
+
+    /**
+     * Total global de ventas de todos los vendedores en un rango
+     *
+     * @param string $start
+     * @param string $end
+     * @return float
+     */
+    public static function globalTotalSales($start, $end)
+    {
+        return Sale::whereBetween('sale_date', [$start, $end])->sum('amount');
+    }
+
+    /**
+     * Total global de comisiones de vendedores en un rango
+     *
+     * @param string $start
+     * @param string $end
+     * @return float
+     */
+    public static function globalSellerCommissions($start, $end)
+    {
+        return Sale::whereBetween('sale_date', [$start, $end])
+            ->get()
+            ->sum(fn($sale) => $sale->sellerCommissionAmount());
+    }
+
+    /**
+     * Total global de comisiones del dueño en un rango
+     *
+     * @param string $start
+     * @param string $end
+     * @return float
+     */
+    public static function globalBossCommissions($start, $end)
+    {
+        return Sale::whereBetween('sale_date', [$start, $end])
+            ->get()
+            ->sum(fn($sale) => $sale->bossCommissionAmount());
+    }
+
     // Relaciones
     public function sales()
     {
@@ -88,5 +192,157 @@ class Seller extends Model
     public function commissionsCanBeModified(): bool
     {
         return !$this->sales()->exists();
+    }
+
+    // ===============================================
+    // MOTOR DE CÁLCULO DE GANANCIAS
+    // ===============================================
+
+    /**
+     * Contar ventas en un rango de fechas, con filtro opcional por estado
+     *
+     * @param string $start Fecha inicio (Y-m-d)
+     * @param string $end Fecha fin (Y-m-d)
+     * @param string|null $status Estado (pending_seller, pending_admin, approved, completed, rejected, observed)
+     * @return int
+     */
+    public function salesCountBetween($start, $end, $status = null)
+    {
+        $query = $this->sales()->whereBetween('sale_date', [$start, $end]);
+
+        if ($status) {
+            $query->where('approval_status', $status);
+        }
+
+        return $query->count();
+    }
+
+    /**
+     * Obtener ventas por estado específico
+     *
+     * @param string $status
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function salesByStatus($status)
+    {
+        return $this->sales()->where('approval_status', $status)->get();
+    }
+
+    /**
+     * Calcular ticket promedio en un rango de fechas
+     *
+     * @param string $start
+     * @param string $end
+     * @return float
+     */
+    public function averageTicketBetween($start, $end)
+    {
+        $sales = $this->sales()->whereBetween('sale_date', [$start, $end]);
+        $count = $sales->count();
+
+        if ($count === 0) {
+            return 0;
+        }
+
+        $total = $sales->sum('amount');
+        return $total / $count;
+    }
+
+    /**
+     * Calcular tasa de conversión (ventas aprobadas/completadas vs totales)
+     *
+     * @param string $start
+     * @param string $end
+     * @return float Porcentaje (0-100)
+     */
+    public function conversionRateBetween($start, $end)
+    {
+        $total = $this->salesCountBetween($start, $end);
+
+        if ($total === 0) {
+            return 0;
+        }
+
+        $approved = $this->salesCountBetween($start, $end, 'approved');
+        $completed = $this->salesCountBetween($start, $end, 'completed');
+
+        return (($approved + $completed) / $total) * 100;
+    }
+
+    /**
+     * Total vendido histórico (todas las ventas aprobadas/completadas)
+     *
+     * @return float
+     */
+    public function totalHistoricSales()
+    {
+        return $this->sales()
+            ->whereIn('approval_status', ['approved', 'completed'])
+            ->sum('amount');
+    }
+
+    /**
+     * Total de comisiones del vendedor (histórico)
+     *
+     * @return float
+     */
+    public function totalHistoricSellerCommissions()
+    {
+        return $this->sales()
+            ->whereIn('approval_status', ['approved', 'completed'])
+            ->get()
+            ->sum(fn($sale) => $sale->sellerCommissionAmount());
+    }
+
+    /**
+     * Total de comisiones del dueño (histórico)
+     *
+     * @return float
+     */
+    public function totalHistoricBossCommissions()
+    {
+        return $this->sales()
+            ->whereIn('approval_status', ['approved', 'completed'])
+            ->get()
+            ->sum(fn($sale) => $sale->bossCommissionAmount());
+    }
+
+    /**
+     * Saldo pendiente de pago del vendedor
+     * (Total comisiones aprobadas/completadas - Total liquidaciones)
+     *
+     * Nota: Requiere implementación de liquidaciones (REQ 5.6)
+     * Por ahora retorna solo el total de comisiones
+     *
+     * @return float
+     */
+    public function pendingBalance()
+    {
+        // TODO: Restar liquidaciones cuando se implemente REQ 5.6
+        // return $this->totalHistoricSellerCommissions() - $this->totalLiquidations();
+
+        return $this->totalHistoricSellerCommissions();
+    }
+
+    /**
+     * Métricas resumidas de un vendedor en un rango de fechas
+     *
+     * @param string $start
+     * @param string $end
+     * @return array
+     */
+    public function metricsBetween($start, $end)
+    {
+        return [
+            'total_sales' => $this->salesCountBetween($start, $end),
+            'approved_sales' => $this->salesCountBetween($start, $end, 'approved'),
+            'completed_sales' => $this->salesCountBetween($start, $end, 'completed'),
+            'rejected_sales' => $this->salesCountBetween($start, $end, 'rejected'),
+            'total_amount' => $this->totalSalesBetween($start, $end),
+            'average_ticket' => $this->averageTicketBetween($start, $end),
+            'conversion_rate' => $this->conversionRateBetween($start, $end),
+            'seller_commission' => $this->sellerCommissionTotal($start, $end),
+            'boss_commission' => $this->bossCommissionTotal($start, $end),
+        ];
     }
 }
