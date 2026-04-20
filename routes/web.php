@@ -21,6 +21,7 @@ Route::resource('sales', SaleController::class);
 Route::get('sales-bulk', [SaleController::class, 'bulkCreate'])->name('sales.bulk.create');
 Route::post('sales/bulk', [SaleController::class, 'bulkStore'])->name('sales.bulk.store');
 Route::get('sales-pending-seller', [SaleController::class, 'pendingSeller'])->name('sales.pending.seller');
+Route::get('sales-pending-admin', [SaleController::class, 'pendingAdmin'])->name('sales.pending.admin');
 Route::post('sales/{sale}/approve', [SaleController::class, 'approve'])->name('sales.approve');
 Route::post('sales/{sale}/reject', [SaleController::class, 'reject'])->name('sales.reject');
 

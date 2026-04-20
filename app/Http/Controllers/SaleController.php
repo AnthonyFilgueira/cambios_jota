@@ -22,6 +22,15 @@ class SaleController extends Controller
         return view('sales.pending-seller', compact('sales'));
     }
 
+    public function pendingAdmin()
+    {
+        $sales = Sale::with('seller')
+            ->where('approval_status', 'pending_admin')
+            ->oldest('sale_date')
+            ->paginate(20);
+        return view('sales.pending-admin', compact('sales'));
+    }
+
     public function create()
     {
         $sellers = Seller::all();
