@@ -37,4 +37,64 @@ class Sale extends Model
     {
         return $this->amount * ($this->seller->boss_commission / 100);
     }
+
+    // Workflow de aprobación
+    public function approve()
+    {
+        if ($this->approval_status === 'pending_seller') {
+            $this->approval_status = 'pending_admin';
+            $this->save();
+            return true;
+        }
+
+        if ($this->approval_status === 'pending_admin') {
+            $this->approval_status = 'approved';
+            $this->save();
+            return true;
+        }
+
+        throw new \Exception("No se puede aprobar una venta con estado: {$this->approval_status}");
+    }
+
+    public function reject()
+    {
+        if (in_array($this->approval_status, ['pending_seller', 'pending_admin'])) {
+            $this->approval_status = 'rejected';
+            $this->save();
+            return true;
+        }
+
+        throw new \Exception("No se puede rechazar una venta con estado: {$this->approval_status}");
+    }
+
+    // Helpers de estado
+    public function isPendingSeller(): bool
+    {
+        return $this->approval_status === 'pending_seller';
+    }
+
+    public function isPendingAdmin(): bool
+    {
+        return $this->approval_status === 'pending_admin';
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->approval_status === 'approved';
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->approval_status === 'rejected';
+    }
+
+    public function canBeApproved(): bool
+    {
+        return in_array($this->approval_status, ['pending_seller', 'pending_admin']);
+    }
+
+    public function canBeRejected(): bool
+    {
+        return in_array($this->approval_status, ['pending_seller', 'pending_admin']);
+    }
 }
