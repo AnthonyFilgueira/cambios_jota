@@ -7,6 +7,7 @@
             <table class="min-w-full bg-white border border-gray-200 text-sm">
                 <thead class="bg-gray-100">
                     <tr>
+                        <th class="px-4 py-2 text-left">Código</th>
                         <th class="px-4 py-2 text-left">Nombre</th>
                         <th class="px-4 py-2 text-left">Comisión Vendedor</th>
                         <th class="px-4 py-2 text-left">Comisión Jefe</th>
@@ -16,6 +17,11 @@
                 <tbody>
                     @foreach ($sellers as $seller)
                         <tr class="border-t">
+                            <td class="px-4 py-2">
+                                <span class="inline-block bg-purple-100 text-purple-700 font-mono text-xs px-2 py-1 rounded">
+                                    {{ $seller->code }}
+                                </span>
+                            </td>
                             <td class="px-4 py-2">{{ $seller->name }}</td>
                             <td class="px-4 py-2">{{ $seller->seller_commission }}%</td>
                             <td class="px-4 py-2">{{ $seller->boss_commission }}%</td>

@@ -6,6 +6,12 @@
             @method('PUT')
 
             <div>
+                <label class="block text-sm font-medium mb-1">Código de Vendedor</label>
+                <input type="text" value="{{ $seller->code }}" class="w-full border-gray-300 rounded p-2 bg-gray-100 font-mono text-purple-700" readonly>
+                <p class="text-xs text-gray-500 mt-1">Este código es único e inmodificable</p>
+            </div>
+
+            <div>
                 <label class="block text-sm font-medium mb-1">Nombre</label>
                 <input type="text" name="name" value="{{ old('name', $seller->name) }}" class="w-full border-gray-300 rounded p-2" required>
             </div>

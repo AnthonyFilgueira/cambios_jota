@@ -10,6 +10,7 @@ class Seller extends Model
     use HasFactory;
 
     protected $fillable = [
+        'code',
         'name',
         'seller_commission',
         'boss_commission',
@@ -19,6 +20,34 @@ class Seller extends Model
         'seller_commission' => 'float',
         'boss_commission' => 'float',
     ];
+
+    /**
+     * Boot del modelo - Generar código único automáticamente
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($seller) {
+            if (empty($seller->code)) {
+                $seller->code = self::generateUniqueCode();
+            }
+        });
+    }
+
+    /**
+     * Generar código único alfanumérico
+     * Formato: VEN-XXXXXX (VEN + 6 caracteres alfanuméricos)
+     */
+    private static function generateUniqueCode(): string
+    {
+        do {
+            $randomPart = strtoupper(substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 6));
+            $code = 'VEN-' . $randomPart;
+        } while (self::where('code', $code)->exists());
+
+        return $code;
+    }
 
     // Relaciones
     public function sales()
