@@ -324,8 +324,9 @@ docs/
 - Snapshots de comisiones inmutables
 - 8 logs de observaciones/rechazos
 - Distribución temporal realista (13 días)
-- Credenciales: cambios_jota@innodite.com / password
+- Credenciales: cambios_jotta@innodite.com / password
 - Comando: `sail artisan db:seed --class=DemoDataSeeder`
+- Testing: 36 tests ejecutados, 100% pass
 
 ---
 
