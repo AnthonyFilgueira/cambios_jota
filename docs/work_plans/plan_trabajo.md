@@ -221,14 +221,14 @@ Para la aceptación formal, se requiere la firma de un Acuerdo de Servicio (Serv
 | 1 | Simulador de Divisas | 30h | 30h | 100% | ✅ COMPLETO |
 | 2 | Registro y Autenticación | 46h | 46h | 100% | ✅ COMPLETO |
 | 3 | Venta Indirecta | 50h | 50h | 100% | ✅ COMPLETO |
-| 4 | Observaciones | 39h | 0h | 0% | ⏸️ PENDIENTE |
+| 4 | Observaciones y Feedback | 39h | 20h | 100% | ✅ COMPLETO |
 | 5 | Vendedores y Comisiones | 47h | 47h | 100% | ✅ COMPLETO |
 | 6 | Matriz de Divisas | 33h | 33h | 100% | ✅ COMPLETO |
 | 7 | Consola de Tasas | 37h | 1h | 3% | 🔄 EN PROGRESO |
 | 8 | Incentivos y Bonos | 37h | 0h | 0% | ⏸️ PENDIENTE |
 | **9** | **Historicidad Tasas/Comisiones** | **8h** | **4.5h** | **100%** | **✅ COMPLETO** |
 | **10** | **Sistema Roles y Permisos** | **20h** | **0h** | **0%** | **⏸️ PENDIENTE (al final)** |
-| **TOTAL** | **Desarrollo** | **347h** | **211.5h** | **~61%** | **EN PROGRESO** |
+| **TOTAL** | **Desarrollo** | **347h** | **231.5h** | **~67%** | **EN PROGRESO** |
 
 ### Componentes Implementados
 
@@ -322,24 +322,26 @@ Para la aceptación formal, se requiere la firma de un Acuerdo de Servicio (Serv
 ### Próximos Pasos Recomendados
 
 **Prioridad ALTA:**
-1. **REQ 7** - Completar consola de tasas (36h est.) - Solo falta 7.1 migración
-2. **REQ 4** - Sistema de observaciones y feedback (39h est.)
+1. **REQ 7** - Completar consola de tasas (36h est.) ← SIGUIENTE
 
 **Prioridad MEDIA:**
-3. **REQ 8** - Incentivos y bonos (37h est.)
-4. **REQ 10** - Sistema de roles y permisos (20h est.) - Implementar AL FINAL
+2. **REQ 8** - Incentivos y bonos (37h est.)
+3. **REQ 10** - Sistema de roles y permisos (20h est.) - Implementar AL FINAL
 
 ### Horas Restantes Estimadas
-- **Total pendiente:** ~132h (REQ 4 + REQ 7 + REQ 8 + REQ 10)
-- **Progreso actual:** ~61% completado (6 de 10 REQ completos)
-- **Tiempo proyectado para completar:** ~9 días hábiles (15h/día)
+- **Total pendiente:** ~93h (REQ 7 + REQ 8 + REQ 10)
+- **Progreso actual:** ~67% completado (7 de 10 REQ completos)
+- **Tiempo proyectado para completar:** ~6 días hábiles (15h/día)
 
 ### Cambios Recientes (2026-04-20)
 - ✅ REQ 9 completado (Sistema de comisiones centralizado + snapshots - Commit 428a08d)
 - ✅ REQ 6 completado (Matriz de divisas y corredores - 100%)
 - ✅ REQ 5 completado (Gestión de vendedores y comisiones - 100%)
+- ✅ REQ 4 completado (Sistema de observaciones y feedback - 100%)
 - ✅ REQ 3 completado (Workflow de aprobación multi-nivel)
 - ✅ REQ 2 completado (Registro y autenticación)
+
+### REQ Completados Totales: 7 de 10 (67%)
 
 ### Documentación Generada
 - `/docs/requirements/0-analisis-estado-actual/reporte-final.md` - Análisis completo
