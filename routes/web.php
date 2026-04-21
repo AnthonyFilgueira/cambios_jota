@@ -83,7 +83,8 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    // Redirigir al dashboard del dueño que tiene el diseño completo
+    return redirect()->route('owner.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
