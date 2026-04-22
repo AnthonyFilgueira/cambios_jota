@@ -30,74 +30,131 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            Datos del Envío
+                            Datos del Envío - Cotización
                         </h4>
 
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <!-- Monto a enviar -->
-                            <div>
-                                <label for="amount_pen" class="block text-sm font-medium text-cj-texto mb-2">
-                                    Monto a Enviar (Soles - PEN) *
-                                </label>
-                                <div class="relative">
-                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-cj-texto-claro font-medium">S/.</span>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        name="amount_pen"
-                                        id="amount_pen"
-                                        x-model="amountPen"
-                                        @input="calculateVes()"
-                                        value="{{ old('amount_pen') }}"
-                                        required
-                                        class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
-                                        placeholder="0.00">
-                                </div>
-                                @error('amount_pen')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
+                        <!-- Selector de tasa primero -->
+                        <div class="mb-6">
+                            <label for="exchange_rate_id" class="block text-sm font-medium text-cj-texto mb-2">
+                                Selecciona la Tasa de Cambio *
+                            </label>
+                            <select
+                                name="exchange_rate_id"
+                                id="exchange_rate_id"
+                                x-model="selectedRateId"
+                                @change="onRateChange()"
+                                required
+                                class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
+                                <option value="">Seleccione una tasa</option>
+                                @foreach($pairs as $pair)
+                                    <option
+                                        value="{{ $pair['id'] }}"
+                                        data-rate="{{ $pair['ves_rate'] }}"
+                                        data-usd="{{ $pair['usd_rate'] }}"
+                                        data-eur="{{ $pair['eur_rate'] }}">
+                                        {{ $pair['from_code'] }} → VES (1 {{ $pair['from_code'] }} = {{ number_format($pair['ves_rate'], 2) }} Bs.)
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('exchange_rate_id')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
 
-                            <!-- Tasa de cambio -->
-                            <div>
-                                <label for="exchange_rate_id" class="block text-sm font-medium text-cj-texto mb-2">
-                                    Tasa de Cambio *
-                                </label>
-                                <select
-                                    name="exchange_rate_id"
-                                    id="exchange_rate_id"
-                                    x-model="selectedRateId"
-                                    @change="onRateChange()"
-                                    required
-                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
-                                    <option value="">Seleccione una tasa</option>
-                                    @foreach($pairs as $pair)
-                                        <option
-                                            value="{{ $pair['id'] }}"
-                                            data-rate="{{ $pair['ves_rate'] }}"
-                                            data-usd="{{ $pair['usd_rate'] }}"
-                                            data-eur="{{ $pair['eur_rate'] }}">
-                                            {{ $pair['from_code'] }} → VES (1 {{ $pair['from_code'] }} = {{ number_format($pair['ves_rate'], 2) }} Bs.)
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('exchange_rate_id')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                            <!-- Hidden inputs para tasas BCV -->
+                            <input type="hidden" name="usd_bcv_rate" x-model="usdBcvRate">
+                            <input type="hidden" name="eur_bcv_rate" x-model="eurBcvRate">
+                        </div>
 
-                                <!-- Hidden inputs para tasas BCV -->
-                                <input type="hidden" name="usd_bcv_rate" x-model="usdBcvRate">
-                                <input type="hidden" name="eur_bcv_rate" x-model="eurBcvRate">
-                            </div>
-
-                            <!-- Monto a recibir (calculado) -->
-                            <div class="md:col-span-2">
-                                <div class="bg-cj-turquesa/10 border-2 border-cj-turquesa rounded-xl p-4">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm font-medium text-cj-texto">Monto a Recibir en Venezuela:</span>
-                                        <span class="text-2xl font-bold text-cj-turquesa" x-text="'Bs. ' + amountVes.toFixed(2)"></span>
+                        <!-- Sección de cotización -->
+                        <div class="bg-cj-morado-claro/20 rounded-xl p-5 mb-6">
+                            <h5 class="text-sm font-bold text-cj-morado-profundo mb-3 uppercase tracking-wider">¿Cuánto quieres cotizar?</h5>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <!-- Cotizar en USD -->
+                                <div>
+                                    <label class="block text-xs uppercase tracking-wider font-semibold text-cj-texto-claro mb-2">
+                                        En Dólares (USD)
+                                    </label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-cj-texto-claro font-medium">$</span>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            x-model="inputUSD"
+                                            @input="calculateFromUSD()"
+                                            class="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                            placeholder="0.00">
                                     </div>
                                 </div>
+
+                                <!-- Cotizar en EUR -->
+                                <div>
+                                    <label class="block text-xs uppercase tracking-wider font-semibold text-cj-texto-claro mb-2">
+                                        En Euros (EUR)
+                                    </label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-cj-texto-claro font-medium">€</span>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            x-model="inputEUR"
+                                            @input="calculateFromEUR()"
+                                            class="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                            placeholder="0.00">
+                                    </div>
+                                </div>
+
+                                <!-- Monto directo en PEN -->
+                                <div>
+                                    <label class="block text-xs uppercase tracking-wider font-semibold text-cj-texto-claro mb-2">
+                                        En Soles (PEN) *
+                                    </label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-cj-texto-claro font-medium">S/.</span>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            name="amount_pen"
+                                            id="amount_pen"
+                                            x-model="amountPen"
+                                            @input="calculateFromPEN()"
+                                            value="{{ old('amount_pen') }}"
+                                            required
+                                            class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                            placeholder="0.00">
+                                    </div>
+                                    @error('amount_pen')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resumen visual del envío -->
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <!-- Tú envías -->
+                            <div class="bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio text-white rounded-xl p-6">
+                                <div class="text-xs uppercase tracking-widest opacity-90 mb-2 font-semibold">Tú envías</div>
+                                <div class="text-3xl font-bold">
+                                    S/. <span x-text="formatMoney(amountPen)">0.00</span>
+                                </div>
+                                <div class="text-xs opacity-75 mt-1">Soles peruanos</div>
+                            </div>
+
+                            <!-- Tu familiar recibe -->
+                            <div class="bg-gradient-to-br from-cj-turquesa to-cj-rosa text-white rounded-xl p-6">
+                                <div class="text-xs uppercase tracking-widest opacity-90 mb-2 font-semibold">Tu familiar recibe</div>
+                                <div class="text-3xl font-bold flex items-center gap-2">
+                                    Bs. <span x-text="formatMoney(amountVes)">0.00</span>
+                                </div>
+                                <div class="text-xs opacity-90 mt-1">Bolívares venezolanos</div>
+                            </div>
+
+                            <!-- Tasa aplicada -->
+                            <div class="md:col-span-2 bg-cj-morado-medio/10 border-2 border-cj-morado-medio/20 rounded-xl p-4 text-center">
+                                <span class="text-xs text-cj-texto-claro uppercase tracking-wider">Tasa de conversión: </span>
+                                <span class="text-lg font-bold text-cj-morado-profundo font-mono">
+                                    1 PEN = <span x-text="selectedRate.toFixed(2)">0.00</span> VES
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -301,12 +358,17 @@
     <script>
     function transactionForm() {
         return {
+            // Datos principales
             amountPen: 0,
             selectedRateId: '',
             selectedRate: 0,
             amountVes: 0,
             usdBcvRate: 0,
             eurBcvRate: 0,
+
+            // Inputs de cotización
+            inputUSD: '',
+            inputEUR: '',
 
             init() {
                 // Intentar cargar datos del simulador
@@ -356,14 +418,66 @@
                     this.selectedRate = parseFloat(option.dataset.rate);
                     this.usdBcvRate = parseFloat(option.dataset.usd);
                     this.eurBcvRate = parseFloat(option.dataset.eur);
-                    this.calculateVes();
+                    this.recalculate();
                 }
             },
 
-            calculateVes() {
+            // Calcular desde PEN (input directo)
+            calculateFromPEN() {
+                this.inputUSD = '';
+                this.inputEUR = '';
+                this.recalculate();
+            },
+
+            // Calcular desde USD (BCV)
+            calculateFromUSD() {
+                this.inputEUR = '';
+                const usd = parseFloat(this.inputUSD) || 0;
+                const usdRate = parseFloat(this.usdBcvRate) || 0;
+                const vesRate = parseFloat(this.selectedRate) || 0;
+
+                if (usdRate > 0 && vesRate > 0) {
+                    // USD → VES → PEN
+                    const vesIntermedios = usd * usdRate;
+                    this.amountPen = vesIntermedios / vesRate;
+                    this.amountVes = vesIntermedios;
+                } else {
+                    alert('Por favor, selecciona primero una tasa de cambio.');
+                    this.inputUSD = '';
+                }
+            },
+
+            // Calcular desde EUR (BCV)
+            calculateFromEUR() {
+                this.inputUSD = '';
+                const eur = parseFloat(this.inputEUR) || 0;
+                const eurRate = parseFloat(this.eurBcvRate) || 0;
+                const vesRate = parseFloat(this.selectedRate) || 0;
+
+                if (eurRate > 0 && vesRate > 0) {
+                    // EUR → VES → PEN
+                    const vesIntermedios = eur * eurRate;
+                    this.amountPen = vesIntermedios / vesRate;
+                    this.amountVes = vesIntermedios;
+                } else {
+                    alert('Por favor, selecciona primero una tasa de cambio.');
+                    this.inputEUR = '';
+                }
+            },
+
+            // Recalcular VES basado en PEN
+            recalculate() {
                 const pen = parseFloat(this.amountPen) || 0;
                 const rate = parseFloat(this.selectedRate) || 0;
                 this.amountVes = pen * rate;
+            },
+
+            // Formatear montos
+            formatMoney(value) {
+                return new Intl.NumberFormat('es-PE', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(value || 0);
             }
         }
     }
