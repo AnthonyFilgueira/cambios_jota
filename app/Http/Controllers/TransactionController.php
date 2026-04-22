@@ -69,6 +69,9 @@ class TransactionController extends Controller
             'exchange_rate_id' => 'required|exists:exchange_rates,id',
             'notes' => 'nullable|string|max:500',
 
+            // Código de vendedor (opcional)
+            'seller_code' => 'nullable|string|max:20',
+
             // Tasas BCV (snapshot)
             'usd_bcv_rate' => 'nullable|numeric',
             'eur_bcv_rate' => 'nullable|numeric',
@@ -87,6 +90,20 @@ class TransactionController extends Controller
             'voucher' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
+        // Buscar vendedor por código si se proporcionó
+        $seller = null;
+        if ($request->filled('seller_code')) {
+            $seller = \App\Models\Seller::where('code', strtoupper($request->seller_code))->first();
+
+            if (!$seller) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['seller_code' => 'El código de vendedor no existe.']);
+            }
+
+            $validated['seller_id'] = $seller->id;
+        }
+
         // Si no vienen las tasas BCV, obtenerlas del exchange rate
         if (!$request->has('usd_bcv_rate') || !$request->has('eur_bcv_rate')) {
             $rate = \App\Models\ExchangeRate::findOrFail($validated['exchange_rate_id']);
@@ -103,10 +120,16 @@ class TransactionController extends Controller
         $validated['user_id'] = auth()->id();
         $validated['status'] = 'pending';
 
-        Transaction::create($validated);
+        // Crear transacción
+        $transaction = Transaction::create($validated);
+
+        // Enviar notificación al vendedor si fue asignado
+        if ($seller) {
+            $seller->user->notify(new \App\Notifications\NewTransactionForSeller($transaction));
+        }
 
         return redirect()->route('transactions.index')
-            ->with('success', '¡Solicitud de envío creada exitosamente! Un vendedor se pondrá en contacto contigo.');
+            ->with('success', '¡Solicitud de envío creada exitosamente! ' . ($seller ? 'El vendedor ' . $seller->name . ' ha sido notificado.' : 'Un vendedor se pondrá en contacto contigo.'));
     }
 
     /**

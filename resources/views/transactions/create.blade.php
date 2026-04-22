@@ -65,6 +65,27 @@
                             <input type="hidden" name="eur_bcv_rate" x-model="eurBcvRate">
                         </div>
 
+                        <!-- Código de Vendedor -->
+                        <div class="mb-6">
+                            <label for="seller_code" class="block text-sm font-medium text-cj-texto mb-2">
+                                Código de Vendedor (Opcional)
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-cj-texto-claro font-medium">#</span>
+                                <input
+                                    type="text"
+                                    name="seller_code"
+                                    id="seller_code"
+                                    value="{{ old('seller_code') }}"
+                                    class="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all uppercase"
+                                    placeholder="VEND001">
+                            </div>
+                            <p class="text-xs text-cj-texto-claro mt-1">Si tienes un código de vendedor preferido, ingrésalo aquí</p>
+                            @error('seller_code')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <!-- Sección de cotización -->
                         <div class="bg-cj-morado-claro/20 rounded-xl p-5 mb-6">
                             <h5 class="text-sm font-bold text-cj-morado-profundo mb-3 uppercase tracking-wider">¿Cuánto quieres cotizar?</h5>
