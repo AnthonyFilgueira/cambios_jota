@@ -153,12 +153,23 @@
                 </div>
             </div>
 
-            <!-- RANKINGS Y LIQUIDACIONES -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <!-- Top Vendedores por Monto -->
-                <div class="bg-white rounded-lg shadow">
-                    <div class="p-6 border-b border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-800">🏆 Top Vendedores (Monto)</h3>
+            <!-- RANKING VENDEDORES (Tabla Única con Ordenamiento) -->
+            <div class="mb-6">
+                <div class="bg-white rounded-lg shadow" x-data="rankingTable()">
+                    <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-800">🏆 Top Vendedores</h3>
+                        <div class="flex gap-2">
+                            <button @click="sortBy = 'sales'; sortRankings()"
+                                    :class="sortBy === 'sales' ? 'bg-cj-morado-profundo text-white' : 'bg-gray-100 text-gray-700'"
+                                    class="px-4 py-2 text-sm rounded-md hover:opacity-90 transition">
+                                💰 Por Monto
+                            </button>
+                            <button @click="sortBy = 'count'; sortRankings()"
+                                    :class="sortBy === 'count' ? 'bg-cj-turquesa text-white' : 'bg-gray-100 text-gray-700'"
+                                    class="px-4 py-2 text-sm rounded-md hover:opacity-90 transition">
+                                📊 Por Cantidad
+                            </button>
+                        </div>
                     </div>
                     <div class="p-6">
                         <table class="w-full">
@@ -166,64 +177,39 @@
                                 <tr>
                                     <th class="text-left pb-3">#</th>
                                     <th class="text-left pb-3">Vendedor</th>
-                                    <th class="text-right pb-3">Monto</th>
-                                    <th class="text-right pb-3">Ventas</th>
+                                    <th class="text-right pb-3 cursor-pointer hover:text-cj-morado-profundo" @click="sortBy = 'sales'; sortRankings()">
+                                        Monto <span x-show="sortBy === 'sales'">▼</span>
+                                    </th>
+                                    <th class="text-right pb-3 cursor-pointer hover:text-cj-turquesa" @click="sortBy = 'count'; sortRankings()">
+                                        Ventas <span x-show="sortBy === 'count'">▼</span>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody class="text-sm">
-                                @forelse($rankings['by_sales'] as $index => $rank)
+                                <template x-for="(rank, index) in sortedRankings" :key="index">
                                     <tr class="border-t border-gray-100">
                                         <td class="py-3">
-                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full {{ $index === 0 ? 'bg-yellow-100 text-yellow-600' : ($index === 1 ? 'bg-gray-100 text-gray-600' : 'bg-orange-100 text-orange-600') }} text-xs font-bold">
-                                                {{ $index + 1 }}
+                                            <span x-text="index + 1"
+                                                  :class="{
+                                                      'bg-yellow-100 text-yellow-600': index === 0,
+                                                      'bg-gray-100 text-gray-600': index === 1,
+                                                      'bg-orange-100 text-orange-600': index === 2
+                                                  }"
+                                                  class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold">
                                             </span>
                                         </td>
-                                        <td class="py-3 font-medium text-gray-900">{{ $rank['seller']->name }}</td>
-                                        <td class="py-3 text-right font-semibold text-cj-morado-profundo">S/. {{ number_format($rank['total_sales'], 2) }}</td>
-                                        <td class="py-3 text-right text-gray-600">{{ $rank['sales_count'] }}</td>
+                                        <td class="py-3 font-medium text-gray-900" x-text="rank.seller_name"></td>
+                                        <td class="py-3 text-right font-semibold text-cj-morado-profundo">
+                                            S/. <span x-text="formatNumber(rank.total_sales)"></span>
+                                        </td>
+                                        <td class="py-3 text-right text-gray-600" x-text="rank.sales_count"></td>
                                     </tr>
-                                @empty
+                                </template>
+                                <template x-if="sortedRankings.length === 0">
                                     <tr>
                                         <td colspan="4" class="py-4 text-center text-gray-500">No hay datos</td>
                                     </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Top Vendedores por Cantidad -->
-                <div class="bg-white rounded-lg shadow">
-                    <div class="p-6 border-b border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-800">📈 Top Vendedores (Cantidad)</h3>
-                    </div>
-                    <div class="p-6">
-                        <table class="w-full">
-                            <thead class="text-xs text-gray-500 uppercase">
-                                <tr>
-                                    <th class="text-left pb-3">#</th>
-                                    <th class="text-left pb-3">Vendedor</th>
-                                    <th class="text-right pb-3">Ventas</th>
-                                    <th class="text-right pb-3">Monto</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-sm">
-                                @forelse($rankings['by_count'] as $index => $rank)
-                                    <tr class="border-t border-gray-100">
-                                        <td class="py-3">
-                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full {{ $index === 0 ? 'bg-yellow-100 text-yellow-600' : ($index === 1 ? 'bg-gray-100 text-gray-600' : 'bg-orange-100 text-orange-600') }} text-xs font-bold">
-                                                {{ $index + 1 }}
-                                            </span>
-                                        </td>
-                                        <td class="py-3 font-medium text-gray-900">{{ $rank['seller']->name }}</td>
-                                        <td class="py-3 text-right font-semibold text-cj-turquesa">{{ $rank['sales_count'] }}</td>
-                                        <td class="py-3 text-right text-gray-600">S/. {{ number_format($rank['total_sales'], 2) }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="py-4 text-center text-gray-500">No hay datos</td>
-                                    </tr>
-                                @endforelse
+                                </template>
                             </tbody>
                         </table>
                     </div>
@@ -283,6 +269,39 @@
     function ownerDashboard() {
         return {
             period: '{{ $period }}',
+        }
+    }
+
+    function rankingTable() {
+        return {
+            sortBy: 'sales', // 'sales' o 'count'
+            rankings: @json($rankings['by_sales']->map(function($rank) {
+                return [
+                    'seller_name' => $rank['seller']->name,
+                    'total_sales' => $rank['total_sales'],
+                    'sales_count' => $rank['sales_count']
+                ];
+            })),
+            sortedRankings: [],
+
+            init() {
+                this.sortRankings();
+            },
+
+            sortRankings() {
+                if (this.sortBy === 'sales') {
+                    this.sortedRankings = [...this.rankings].sort((a, b) => b.total_sales - a.total_sales);
+                } else {
+                    this.sortedRankings = [...this.rankings].sort((a, b) => b.sales_count - a.sales_count);
+                }
+            },
+
+            formatNumber(num) {
+                return new Intl.NumberFormat('es-PE', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(num);
+            }
         }
     }
     </script>
