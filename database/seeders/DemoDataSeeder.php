@@ -44,15 +44,16 @@ class DemoDataSeeder extends Seeder
     {
         $this->command->info('👤 Creando usuarios...');
 
-        // Admin
+        // Admin con rol super-admin
         $this->admin = User::create([
             'name' => 'Admin Cambio J',
             'email' => 'cambios_jotta@innodite.com',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
         ]);
+        $this->admin->assignRole('super-admin');
 
-        // Clientes
+        // Clientes con rol cliente
         $clientesData = [
             ['name' => 'Juan Pérez', 'email' => 'juan.perez@gmail.com'],
             ['name' => 'María González', 'email' => 'maria.gonzalez@gmail.com'],
@@ -61,15 +62,17 @@ class DemoDataSeeder extends Seeder
         ];
 
         foreach ($clientesData as $data) {
-            $this->clientes[] = User::create([
+            $cliente = User::create([
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]);
+            $cliente->assignRole('cliente');
+            $this->clientes[] = $cliente;
         }
 
-        $this->command->info('  ✓ Admin + 4 clientes creados');
+        $this->command->info('  ✓ Admin (super-admin) + 4 clientes creados');
     }
 
     private function crearVendedores()
@@ -80,34 +83,50 @@ class DemoDataSeeder extends Seeder
             [
                 'code' => 'VEND001',
                 'name' => 'Pedro Martínez',
+                'email' => 'pedro.martinez@cambiosj.com',
                 'seller_commission' => 5.0,
                 'boss_commission' => 15.0,
             ],
             [
                 'code' => 'VEND002',
                 'name' => 'Ana López',
+                'email' => 'ana.lopez@cambiosj.com',
                 'seller_commission' => 7.0,
                 'boss_commission' => 13.0,
             ],
             [
                 'code' => 'VEND003',
                 'name' => 'Luis Torres',
+                'email' => 'luis.torres@cambiosj.com',
                 'seller_commission' => 10.0,
                 'boss_commission' => 10.0,
             ],
             [
                 'code' => 'VEND004',
                 'name' => 'Rosa Fernández',
+                'email' => 'rosa.fernandez@cambiosj.com',
                 'seller_commission' => 5.0,
                 'boss_commission' => 15.0,
             ],
         ];
 
         foreach ($vendedoresData as $data) {
+            // Crear vendedor
+            $email = $data['email'];
+            unset($data['email']);
             $this->vendedores[$data['code']] = Seller::create($data);
+
+            // Crear usuario para que el vendedor pueda iniciar sesión
+            $userVendedor = User::create([
+                'name' => $data['name'],
+                'email' => $email,
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]);
+            $userVendedor->assignRole('vendedor');
         }
 
-        $this->command->info('  ✓ 4 vendedores creados (VEND001-VEND004)');
+        $this->command->info('  ✓ 4 vendedores creados (VEND001-VEND004) con usuarios de login');
     }
 
     private function crearVentas()

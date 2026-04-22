@@ -16,14 +16,20 @@ class DatabaseSeeder extends Seeder
     {
         $this->command->info('🌱 Seeding database...');
 
-        // 1. Usuario principal del sistema
-        User::factory()->create([
+        // 1. Roles y Permisos (PRIMERO)
+        $this->call([
+            RolesAndPermissionsSeeder::class, // Crear roles y permisos
+        ]);
+
+        // 2. Usuario principal del sistema
+        $userAbreu = User::factory()->create([
             'name' => 'abreu',
             'email' => 'cambiosjottaa@innodite.com',
             'password' => Hash::make('CambiosJota2026!'),
         ]);
+        $userAbreu->assignRole('super-admin');
 
-        // 2. Seeders de configuración base (REQ 6 y 7)
+        // 3. Seeders de configuración base (REQ 6 y 7)
         $this->call([
             CurrencySeeder::class,           // Divisas (PEN, VES, USD, etc.)
             CurrencyPairSeeder::class,       // Pares de conversión
@@ -32,7 +38,7 @@ class DatabaseSeeder extends Seeder
             ExchangeRateSeeder::class,       // Tasas de cambio activas
         ]);
 
-        // 3. Seeder de datos de demostración (REQ 11)
+        // 4. Seeder de datos de demostración (REQ 11)
         $this->call([
             DemoDataSeeder::class,           // Usuarios, vendedores, ventas
         ]);

@@ -212,9 +212,15 @@
 
                 <!-- Botón CTA -->
                 <div class="p-6 bg-white">
-                    <button class="w-full bg-cj-rosa hover:bg-pink-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
-                        Iniciar envío →
-                    </button>
+                    @auth
+                        <a href="{{ route('sales.bulk.create') }}" class="block w-full bg-gradient-to-r from-cj-rosa to-pink-600 hover:opacity-90 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 text-center">
+                            Iniciar envío →
+                        </a>
+                    @else
+                        <a href="{{ route('register') }}" class="block w-full bg-gradient-to-r from-cj-rosa to-pink-600 hover:opacity-90 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 text-center">
+                            Registrarse e iniciar envío →
+                        </a>
+                    @endauth
                 </div>
             </div>
 
@@ -258,6 +264,12 @@
                     // Cambiar par seleccionado
                     cambiarPar() {
                         this.currentPair = this.pairs.find(p => p.id == this.selectedPairId) || this.pairs[0];
+
+                        // Actualizar tasas del día según el par seleccionado
+                        this.tasas.usd = this.currentPair.usd_rate;
+                        this.tasas.eur = this.currentPair.eur_rate;
+                        this.tasas.ves = this.currentPair.ves_rate;
+
                         this.limpiarInputs();
                     },
 
