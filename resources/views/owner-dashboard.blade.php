@@ -1,4 +1,11 @@
 <x-app-layout>
+    <!-- Fondo gradiente animado y círculos flotantes -->
+    <div class="fixed inset-0 -z-20 bg-gradient-to-br from-purple-600 via-pink-500 to-teal-400 animate-gradient-shift"></div>
+    <div class="fixed inset-0 -z-10 bg-white/40 backdrop-blur-sm"></div>
+    <div class="fixed top-20 left-10 w-72 h-72 bg-purple-400/30 rounded-full blur-3xl animate-float"></div>
+    <div class="fixed bottom-20 right-10 w-96 h-96 bg-teal-400/30 rounded-full blur-3xl animate-float" style="animation-delay: 2s;"></div>
+    <div class="fixed top-1/2 left-1/2 w-64 h-64 bg-pink-400/20 rounded-full blur-3xl animate-float" style="animation-delay: 4s;"></div>
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             📊 Dashboard del Dueño
@@ -9,7 +16,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <!-- FILTROS DE PERÍODO -->
-            <div class="mb-6 bg-white rounded-lg shadow p-4">
+            <div class="mb-6 bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/50 p-4">
                 <form method="GET" action="{{ route('owner.dashboard') }}" class="flex flex-wrap gap-4 items-end">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Período</label>
@@ -49,14 +56,14 @@
                 <!-- BOTONES DE EXPORTACIÓN -->
                 <div class="flex gap-2 mt-4">
                     <a href="{{ route('export.dashboard.csv', request()->all()) }}"
-                       class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700">
+                       class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-cj-turquesa to-teal-500 text-white text-sm rounded-lg hover:opacity-90 shadow-md transform hover:scale-105 transition-all duration-300">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                         Exportar CSV
                     </a>
                     <a href="{{ route('export.dashboard.pdf', request()->all()) }}"
-                       class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700">
+                       class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-cj-rosa to-pink-500 text-white text-sm rounded-lg hover:opacity-90 shadow-md transform hover:scale-105 transition-all duration-300">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                         </svg>
@@ -68,7 +75,7 @@
             <!-- MÉTRICAS GLOBALES -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <!-- Total Vendido -->
-                <div class="bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio text-white rounded-lg shadow p-6">
+                <div class="bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio text-white rounded-2xl shadow-2xl p-6 transform hover:scale-105 transition-all duration-300">
                     <div class="flex items-center justify-between mb-2">
                         <h3 class="text-sm font-medium opacity-90">Total Vendido</h3>
                         <svg class="w-6 h-6 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,7 +94,7 @@
                 </div>
 
                 <!-- Comisiones Vendedores -->
-                <div class="bg-gradient-to-br from-cj-turquesa to-teal-500 text-white rounded-lg shadow p-6">
+                <div class="bg-gradient-to-br from-cj-turquesa to-teal-500 text-white rounded-2xl shadow-2xl p-6 transform hover:scale-105 transition-all duration-300">
                     <div class="flex items-center justify-between mb-2">
                         <h3 class="text-sm font-medium opacity-90">Comisiones Vendedores</h3>
                         <svg class="w-6 h-6 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,7 +108,7 @@
                 </div>
 
                 <!-- Comisiones Dueño -->
-                <div class="bg-gradient-to-br from-cj-rosa to-pink-500 text-white rounded-lg shadow p-6">
+                <div class="bg-gradient-to-br from-cj-rosa to-pink-500 text-white rounded-2xl shadow-2xl p-6 transform hover:scale-105 transition-all duration-300">
                     <div class="flex items-center justify-between mb-2">
                         <h3 class="text-sm font-medium opacity-90">Mis Comisiones</h3>
                         <svg class="w-6 h-6 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,7 +122,7 @@
                 </div>
 
                 <!-- Cantidad de Ventas -->
-                <div class="bg-gradient-to-br from-purple-500 to-indigo-500 text-white rounded-lg shadow p-6">
+                <div class="bg-gradient-to-br from-purple-500 to-indigo-500 text-white rounded-2xl shadow-2xl p-6 transform hover:scale-105 transition-all duration-300">
                     <div class="flex items-center justify-between mb-2">
                         <h3 class="text-sm font-medium opacity-90">Cantidad de Ventas</h3>
                         <svg class="w-6 h-6 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,43 +140,31 @@
             <!-- SEGUNDA FILA DE MÉTRICAS -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <!-- Ticket Promedio -->
-                <div class="bg-white rounded-lg shadow p-6">
+                <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/50 p-6 transform hover:scale-105 transition-all duration-300">
                     <h3 class="text-sm font-medium text-gray-500 mb-2">Ticket Promedio</h3>
                     <p class="text-2xl font-bold text-cj-morado-profundo">S/. {{ number_format($metrics['average_ticket'], 2) }}</p>
                 </div>
 
                 <!-- Total Liquidado -->
-                <div class="bg-white rounded-lg shadow p-6">
+                <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/50 p-6 transform hover:scale-105 transition-all duration-300">
                     <h3 class="text-sm font-medium text-gray-500 mb-2">Total Liquidado</h3>
                     <p class="text-2xl font-bold text-cj-turquesa">S/. {{ number_format($liquidations['total_liquidated'], 2) }}</p>
                     <p class="text-sm text-gray-500 mt-1">{{ $liquidations['count'] }} liquidaciones</p>
                 </div>
 
                 <!-- Saldo en Monederos -->
-                <div class="bg-white rounded-lg shadow p-6">
+                <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/50 p-6 transform hover:scale-105 transition-all duration-300">
                     <h3 class="text-sm font-medium text-gray-500 mb-2">Saldo en Monederos</h3>
                     <p class="text-2xl font-bold text-cj-rosa">S/. {{ number_format($wallets['total_balance'], 2) }}</p>
                     <p class="text-sm text-gray-500 mt-1">Pendiente de liquidar</p>
                 </div>
             </div>
 
-            <!-- RANKING VENDEDORES (Tabla Única con Ordenamiento) -->
+            <!-- RANKING VENDEDORES -->
             <div class="mb-6">
-                <div class="bg-white rounded-lg shadow" x-data="rankingTable()">
-                    <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/50">
+                    <div class="p-6 border-b border-gray-200">
                         <h3 class="text-lg font-semibold text-gray-800">🏆 Top Vendedores</h3>
-                        <div class="flex gap-2">
-                            <button @click="sortBy = 'sales'; sortRankings()"
-                                    :class="sortBy === 'sales' ? 'bg-cj-morado-profundo text-white' : 'bg-gray-100 text-gray-700'"
-                                    class="px-4 py-2 text-sm rounded-md hover:opacity-90 transition">
-                                💰 Por Monto
-                            </button>
-                            <button @click="sortBy = 'count'; sortRankings()"
-                                    :class="sortBy === 'count' ? 'bg-cj-turquesa text-white' : 'bg-gray-100 text-gray-700'"
-                                    class="px-4 py-2 text-sm rounded-md hover:opacity-90 transition">
-                                📊 Por Cantidad
-                            </button>
-                        </div>
                     </div>
                     <div class="p-6">
                         <table class="w-full">
@@ -177,39 +172,27 @@
                                 <tr>
                                     <th class="text-left pb-3">#</th>
                                     <th class="text-left pb-3">Vendedor</th>
-                                    <th class="text-right pb-3 cursor-pointer hover:text-cj-morado-profundo" @click="sortBy = 'sales'; sortRankings()">
-                                        Monto <span x-show="sortBy === 'sales'">▼</span>
-                                    </th>
-                                    <th class="text-right pb-3 cursor-pointer hover:text-cj-turquesa" @click="sortBy = 'count'; sortRankings()">
-                                        Ventas <span x-show="sortBy === 'count'">▼</span>
-                                    </th>
+                                    <th class="text-right pb-3">Monto Total</th>
+                                    <th class="text-right pb-3">Cantidad</th>
                                 </tr>
                             </thead>
                             <tbody class="text-sm">
-                                <template x-for="(rank, index) in sortedRankings" :key="index">
+                                @forelse($rankings['by_sales'] as $index => $rank)
                                     <tr class="border-t border-gray-100">
                                         <td class="py-3">
-                                            <span x-text="index + 1"
-                                                  :class="{
-                                                      'bg-yellow-100 text-yellow-600': index === 0,
-                                                      'bg-gray-100 text-gray-600': index === 1,
-                                                      'bg-orange-100 text-orange-600': index === 2
-                                                  }"
-                                                  class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold">
+                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full {{ $index === 0 ? 'bg-yellow-100 text-yellow-600' : ($index === 1 ? 'bg-gray-100 text-gray-600' : ($index === 2 ? 'bg-orange-100 text-orange-600' : 'bg-gray-50 text-gray-500')) }} text-xs font-bold">
+                                                {{ $index + 1 }}
                                             </span>
                                         </td>
-                                        <td class="py-3 font-medium text-gray-900" x-text="rank.seller_name"></td>
-                                        <td class="py-3 text-right font-semibold text-cj-morado-profundo">
-                                            S/. <span x-text="formatNumber(rank.total_sales)"></span>
-                                        </td>
-                                        <td class="py-3 text-right text-gray-600" x-text="rank.sales_count"></td>
+                                        <td class="py-3 font-medium text-gray-900">{{ $rank['seller']->name }}</td>
+                                        <td class="py-3 text-right font-semibold text-cj-morado-profundo">S/. {{ number_format($rank['total_sales'], 2) }}</td>
+                                        <td class="py-3 text-right text-gray-600">{{ $rank['sales_count'] }}</td>
                                     </tr>
-                                </template>
-                                <template x-if="sortedRankings.length === 0">
+                                @empty
                                     <tr>
                                         <td colspan="4" class="py-4 text-center text-gray-500">No hay datos</td>
                                     </tr>
-                                </template>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -219,7 +202,7 @@
             <!-- LIQUIDACIONES RECIENTES Y SALDOS PENDIENTES -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Liquidaciones Recientes -->
-                <div class="bg-white rounded-lg shadow">
+                <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/50">
                     <div class="p-6 border-b border-gray-200">
                         <h3 class="text-lg font-semibold text-gray-800">💰 Liquidaciones Recientes</h3>
                     </div>
@@ -242,7 +225,7 @@
                 </div>
 
                 <!-- Saldos Pendientes -->
-                <div class="bg-white rounded-lg shadow">
+                <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/50">
                     <div class="p-6 border-b border-gray-200">
                         <h3 class="text-lg font-semibold text-gray-800">💳 Saldos Pendientes de Liquidar</h3>
                     </div>
@@ -269,39 +252,6 @@
     function ownerDashboard() {
         return {
             period: '{{ $period }}',
-        }
-    }
-
-    function rankingTable() {
-        return {
-            sortBy: 'sales', // 'sales' o 'count'
-            rankings: @json($rankings['by_sales']->map(function($rank) {
-                return [
-                    'seller_name' => $rank['seller']->name,
-                    'total_sales' => $rank['total_sales'],
-                    'sales_count' => $rank['sales_count']
-                ];
-            })),
-            sortedRankings: [],
-
-            init() {
-                this.sortRankings();
-            },
-
-            sortRankings() {
-                if (this.sortBy === 'sales') {
-                    this.sortedRankings = [...this.rankings].sort((a, b) => b.total_sales - a.total_sales);
-                } else {
-                    this.sortedRankings = [...this.rankings].sort((a, b) => b.sales_count - a.sales_count);
-                }
-            },
-
-            formatNumber(num) {
-                return new Intl.NumberFormat('es-PE', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }).format(num);
-            }
         }
     }
     </script>
