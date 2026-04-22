@@ -4,12 +4,14 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\View;
 use App\Models\Sale;
 use App\Models\ExchangeRate;
 use App\Observers\SaleObserver;
 use App\Observers\ExchangeRateObserver;
 use App\Events\SaleCompleted;
 use App\Listeners\SendVoucherUploadedNotification;
+use App\Http\View\Composers\TransactionFormComposer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -34,5 +36,9 @@ class AppServiceProvider extends ServiceProvider
             SaleCompleted::class,
             SendVoucherUploadedNotification::class,
         );
+
+        // View Composer para formulario de transacciones
+        // Asegura que $pairs y $rates estén siempre disponibles incluso en redirects
+        View::composer('transactions.create', TransactionFormComposer::class);
     }
 }

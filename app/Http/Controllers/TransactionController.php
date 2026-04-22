@@ -23,6 +23,28 @@ class TransactionController extends Controller
     }
 
     /**
+     * Get currency pairs for the form
+     */
+    private function getCurrencyPairs()
+    {
+        return \App\Models\ExchangeRate::with(['currencyPair.fromCurrency', 'currencyPair.toCurrency'])
+            ->whereNotNull('currency_pair_id')
+            ->where('is_active', true)
+            ->get()
+            ->map(function($rate) {
+                return [
+                    'id' => $rate->id,
+                    'from_code' => $rate->currencyPair->fromCurrency->code ?? 'N/A',
+                    'from_name' => $rate->currencyPair->fromCurrency->name ?? 'N/A',
+                    'from_symbol' => $rate->currencyPair->fromCurrency->symbol ?? '$',
+                    'ves_rate' => $rate->ves_rate ?? 0,
+                    'usd_rate' => $rate->usd_rate ?? 0,
+                    'eur_rate' => $rate->eur_rate ?? 0,
+                ];
+            });
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create()
@@ -31,21 +53,7 @@ class TransactionController extends Controller
         $rates = \App\Models\ExchangeRate::where('is_active', true)->first();
 
         // Obtener pares de divisas disponibles
-        $pairs = \App\Models\ExchangeRate::with(['currencyPair.fromCurrency', 'currencyPair.toCurrency'])
-            ->whereNotNull('currency_pair_id')
-            ->where('is_active', true)
-            ->get()
-            ->map(function($rate) {
-                return [
-                    'id' => $rate->id,
-                    'from_code' => $rate->currencyPair->fromCurrency->code,
-                    'from_name' => $rate->currencyPair->fromCurrency->name,
-                    'from_symbol' => $rate->currencyPair->fromCurrency->symbol,
-                    'ves_rate' => $rate->ves_rate,
-                    'usd_rate' => $rate->usd_rate,
-                    'eur_rate' => $rate->eur_rate,
-                ];
-            });
+        $pairs = $this->getCurrencyPairs();
 
         return view('transactions.create', compact('rates', 'pairs'));
     }
