@@ -14,4 +14,17 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Verificar si hay una transacción pendiente del simulador
+        document.addEventListener('DOMContentLoaded', function() {
+            const pendingTransaction = sessionStorage.getItem('pendingTransaction');
+
+            if (pendingTransaction) {
+                // Redirigir automáticamente a crear transacción
+                // El formulario leerá los datos del sessionStorage
+                window.location.href = '{{ route('transactions.create') }}';
+            }
+        });
+    </script>
 </x-app-layout>

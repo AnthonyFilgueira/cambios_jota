@@ -21,6 +21,9 @@
                 <form method="POST" action="{{ route('transactions.store') }}" enctype="multipart/form-data" class="space-y-8">
                     @csrf
 
+                    <!-- Hidden fields -->
+                    <input type="hidden" name="amount_ves" x-model="amountVes">
+
                     <!-- SECCIÓN 1: DATOS DEL ENVÍO -->
                     <div class="bg-gradient-to-r from-cj-morado-profundo/5 to-cj-turquesa/5 rounded-xl p-6 border border-cj-morado-claro">
                         <h4 class="text-lg font-bold text-cj-morado-profundo mb-4 flex items-center gap-2">
@@ -63,13 +66,17 @@
                                 <select
                                     name="exchange_rate_id"
                                     id="exchange_rate_id"
-                                    x-model="selectedRate"
-                                    @change="calculateVes()"
+                                    x-model="selectedRateId"
+                                    @change="onRateChange()"
                                     required
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
                                     <option value="">Seleccione una tasa</option>
                                     @foreach($pairs as $pair)
-                                        <option value="{{ $pair['ves_rate'] }}">
+                                        <option
+                                            value="{{ $pair['id'] }}"
+                                            data-rate="{{ $pair['ves_rate'] }}"
+                                            data-usd="{{ $pair['usd_rate'] }}"
+                                            data-eur="{{ $pair['eur_rate'] }}">
                                             {{ $pair['from_code'] }} → VES (1 {{ $pair['from_code'] }} = {{ number_format($pair['ves_rate'], 2) }} Bs.)
                                         </option>
                                     @endforeach
@@ -77,6 +84,10 @@
                                 @error('exchange_rate_id')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
+
+                                <!-- Hidden inputs para tasas BCV -->
+                                <input type="hidden" name="usd_bcv_rate" x-model="usdBcvRate">
+                                <input type="hidden" name="eur_bcv_rate" x-model="eurBcvRate">
                             </div>
 
                             <!-- Monto a recibir (calculado) -->
@@ -291,8 +302,63 @@
     function transactionForm() {
         return {
             amountPen: 0,
-            selectedRate: '',
+            selectedRateId: '',
+            selectedRate: 0,
             amountVes: 0,
+            usdBcvRate: 0,
+            eurBcvRate: 0,
+
+            init() {
+                // Intentar cargar datos del simulador
+                this.loadSimulatorData();
+            },
+
+            loadSimulatorData() {
+                // Primero intentar desde URL params
+                const urlParams = new URLSearchParams(window.location.search);
+                let data = null;
+
+                if (urlParams.has('amount_pen')) {
+                    data = {
+                        amount_pen: urlParams.get('amount_pen'),
+                        amount_ves: urlParams.get('amount_ves'),
+                        exchange_rate_id: urlParams.get('exchange_rate_id'),
+                        ves_rate: urlParams.get('ves_rate'),
+                        usd_bcv_rate: urlParams.get('usd_bcv_rate'),
+                        eur_bcv_rate: urlParams.get('eur_bcv_rate')
+                    };
+                } else {
+                    // Intentar desde sessionStorage
+                    const stored = sessionStorage.getItem('pendingTransaction');
+                    if (stored) {
+                        data = JSON.parse(stored);
+                        // Limpiar después de cargar
+                        sessionStorage.removeItem('pendingTransaction');
+                    }
+                }
+
+                // Si hay datos, pre-llenar el formulario
+                if (data) {
+                    this.amountPen = parseFloat(data.amount_pen) || 0;
+                    this.amountVes = parseFloat(data.amount_ves) || 0;
+                    this.selectedRateId = data.exchange_rate_id || '';
+                    this.selectedRate = parseFloat(data.ves_rate) || 0;
+                    this.usdBcvRate = parseFloat(data.usd_bcv_rate) || 0;
+                    this.eurBcvRate = parseFloat(data.eur_bcv_rate) || 0;
+                }
+            },
+
+            onRateChange() {
+                const select = document.getElementById('exchange_rate_id');
+                const option = select.options[select.selectedIndex];
+
+                if (option && option.dataset.rate) {
+                    this.selectedRate = parseFloat(option.dataset.rate);
+                    this.usdBcvRate = parseFloat(option.dataset.usd);
+                    this.eurBcvRate = parseFloat(option.dataset.eur);
+                    this.calculateVes();
+                }
+            },
 
             calculateVes() {
                 const pen = parseFloat(this.amountPen) || 0;

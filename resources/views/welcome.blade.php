@@ -212,15 +212,15 @@
 
                 <!-- Botón CTA -->
                 <div class="p-6 bg-white">
-                    @auth
-                        <a href="{{ route('transactions.create') }}" class="block w-full bg-gradient-to-r from-cj-rosa to-pink-600 hover:opacity-90 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 text-center">
+                    <button
+                        @click="iniciarEnvio({{ auth()->check() ? 'true' : 'false' }})"
+                        class="block w-full bg-gradient-to-r from-cj-rosa to-pink-600 hover:opacity-90 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 text-center">
+                        @auth
                             Iniciar envío →
-                        </a>
-                    @else
-                        <a href="{{ route('register') }}" class="block w-full bg-gradient-to-r from-cj-rosa to-pink-600 hover:opacity-90 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 text-center">
+                        @else
                             Registrarse e iniciar envío →
-                        </a>
-                    @endauth
+                        @endauth
+                    </button>
                 </div>
             </div>
 
@@ -316,6 +316,37 @@
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         }).format(valor);
+                    },
+
+                    // Iniciar envío con datos del simulador
+                    iniciarEnvio(isAuthenticated) {
+                        if (this.montoEnviar <= 0) {
+                            alert('Por favor, ingresa un monto válido antes de continuar.');
+                            return;
+                        }
+
+                        // Guardar datos del simulador en sessionStorage
+                        const simulatorData = {
+                            amount_pen: this.montoEnviar.toFixed(2),
+                            amount_ves: this.vesRecibir.toFixed(2),
+                            pair_id: this.currentPair.id,
+                            exchange_rate_id: this.currentPair.exchange_rate_id,
+                            from_currency: this.currentPair.from_code,
+                            ves_rate: this.currentPair.ves_rate,
+                            usd_bcv_rate: this.tasas.usd,
+                            eur_bcv_rate: this.tasas.eur
+                        };
+
+                        sessionStorage.setItem('pendingTransaction', JSON.stringify(simulatorData));
+
+                        // Si está autenticado, ir directo a crear transacción
+                        if (isAuthenticated) {
+                            const params = new URLSearchParams(simulatorData);
+                            window.location.href = `{{ route('transactions.create') }}?${params.toString()}`;
+                        } else {
+                            // Si no está autenticado, ir a registro
+                            window.location.href = '{{ route('register') }}';
+                        }
                     }
                 }
             }

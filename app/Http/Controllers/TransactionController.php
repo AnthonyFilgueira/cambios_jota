@@ -43,6 +43,7 @@ class TransactionController extends Controller
                     'from_symbol' => $rate->currencyPair->fromCurrency->symbol,
                     'ves_rate' => $rate->ves_rate,
                     'usd_rate' => $rate->usd_rate,
+                    'eur_rate' => $rate->eur_rate,
                 ];
             });
 
@@ -56,8 +57,13 @@ class TransactionController extends Controller
     {
         $validated = $request->validate([
             'amount_pen' => 'required|numeric|min:1',
+            'amount_ves' => 'required|numeric|min:1',
             'exchange_rate_id' => 'required|exists:exchange_rates,id',
             'notes' => 'nullable|string|max:500',
+
+            // Tasas BCV (snapshot)
+            'usd_bcv_rate' => 'nullable|numeric',
+            'eur_bcv_rate' => 'nullable|numeric',
 
             // Datos bancarios del receptor (Venezuela)
             'recipient_bank' => 'required|string|max:255',
@@ -73,15 +79,12 @@ class TransactionController extends Controller
             'voucher' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
-        // Obtener la tasa de cambio para cálculos
-        $rate = \App\Models\ExchangeRate::findOrFail($validated['exchange_rate_id']);
-
-        // Calcular amount_ves basado en la tasa
-        $validated['amount_ves'] = $validated['amount_pen'] * $rate->ves_rate;
-
-        // Guardar snapshot de tasas BCV (historicidad)
-        $validated['usd_bcv_rate'] = $rate->usd_rate;
-        $validated['eur_bcv_rate'] = $rate->eur_rate;
+        // Si no vienen las tasas BCV, obtenerlas del exchange rate
+        if (!$request->has('usd_bcv_rate') || !$request->has('eur_bcv_rate')) {
+            $rate = \App\Models\ExchangeRate::findOrFail($validated['exchange_rate_id']);
+            $validated['usd_bcv_rate'] = $rate->usd_rate;
+            $validated['eur_bcv_rate'] = $rate->eur_rate;
+        }
 
         // Manejar subida del comprobante
         if ($request->hasFile('voucher')) {
