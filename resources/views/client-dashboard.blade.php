@@ -28,8 +28,9 @@
                 </div>
 
                 <div class="bg-gradient-to-br from-cj-turquesa to-teal-500 text-white rounded-2xl shadow-2xl p-6">
-                    <h3 class="text-sm font-medium opacity-90 mb-2">Monto Total</h3>
-                    <p class="text-3xl font-bold">S/. {{ number_format($stats['total_amount'], 2) }}</p>
+                    <h3 class="text-sm font-medium opacity-90 mb-2">Monto Total Enviado</h3>
+                    <p class="text-2xl font-bold">S/. {{ number_format($stats['total_amount_pen'], 2) }}</p>
+                    <p class="text-sm opacity-90 mt-1">Bs. {{ number_format($stats['total_amount_ves'], 2) }}</p>
                 </div>
 
                 <div class="bg-gradient-to-br from-cj-rosa to-pink-500 text-white rounded-2xl shadow-2xl p-6">
@@ -59,9 +60,10 @@
                                     @foreach($transactions as $transaction)
                                         <tr class="border-t border-gray-100">
                                             <td class="py-3">{{ $transaction->created_at->format('d/m/Y H:i') }}</td>
-                                            <td class="py-3">{{ $transaction->description ?? 'Transacción' }}</td>
+                                            <td class="py-3">{{ $transaction->notes ?? 'Transacción' }}</td>
                                             <td class="py-3 text-right font-semibold text-cj-morado-profundo">
-                                                S/. {{ number_format($transaction->amount, 2) }}
+                                                <div>S/. {{ number_format($transaction->amount_pen, 2) }}</div>
+                                                <div class="text-xs text-gray-500">Bs. {{ number_format($transaction->amount_ves, 2) }}</div>
                                             </td>
                                             <td class="py-3 text-center">
                                                 <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">Completada</span>

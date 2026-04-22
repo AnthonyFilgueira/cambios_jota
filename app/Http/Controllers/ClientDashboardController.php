@@ -19,7 +19,8 @@ class ClientDashboardController extends Controller
         // Estadísticas del cliente
         $stats = [
             'total_transactions' => Transaction::where('user_id', $user->id)->count(),
-            'total_amount' => Transaction::where('user_id', $user->id)->sum('amount'),
+            'total_amount_pen' => Transaction::where('user_id', $user->id)->sum('amount_pen'),
+            'total_amount_ves' => Transaction::where('user_id', $user->id)->sum('amount_ves'),
             'recent_count' => Transaction::where('user_id', $user->id)
                 ->where('created_at', '>=', now()->subDays(30))
                 ->count(),
