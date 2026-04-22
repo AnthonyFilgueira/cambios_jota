@@ -23,21 +23,46 @@ Comandos:  sail (Docker)
 
 ```css
 /* Morados */
---cj-morado-profundo: #5B21B6;
---cj-morado-medio:    #7C3AED;
---cj-morado-claro:    #DDD6FE;
+--cj-morado-profundo: #5B21B6;  /* purple-600 en Tailwind */
+--cj-morado-medio:    #7C3AED;  /* purple-500 */
+--cj-morado-claro:    #DDD6FE;  /* purple-200 */
 
 /* Acentos */
---cj-turquesa:        #14B8A6;
---cj-rosa:            #EC4899;
+--cj-turquesa:        #14B8A6;  /* teal-500 */
+--cj-rosa:            #EC4899;  /* pink-500 */
 
 /* Neutros */
---cj-fondo:           #F3F4F6;
---cj-texto:           #374151;
---cj-texto-claro:     #6B7280;
+--cj-fondo:           #F3F4F6;  /* gray-100 */
+--cj-texto:           #374151;  /* gray-700 */
+--cj-texto-claro:     #6B7280;  /* gray-500 */
 ```
 
 Configuradas en: `tailwind.config.js`
+
+### ⚠️ DISEÑO OBLIGATORIO en TODAS las vistas:
+
+**Fondo animado con gradiente:**
+```html
+<div class="fixed inset-0 -z-20 bg-gradient-to-br from-purple-600 via-pink-500 to-teal-400 animate-gradient-shift"></div>
+<div class="fixed inset-0 -z-10 bg-white/40 backdrop-blur-sm"></div>
+```
+
+**Cards con glassmorphism:**
+```html
+<div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/50 p-8">
+```
+
+**Botones primarios:**
+```html
+<button class="bg-gradient-to-r from-cj-morado-profundo to-cj-morado-medio text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all">
+```
+
+**Inputs con focus mejorado:**
+```html
+<input class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
+```
+
+**Referencia:** Ver `resources/views/welcome.blade.php` para diseño completo
 
 ---
 

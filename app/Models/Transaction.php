@@ -15,11 +15,30 @@ class Transaction extends Model
         'exchange_rate_id',
         'status',
         'notes',
+
+        // Comprobante
+        'voucher',
+
+        // Datos bancarios del receptor (Venezuela)
+        'recipient_bank',
+        'recipient_account_number',
+        'recipient_dni',
+        'recipient_account_type',
+
+        // Datos de transferencia desde Perú
+        'sender_bank',
+        'sender_account_number',
+
+        // Tasas BCV (snapshot para historicidad)
+        'usd_bcv_rate',
+        'eur_bcv_rate',
     ];
 
     protected $casts = [
         'amount_pen' => 'decimal:2',
         'amount_ves' => 'decimal:2',
+        'usd_bcv_rate' => 'decimal:6',
+        'eur_bcv_rate' => 'decimal:6',
     ];
 
     public function user(): BelongsTo
