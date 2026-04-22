@@ -27,7 +27,26 @@ class TransactionController extends Controller
      */
     public function create()
     {
-        //
+        // Obtener tasas activas
+        $rates = \App\Models\ExchangeRate::where('is_active', true)->first();
+
+        // Obtener pares de divisas disponibles
+        $pairs = \App\Models\ExchangeRate::with(['currencyPair.fromCurrency', 'currencyPair.toCurrency'])
+            ->whereNotNull('currency_pair_id')
+            ->where('is_active', true)
+            ->get()
+            ->map(function($rate) {
+                return [
+                    'id' => $rate->id,
+                    'from_code' => $rate->currencyPair->fromCurrency->code,
+                    'from_name' => $rate->currencyPair->fromCurrency->name,
+                    'from_symbol' => $rate->currencyPair->fromCurrency->symbol,
+                    'ves_rate' => $rate->ves_rate,
+                    'usd_rate' => $rate->usd_rate,
+                ];
+            });
+
+        return view('transactions.create', compact('rates', 'pairs'));
     }
 
     /**
@@ -35,7 +54,22 @@ class TransactionController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'amount_pen' => 'required|numeric|min:1',
+            'exchange_rate_id' => 'required|exists:exchange_rates,id',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        // Calcular amount_ves basado en la tasa
+        $rate = \App\Models\ExchangeRate::findOrFail($validated['exchange_rate_id']);
+        $validated['amount_ves'] = $validated['amount_pen'] * $rate->ves_rate;
+        $validated['user_id'] = auth()->id();
+        $validated['status'] = 'pending';
+
+        Transaction::create($validated);
+
+        return redirect()->route('transactions.index')
+            ->with('success', '¡Solicitud de envío creada exitosamente! Un vendedor se pondrá en contacto contigo.');
     }
 
     /**

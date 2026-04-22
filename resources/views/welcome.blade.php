@@ -213,7 +213,7 @@
                 <!-- Botón CTA -->
                 <div class="p-6 bg-white">
                     @auth
-                        <a href="{{ route('sales.bulk.create') }}" class="block w-full bg-gradient-to-r from-cj-rosa to-pink-600 hover:opacity-90 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 text-center">
+                        <a href="{{ route('transactions.create') }}" class="block w-full bg-gradient-to-r from-cj-rosa to-pink-600 hover:opacity-90 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 text-center">
                             Iniciar envío →
                         </a>
                     @else
