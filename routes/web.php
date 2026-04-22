@@ -83,7 +83,18 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    // Redirigir al dashboard del dueño que tiene el diseño completo
+    $user = auth()->user();
+
+    // Redirigir según el rol del usuario
+    if ($user->hasRole('super-admin') || $user->hasRole('admin') || $user->hasRole('contador')) {
+        return redirect()->route('owner.dashboard');
+    } elseif ($user->hasRole('vendedor')) {
+        return redirect()->route('seller.dashboard');
+    } elseif ($user->hasRole('cliente')) {
+        return redirect()->route('client.dashboard');
+    }
+
+    // Por defecto, owner dashboard
     return redirect()->route('owner.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -94,7 +105,11 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
+
+    // Dashboards específicos por rol
     Route::get('/owner-dashboard', [OwnerDashboardController::class, 'index'])->name('owner.dashboard');
+    Route::get('/seller-dashboard', [\App\Http\Controllers\SellerDashboardController::class, 'index'])->name('seller.dashboard');
+    Route::get('/client-dashboard', [\App\Http\Controllers\ClientDashboardController::class, 'index'])->name('client.dashboard');
 
     // Reportes de vendedores
     Route::get('/reports/sellers/{seller}/performance', [SellerReportController::class, 'performance'])->name('reports.performance');
