@@ -429,6 +429,11 @@
                 this.recalculate();
             },
 
+            // Redondear a 2 decimales
+            round(value) {
+                return Math.round(value * 100) / 100;
+            },
+
             // Calcular desde USD (BCV)
             calculateFromUSD() {
                 this.inputEUR = '';
@@ -439,8 +444,8 @@
                 if (usdRate > 0 && vesRate > 0) {
                     // USD → VES → PEN
                     const vesIntermedios = usd * usdRate;
-                    this.amountPen = vesIntermedios / vesRate;
-                    this.amountVes = vesIntermedios;
+                    this.amountPen = this.round(vesIntermedios / vesRate);
+                    this.amountVes = this.round(vesIntermedios);
                 } else {
                     alert('Por favor, selecciona primero una tasa de cambio.');
                     this.inputUSD = '';
@@ -457,8 +462,8 @@
                 if (eurRate > 0 && vesRate > 0) {
                     // EUR → VES → PEN
                     const vesIntermedios = eur * eurRate;
-                    this.amountPen = vesIntermedios / vesRate;
-                    this.amountVes = vesIntermedios;
+                    this.amountPen = this.round(vesIntermedios / vesRate);
+                    this.amountVes = this.round(vesIntermedios);
                 } else {
                     alert('Por favor, selecciona primero una tasa de cambio.');
                     this.inputEUR = '';
@@ -469,7 +474,7 @@
             recalculate() {
                 const pen = parseFloat(this.amountPen) || 0;
                 const rate = parseFloat(this.selectedRate) || 0;
-                this.amountVes = pen * rate;
+                this.amountVes = this.round(pen * rate);
             },
 
             // Formatear montos

@@ -281,13 +281,18 @@
                         this.vesRecibir = 0;
                     },
 
+                    // Redondear a 2 decimales
+                    round(value) {
+                        return Math.round(value * 100) / 100;
+                    },
+
                     // CASO 1: Cliente ingresa moneda origen directamente
                     calcularDesdeOrigen() {
                         this.inputUSD = '';
                         this.inputEUR = '';
                         const monto = parseFloat(this.inputOrigen) || 0;
-                        this.montoEnviar = monto;
-                        this.vesRecibir = monto * this.currentPair.ves_rate;
+                        this.montoEnviar = this.round(monto);
+                        this.vesRecibir = this.round(monto * this.currentPair.ves_rate);
                     },
 
                     // CASO 2: Cliente ingresa USD (conversión a tasa BCV dólar)
@@ -296,8 +301,8 @@
                         this.inputOrigen = '';
                         const usd = parseFloat(this.inputUSD) || 0;
                         const vesIntermedios = usd * this.currentPair.usd_rate;
-                        this.montoEnviar = vesIntermedios / this.currentPair.ves_rate;
-                        this.vesRecibir = vesIntermedios;
+                        this.montoEnviar = this.round(vesIntermedios / this.currentPair.ves_rate);
+                        this.vesRecibir = this.round(vesIntermedios);
                     },
 
                     // CASO 3: Cliente ingresa EUR (conversión a tasa BCV euro)
@@ -306,8 +311,8 @@
                         this.inputOrigen = '';
                         const eur = parseFloat(this.inputEUR) || 0;
                         const vesIntermedios = eur * this.currentPair.eur_rate;
-                        this.montoEnviar = vesIntermedios / this.currentPair.ves_rate;
-                        this.vesRecibir = vesIntermedios;
+                        this.montoEnviar = this.round(vesIntermedios / this.currentPair.ves_rate);
+                        this.vesRecibir = this.round(vesIntermedios);
                     },
 
                     // Formatear montos con separadores de miles y 2 decimales
