@@ -106,6 +106,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/create', [TransactionController::class, 'create'])->name('transactions.create');
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
+    Route::get('/transactions/manage', [TransactionController::class, 'manage'])->name('transactions.manage');
+
+    // Gestión de estado de transacciones
+    Route::post('/transactions/{transaction}/observe', [TransactionController::class, 'observe'])->name('transactions.observe');
+    Route::post('/transactions/{transaction}/process', [TransactionController::class, 'process'])->name('transactions.process');
+    Route::post('/transactions/{transaction}/complete', [TransactionController::class, 'completeTransaction'])->name('transactions.complete');
+    Route::post('/transactions/{transaction}/cancel', [TransactionController::class, 'cancel'])->name('transactions.cancel');
+
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
 
     // Dashboards específicos por rol

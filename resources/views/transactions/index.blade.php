@@ -81,8 +81,9 @@
                                         @php
                                             $statusConfig = [
                                                 'pending' => ['label' => 'Pendiente', 'class' => 'bg-cj-rosa/10 text-cj-rosa border border-cj-rosa/20'],
+                                                'observed' => ['label' => '⚠ Con observaciones', 'class' => 'bg-orange-100 text-orange-800 border border-orange-300'],
                                                 'processing' => ['label' => 'En proceso', 'class' => 'bg-yellow-100 text-yellow-800 border border-yellow-200'],
-                                                'completed' => ['label' => 'Completado', 'class' => 'bg-cj-turquesa/10 text-cj-turquesa border border-cj-turquesa/20'],
+                                                'completed' => ['label' => '✓ Completado', 'class' => 'bg-cj-turquesa/10 text-cj-turquesa border border-cj-turquesa/20'],
                                                 'cancelled' => ['label' => 'Cancelado', 'class' => 'bg-gray-100 text-gray-600 border border-gray-200'],
                                             ];
                                             $config = $statusConfig[$transaction->status] ?? ['label' => $transaction->status, 'class' => 'bg-gray-100 text-gray-600'];
@@ -90,6 +91,9 @@
                                         <span class="inline-block px-4 py-2 rounded-xl text-xs font-bold {{ $config['class'] }} mb-2">
                                             {{ $config['label'] }}
                                         </span>
+                                        @if($transaction->status === 'observed')
+                                        <p class="text-xs text-orange-600 font-semibold">Requiere atención</p>
+                                        @endif
                                         <p class="text-xs text-cj-texto-claro">
                                             <span x-show="expandedId !== {{ $transaction->id }}">Ver detalles ▼</span>
                                             <span x-show="expandedId === {{ $transaction->id }}">Ocultar ▲</span>
@@ -203,6 +207,22 @@
                                             </svg>
                                             Ver comprobante
                                         </a>
+                                    </div>
+                                    @endif
+
+                                    <!-- Observaciones -->
+                                    @if($transaction->observation)
+                                    <div class="space-y-3 md:col-span-2">
+                                        <h5 class="font-bold text-orange-600 text-sm flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                            </svg>
+                                            ⚠️ Observaciones
+                                        </h5>
+                                        <div class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-lg">
+                                            <p class="text-sm text-orange-800 font-semibold">{{ $transaction->observation }}</p>
+                                            <p class="text-xs text-orange-600 mt-2">Por favor, revisa esta observación y contacta al vendedor si es necesario.</p>
+                                        </div>
                                     </div>
                                     @endif
 

@@ -23,6 +23,39 @@ class TransactionController extends Controller
     }
 
     /**
+     * Mostrar todas las transacciones para admin/vendedor
+     */
+    public function manage()
+    {
+        // Verificar que el usuario sea admin o vendedor
+        if (!auth()->user()->hasRole('admin') && !auth()->user()->seller) {
+            abort(403, 'No autorizado');
+        }
+
+        $query = Transaction::with(['user', 'seller', 'exchangeRate', 'logs.user'])
+            ->orderBy('created_at', 'desc');
+
+        // Si es vendedor, solo mostrar sus transacciones
+        if (auth()->user()->seller) {
+            $query->where('seller_id', auth()->user()->seller->id);
+        }
+
+        $transactions = $query->get();
+
+        // Estadísticas
+        $stats = [
+            'total' => $transactions->count(),
+            'pending' => $transactions->where('status', 'pending')->count(),
+            'observed' => $transactions->where('status', 'observed')->count(),
+            'processing' => $transactions->where('status', 'processing')->count(),
+            'completed' => $transactions->where('status', 'completed')->count(),
+            'cancelled' => $transactions->where('status', 'cancelled')->count(),
+        ];
+
+        return view('transactions.manage', compact('transactions', 'stats'));
+    }
+
+    /**
      * Get currency pairs for the form
      */
     private function getCurrencyPairs()
@@ -162,5 +195,142 @@ class TransactionController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Marcar transacción como observada
+     */
+    public function observe(Request $request, Transaction $transaction)
+    {
+        // Verificar que el usuario sea admin o vendedor
+        if (!auth()->user()->hasRole('admin') && !auth()->user()->seller) {
+            abort(403, 'No autorizado');
+        }
+
+        $validated = $request->validate([
+            'observation' => 'required|string|max:1000',
+        ]);
+
+        try {
+            $oldStatus = $transaction->status;
+            $transaction->markAsObserved($validated['observation']);
+
+            // Crear log
+            \App\Models\TransactionLog::create([
+                'transaction_id' => $transaction->id,
+                'user_id' => auth()->id(),
+                'action' => 'observed',
+                'old_status' => $oldStatus,
+                'new_status' => 'observed',
+                'comment' => $validated['observation'],
+            ]);
+
+            // Notificar al usuario
+            $transaction->user->notify(new \App\Notifications\TransactionObserved($transaction));
+
+            return redirect()->back()->with('success', 'Transacción marcada como observada. El cliente ha sido notificado.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Marcar transacción como en proceso
+     */
+    public function process(Transaction $transaction)
+    {
+        // Verificar que el usuario sea admin o vendedor
+        if (!auth()->user()->hasRole('admin') && !auth()->user()->seller) {
+            abort(403, 'No autorizado');
+        }
+
+        try {
+            $oldStatus = $transaction->status;
+            $transaction->process();
+
+            // Crear log
+            \App\Models\TransactionLog::create([
+                'transaction_id' => $transaction->id,
+                'user_id' => auth()->id(),
+                'action' => 'processed',
+                'old_status' => $oldStatus,
+                'new_status' => 'processing',
+                'comment' => 'Transacción iniciada por ' . auth()->user()->name,
+            ]);
+
+            // Notificar al usuario
+            $transaction->user->notify(new \App\Notifications\TransactionProcessed($transaction));
+
+            return redirect()->back()->with('success', 'Transacción marcada como en proceso. El cliente ha sido notificado.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Marcar transacción como completada
+     */
+    public function completeTransaction(Transaction $transaction)
+    {
+        // Verificar que el usuario sea admin o vendedor
+        if (!auth()->user()->hasRole('admin') && !auth()->user()->seller) {
+            abort(403, 'No autorizado');
+        }
+
+        try {
+            $oldStatus = $transaction->status;
+            $transaction->complete();
+
+            // Crear log
+            \App\Models\TransactionLog::create([
+                'transaction_id' => $transaction->id,
+                'user_id' => auth()->id(),
+                'action' => 'completed',
+                'old_status' => $oldStatus,
+                'new_status' => 'completed',
+                'comment' => 'Transacción completada por ' . auth()->user()->name,
+            ]);
+
+            // Notificar al usuario
+            $transaction->user->notify(new \App\Notifications\TransactionCompleted($transaction));
+
+            return redirect()->back()->with('success', 'Transacción completada exitosamente. El cliente ha sido notificado.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Cancelar transacción
+     */
+    public function cancel(Request $request, Transaction $transaction)
+    {
+        // Verificar que el usuario sea admin o el dueño de la transacción
+        if (!auth()->user()->hasRole('admin') && $transaction->user_id !== auth()->id()) {
+            abort(403, 'No autorizado');
+        }
+
+        $validated = $request->validate([
+            'reason' => 'required|string|max:500',
+        ]);
+
+        try {
+            $oldStatus = $transaction->status;
+            $transaction->cancel();
+
+            // Crear log
+            \App\Models\TransactionLog::create([
+                'transaction_id' => $transaction->id,
+                'user_id' => auth()->id(),
+                'action' => 'cancelled',
+                'old_status' => $oldStatus,
+                'new_status' => 'cancelled',
+                'comment' => $validated['reason'],
+            ]);
+
+            return redirect()->back()->with('success', 'Transacción cancelada exitosamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
     }
 }
