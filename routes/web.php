@@ -21,6 +21,7 @@ use App\Http\Controllers\CorridorMatrixController;
 use App\Http\Controllers\CountryController;
 use App\Http\Controllers\BankController;
 use App\Http\Controllers\BusinessAccountController;
+use App\Http\Controllers\RolePermissionController;
 
 Route::resource('sellers', SellerController::class);
 Route::resource('liquidations', LiquidationController::class);
@@ -167,6 +168,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/export/dashboard/csv', [ExportController::class, 'ownerDashboardCSV'])->name('export.dashboard.csv');
     Route::get('/export/dashboard/pdf', [ExportController::class, 'ownerDashboardPDF'])->name('export.dashboard.pdf');
 });
+
+// Administración: roles y permisos
+Route::get('admin/roles', [RolePermissionController::class, 'index'])->name('admin.roles.index');
+Route::get('admin/roles/{role}/permissions', [RolePermissionController::class, 'show'])->name('admin.roles.show');
+Route::post('admin/roles/{role}/toggle-permission', [RolePermissionController::class, 'togglePermission'])->name('admin.roles.togglePermission');
+Route::post('admin/assign-role', [RolePermissionController::class, 'assignRoleToUser'])->name('admin.assignRole');
 
 // REQ 11: Gestor de países, bancos y cuentas del negocio
 Route::get('countries', [CountryController::class, 'index'])->name('countries.index');
