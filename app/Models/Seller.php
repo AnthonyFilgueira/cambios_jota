@@ -10,6 +10,7 @@ class Seller extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'code',
         'name',
         'seller_commission',
@@ -154,6 +155,11 @@ class Seller extends Model
     }
 
     // Relaciones
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function sales()
     {
         return $this->hasMany(Sale::class);

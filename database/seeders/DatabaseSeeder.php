@@ -38,9 +38,14 @@ class DatabaseSeeder extends Seeder
             ExchangeRateSeeder::class,       // Tasas de cambio activas
         ]);
 
-        // 4. Seeder de datos de demostración (REQ 11)
+        // 4. Seeder de datos de demostración
         $this->call([
             DemoDataSeeder::class,           // Usuarios, vendedores, ventas
+        ]);
+
+        // 5. Países, bancos y cuentas del negocio (DESPUÉS de vendedores para asignarles cuentas)
+        $this->call([
+            CountryBankSeeder::class,        // Perú + Venezuela + 3 cuentas asignadas a vendedores
         ]);
 
         $this->command->info('✅ Database seeding completed!');

@@ -27,8 +27,11 @@ class TransactionController extends Controller
      */
     public function manage()
     {
-        // Verificar que el usuario sea admin o vendedor
-        if (!auth()->user()->hasRole('admin') && !auth()->user()->seller) {
+        $user = auth()->user();
+        $isAdmin = $user->hasRole('super-admin') || $user->hasRole('admin') || $user->hasRole('contador');
+        $sellerRecord = $user->seller;
+
+        if (!$isAdmin && !$sellerRecord) {
             abort(403, 'No autorizado');
         }
 
@@ -36,8 +39,8 @@ class TransactionController extends Controller
             ->orderBy('created_at', 'desc');
 
         // Si es vendedor, solo mostrar sus transacciones
-        if (auth()->user()->seller) {
-            $query->where('seller_id', auth()->user()->seller->id);
+        if ($sellerRecord) {
+            $query->where('seller_id', $sellerRecord->id);
         }
 
         $transactions = $query->get();
