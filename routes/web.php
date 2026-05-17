@@ -116,12 +116,17 @@ Route::middleware('auth')->group(function () {
 
     // Panel del Vendedor — bandeja de solicitudes
     Route::prefix('seller')->name('seller.')->group(function () {
-        Route::get('/bandeja',                       [\App\Http\Controllers\SellerTransactionController::class, 'bandeja'])->name('bandeja');
-        Route::get('/solicitud/{transaction}',       [\App\Http\Controllers\SellerTransactionController::class, 'show'])->name('solicitud.show');
+        Route::get('/bandeja',                          [\App\Http\Controllers\SellerTransactionController::class, 'bandeja'])->name('bandeja');
+        Route::get('/mi-codigo',                        [\App\Http\Controllers\SellerTransactionController::class, 'miCodigo'])->name('mi-codigo');
+        Route::get('/solicitud/{transaction}',          [\App\Http\Controllers\SellerTransactionController::class, 'show'])->name('solicitud.show');
         Route::post('/solicitud/{transaction}/approve', [\App\Http\Controllers\SellerTransactionController::class, 'approve'])->name('solicitud.approve');
         Route::post('/solicitud/{transaction}/observe', [\App\Http\Controllers\SellerTransactionController::class, 'observe'])->name('solicitud.observe');
         Route::post('/solicitud/{transaction}/deny',    [\App\Http\Controllers\SellerTransactionController::class, 'deny'])->name('solicitud.deny');
     });
+
+    // Comisiones por vendedor (admin)
+    Route::get('sellers/{seller}/commissions',        [SellerController::class, 'commissions'])->name('sellers.commissions');
+    Route::post('sellers/{seller}/commissions',       [SellerController::class, 'storeCommission'])->name('sellers.commissions.store');
 
     // Transacciones (cliente crea, admin/vendedor gestiona)
     Route::get('/transactions',                           [TransactionController::class, 'index'])->name('transactions.index');

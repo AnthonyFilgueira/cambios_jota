@@ -57,6 +57,25 @@ class SellerTransactionController extends Controller
         return view('seller.solicitud-show', compact('transaction', 'seller'));
     }
 
+    /** Vista "Mi Código" con QR, KPIs y enlace de invitación */
+    public function miCodigo()
+    {
+        $seller = $this->getSellerOrAbort();
+        $seller->load('commissionRules');
+
+        $stats = [
+            'pending'      => \App\Models\Transaction::where('seller_id', $seller->id)->where('status', 'pending')->count(),
+            'mes_count'    => \App\Models\Transaction::where('seller_id', $seller->id)->whereMonth('created_at', now()->month)->count(),
+            'mes_volume'   => \App\Models\Transaction::where('seller_id', $seller->id)->whereMonth('created_at', now()->month)->sum('amount_pen'),
+            'total_clients' => \App\Models\User::where('assigned_seller_id', $seller->id)->count(),
+            'total_completed' => \App\Models\Transaction::where('seller_id', $seller->id)->where('status', 'completed')->count(),
+        ];
+
+        $publicUrl = url('/') . '?vendedor=' . $seller->code;
+
+        return view('seller.mi-codigo', compact('seller', 'stats', 'publicUrl'));
+    }
+
     /** Aprobar solicitud → escala al dueño (processing) */
     public function approve(Request $request, Transaction $transaction): RedirectResponse
     {

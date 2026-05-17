@@ -177,6 +177,16 @@ class Seller extends Model
         return $this->belongsToMany(BusinessAccount::class, 'business_account_seller')->withTimestamps();
     }
 
+    public function commissionRules()
+    {
+        return $this->hasMany(CommissionRule::class)->orderBy('created_at', 'desc');
+    }
+
+    public function latestCommissionRule()
+    {
+        return $this->hasOne(CommissionRule::class)->latestOfMany();
+    }
+
     public function walletTransactions()
     {
         return $this->hasMany(WalletTransaction::class)->orderBy('created_at', 'desc');

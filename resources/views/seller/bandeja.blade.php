@@ -7,9 +7,18 @@
             <h2 class="font-semibold text-xl text-cj-texto leading-tight">
                 Bandeja de solicitudes
             </h2>
-            <div class="flex items-center gap-2 bg-cj-morado-profundo/10 border border-cj-morado-profundo/20 rounded-full px-3 py-1">
-                <div class="w-2 h-2 rounded-full bg-cj-turquesa animate-pulse"></div>
-                <span class="text-sm font-mono font-semibold text-cj-morado-profundo">{{ $seller->code }}</span>
+            <div class="flex items-center gap-3">
+                <a href="{{ route('seller.mi-codigo') }}"
+                   class="flex items-center gap-1.5 text-xs font-bold text-cj-morado-profundo border border-cj-morado-profundo/20 rounded-full px-3 py-1.5 hover:bg-cj-morado-claro transition-all">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                    </svg>
+                    Mi Código
+                </a>
+                <div class="flex items-center gap-2 bg-cj-morado-profundo/10 border border-cj-morado-profundo/20 rounded-full px-3 py-1">
+                    <div class="w-2 h-2 rounded-full bg-cj-turquesa animate-pulse"></div>
+                    <span class="text-sm font-mono font-semibold text-cj-morado-profundo">{{ $seller->code }}</span>
+                </div>
             </div>
         </div>
     </x-slot>
