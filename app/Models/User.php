@@ -21,12 +21,21 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
+        'assigned_seller_id',
     ];
 
+    // El Seller que este usuario ES (para rol vendedor)
     public function seller()
     {
         return $this->hasOne(Seller::class);
+    }
+
+    // El Seller al que este cliente fue asignado en el registro
+    public function assignedSeller()
+    {
+        return $this->belongsTo(Seller::class, 'assigned_seller_id');
     }
 
     /**

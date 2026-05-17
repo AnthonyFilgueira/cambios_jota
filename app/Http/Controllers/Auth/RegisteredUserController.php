@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Seller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -30,16 +31,28 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'name'        => ['required', 'string', 'max:255'],
+            'email'       => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'phone'       => ['required', 'string', 'max:30'],
+            'vendor_code' => ['required', 'string', 'exists:sellers,code'],
+            'password'    => ['required', 'confirmed', Rules\Password::defaults()],
+        ], [
+            'vendor_code.required' => 'El código de vendedor es obligatorio.',
+            'vendor_code.exists'   => 'El código de vendedor no existe o no está registrado.',
+            'phone.required'       => 'El teléfono es obligatorio.',
         ]);
 
+        $seller = Seller::where('code', $request->vendor_code)->firstOrFail();
+
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name'               => $request->name,
+            'email'              => $request->email,
+            'phone'              => $request->phone,
+            'assigned_seller_id' => $seller->id,
+            'password'           => Hash::make($request->password),
         ]);
+
+        $user->assignRole('cliente');
 
         event(new Registered($user));
 
