@@ -102,8 +102,8 @@ class TransactionController extends Controller
             'exchange_rate_id' => 'required|exists:exchange_rates,id',
             'notes' => 'nullable|string|max:500',
 
-            // Código de vendedor (opcional)
-            'seller_code' => 'nullable|string|max:20',
+            // Código de vendedor (OBLIGATORIO)
+            'seller_code' => 'required|string|max:20',
 
             // Tasas BCV (snapshot)
             'usd_bcv_rate' => 'nullable|numeric',
@@ -123,19 +123,16 @@ class TransactionController extends Controller
             'voucher' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
-        // Buscar vendedor por código si se proporcionó
-        $seller = null;
-        if ($request->filled('seller_code')) {
-            $seller = \App\Models\Seller::where('code', strtoupper($request->seller_code))->first();
+        // Buscar vendedor por código (OBLIGATORIO)
+        $seller = \App\Models\Seller::where('code', strtoupper($request->seller_code))->first();
 
-            if (!$seller) {
-                return redirect()->back()
-                    ->withInput()
-                    ->withErrors(['seller_code' => 'El código de vendedor no existe.']);
-            }
-
-            $validated['seller_id'] = $seller->id;
+        if (!$seller) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['seller_code' => 'El código de vendedor no existe.']);
         }
+
+        $validated['seller_id'] = $seller->id;
 
         // Si no vienen las tasas BCV, obtenerlas del exchange rate
         if (!$request->has('usd_bcv_rate') || !$request->has('eur_bcv_rate')) {

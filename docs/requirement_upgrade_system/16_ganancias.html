@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>[WF] 05/16_ganancias — Cambio J Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --g-900:#111827;--g-800:#1F2937;--g-700:#374151;--g-600:#4B5563;
+      --g-500:#6B7280;--g-400:#9CA3AF;--g-300:#D1D5DB;--g-200:#E5E7EB;
+      --g-100:#F3F4F6;--g-50:#F9FAFB;--white:#FFFFFF;
+      --font:'Figtree',system-ui,sans-serif;
+      --r-4:4px;--r-8:8px;--r-12:12px;--r-16:16px;--r-f:999px;
+      --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-24:24px;--sp-32:32px;
+      --nav-h:64px;
+    }
+    html { background:var(--cj-fondo)}
+    body{font-family:var(--font);color:var(--g-900);-webkit-font-smoothing:antialiased;min-height:100dvh;max-width:390px;margin:0 auto;display:flex;flex-direction:column}
+
+    .topbar{background:var(--cj-morado);padding:var(--sp-16);display:flex;align-items:center;justify-content:space-between}
+    .topbar-title{font-size:20px;font-weight:800;color:var(--white)}
+    .btn-export{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.1);color:var(--g-300);border:none;border-radius:var(--r-8);padding:var(--sp-8) var(--sp-12);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer}
+    .btn-export svg{width:14px;height:14px;stroke:currentColor}
+
+    .period-bar{background:var(--g-800);padding:var(--sp-12) var(--sp-16);display:flex;gap:var(--sp-8);overflow-x:auto;scrollbar-width:none}
+    .period-bar::-webkit-scrollbar{display:none}
+    .period-pill{flex-shrink:0;padding:6px var(--sp-12);border-radius:var(--r-f);font-size:12px;font-weight:700;border:none;cursor:pointer;font-family:var(--font)}
+    .period-pill.active{background:var(--white);color:var(--g-900)}
+    .period-pill:not(.active){background:rgba(255,255,255,0.1);color:var(--g-400)}
+
+    main{flex:1;padding:var(--sp-16) var(--sp-16) calc(var(--nav-h)+var(--sp-32));display:flex;flex-direction:column;gap:var(--sp-12)}
+
+    /* KPI HERO */
+    .kpi-hero{background:var(--g-900);border-radius:var(--r-16);padding:var(--sp-24) var(--sp-16)}
+    .kpi-hero-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-400)}
+    .kpi-hero-amount{font-size:40px;font-weight:800;color:var(--white);font-variant-numeric:tabular-nums;margin:var(--sp-8) 0}
+    .kpi-hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-8);margin-top:var(--sp-16)}
+    .kpi-mini{background:rgba(255,255,255,0.06);border-radius:var(--r-8);padding:var(--sp-12)}
+    .kpi-mini-val{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+    .kpi-mini-val.green{color:#4ade80}
+    .kpi-mini-val.yellow{color:#fbbf24}
+    .kpi-mini-val.white{color:var(--white)}
+    .kpi-mini-lbl{font-size:10px;color:var(--g-500);margin-top:3px}
+
+    /* CHART */
+    .chart-card{background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden}
+    .chart-head{padding:12px var(--sp-16);border-bottom:1px solid var(--g-200);display:flex;align-items:center;justify-content:space-between}
+    .chart-title{font-size:13px;font-weight:800}
+    .chart-sub{font-size:11px;color:var(--g-500)}
+    .chart-body{padding:var(--sp-16)}
+    .bars{display:flex;align-items:flex-end;gap:6px;height:80px}
+    .bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+    .bar{width:100%;background:var(--g-200);border-radius:4px 4px 0 0;min-height:4px}
+    .bar.active{background:var(--g-700)}
+    .bar-lbl{font-size:9px;font-weight:700;color:var(--g-400)}
+    .bar-val{font-size:9px;font-weight:800;color:var(--g-600)}
+
+    /* CORREDORES */
+    .section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-500)}
+    .corredor-card{background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-12);overflow:hidden}
+    .corredor-row{padding:var(--sp-12) var(--sp-16);display:flex;align-items:center;gap:var(--sp-12);border-bottom:1px solid var(--g-100)}
+    .corredor-row:last-child{border-bottom:none}
+    .corredor-pair{font-size:13px;font-weight:800;color:var(--g-900);font-variant-numeric:tabular-nums;flex:1}
+    .corredor-txn{font-size:11px;color:var(--g-500)}
+    .corredor-ganancia{font-size:15px;font-weight:800;color:var(--g-900);font-variant-numeric:tabular-nums;text-align:right}
+
+    /* RANKING VENDEDORES */
+    .rank-card{background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden}
+    .rank-head{padding:12px var(--sp-16);border-bottom:1px solid var(--g-200);font-size:13px;font-weight:800}
+    .rank-row{padding:var(--sp-12) var(--sp-16);display:flex;align-items:center;gap:var(--sp-12);border-bottom:1px solid var(--g-100)}
+    .rank-row:last-child{border-bottom:none}
+    .rank-pos{font-size:14px;font-weight:800;color:var(--g-400);width:20px;text-align:center;flex-shrink:0}
+    .rank-pos.top{color:var(--g-900)}
+    .rank-avatar{width:32px;height:32px;background:var(--g-200);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--g-700);flex-shrink:0}
+    .rank-info{flex:1;min-width:0}
+    .rank-nombre{font-size:13px;font-weight:800;color:var(--g-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .rank-meta{font-size:11px;color:var(--g-500)}
+    .rank-vol{font-size:14px;font-weight:800;color:var(--g-900);font-variant-numeric:tabular-nums;text-align:right}
+
+    /* TABLA DETALLE */
+    .table-card{background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden}
+    .table-head-row{display:grid;grid-template-columns:80px 1fr 56px 56px;gap:4px;padding:10px var(--sp-12);background:var(--g-50);border-bottom:1px solid var(--g-200)}
+    .th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g-400)}
+    .th.right{text-align:right}
+    .table-row{display:grid;grid-template-columns:80px 1fr 56px 56px;gap:4px;padding:10px var(--sp-12);border-bottom:1px solid var(--g-100);align-items:center}
+    .table-row:last-child{border-bottom:none}
+    .td{font-size:11px;color:var(--g-600);font-variant-numeric:tabular-nums}
+    .td.right{text-align:right}
+    .td.bold{font-weight:800;color:var(--g-900)}
+    .td-meta{font-size:9px;color:var(--g-400);margin-top:1px}
+
+    /* BOTTOM NAV */
+    .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:var(--white);border-top:1px solid var(--g-200);display:flex;height:var(--nav-h);z-index:100}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--g-400);font-size:10px;font-weight:700;cursor:pointer;background:none;border:none;font-family:var(--font)}
+    .nav-item.active{color:var(--g-900)}
+    .nav-item svg{width:20px;height:20px;stroke:currentColor
+      /* ── Paleta de marca Cambio J ── */
+      --cj-morado:        #7C3AED;
+      --cj-morado-medio:  #A78BFA;
+      --cj-morado-claro:  #DDD6FE;
+      --cj-turquesa:      #06B6D4;
+      --cj-turquesa-claro:#67E8F9;
+      --cj-rosa:          #EC4899;
+      --cj-fondo:         #F8FAFC;
+      --cj-texto:         #1E293B;
+      --cj-texto-claro:   #64748B;
+
+      /* Semánticos de marca */
+      --brand-primary:    var(--cj-morado);
+      --brand-secondary:  var(--cj-turquesa);
+      --brand-accent:     var(--cj-rosa);
+      --brand-surface:    var(--cj-morado-claro);
+}
+  
+    /* ── Sobrescrituras de marca Cambio J ─────────────────────────────────── */
+    .topbar,
+    .nav-logo,
+    .header-dark { background: var(--cj-morado) !important; }
+
+    /* Botones primarios */
+    .btn-primary,
+    button[class*="btn"]:not(.btn-ghost):not(.btn-outline),
+    a.btn:not(.btn-ghost) {
+      background: var(--cj-morado);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--cj-morado-medio); }
+
+    /* Fondo de secciones de marca */
+    .section-brand { background: var(--cj-morado-claro); }
+
+    /* Highlight numérico (montos, KPIs) */
+    .kpi-val.highlight,
+    .tx-monto.positive { color: var(--cj-turquesa) !important; }
+
+    /* Alert badge */
+    .acceso-badge.alert-badge { background: var(--cj-rosa) !important; }
+
+    /* Alerta icon */
+    .alerta-icon { background: rgba(236,72,153,0.15) !important; }
+    .alerta-icon svg { stroke: var(--cj-rosa) !important; }
+
+    /* Topbar: ajustar colores de texto secundario */
+    .topbar-role,
+    .topbar-date { color: var(--cj-morado-claro); }
+
+    .topbar-avatar {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    /* Bottom-nav active */
+    .nav-item.active .nav-icon svg { stroke: var(--cj-morado); }
+    .nav-item.active .nav-label { color: var(--cj-morado); }
+
+    /* Tabs activos */
+    .tab.active {
+      color: var(--cj-morado);
+      border-bottom-color: var(--cj-morado);
+    }
+
+    /* Status chips */
+    .chip-pending  { background: #FEF3C7; color: #92400E; }
+    .chip-approved { background: #D1FAE5; color: #065F46; }
+    .chip-rejected { background: #FEE2E2; color: #991B1B; }
+    .chip-paid     { background: var(--cj-morado-claro); color: var(--cj-morado); }
+
+    /* Inputs focus */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--cj-morado) !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    }
+
+    /* Links */
+    a.link-primary { color: var(--cj-morado); }
+
+    /* KPI cards con acento */
+    .kpi-block { border-left: 3px solid var(--cj-turquesa); }
+
+    /* Scroll indicator / progress bar */
+    .progress-bar { background: var(--cj-morado); }
+    /* ──────────────────────────────────────────────────────────────────────── */
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-title">Ganancias</div>
+    <button class="btn-export">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Exportar
+    </button>
+  </header>
+
+  <div class="period-bar">
+    <button class="period-pill" onclick="setPeriod(this)">Hoy</button>
+    <button class="period-pill" onclick="setPeriod(this)">Esta semana</button>
+    <button class="period-pill active" onclick="setPeriod(this)">Este mes</button>
+    <button class="period-pill" onclick="setPeriod(this)">Personalizado</button>
+  </div>
+
+  <main>
+
+    <!-- KPI Hero -->
+    <div class="kpi-hero">
+      <div class="kpi-hero-label">Ganancia neta del negocio — Mayo 2026</div>
+      <div class="kpi-hero-amount">S/ 4,821.40</div>
+      <div class="kpi-hero-grid">
+        <div class="kpi-mini">
+          <div class="kpi-mini-val white">S/ 87,320</div>
+          <div class="kpi-mini-lbl">Total enviado por clientes</div>
+        </div>
+        <div class="kpi-mini">
+          <div class="kpi-mini-val white">S/ 6,145</div>
+          <div class="kpi-mini-lbl">Ganancia bruta (margen)</div>
+        </div>
+        <div class="kpi-mini">
+          <div class="kpi-mini-val yellow">S/ 1,323.60</div>
+          <div class="kpi-mini-lbl">Comisiones a vendedores</div>
+        </div>
+        <div class="kpi-mini">
+          <div class="kpi-mini-val green">S/ 4,821.40</div>
+          <div class="kpi-mini-lbl">Ganancia neta</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfico -->
+    <div class="chart-card">
+      <div class="chart-head">
+        <div class="chart-title">Ganancia neta por semana</div>
+        <div class="chart-sub">Mayo 2026</div>
+      </div>
+      <div class="chart-body">
+        <div class="bars">
+          <div class="bar-wrap">
+            <div class="bar-val">S/980</div>
+            <div class="bar" style="height:50%"></div>
+            <div class="bar-lbl">S1</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-val">S/1,240</div>
+            <div class="bar" style="height:65%"></div>
+            <div class="bar-lbl">S2</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-val">S/1,890</div>
+            <div class="bar active" style="height:100%"></div>
+            <div class="bar-lbl">S3</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-val">S/711</div>
+            <div class="bar" style="height:37%"></div>
+            <div class="bar-lbl">S4</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Desglose por corredor -->
+    <div class="section-label">Ganancia por corredor</div>
+    <div class="corredor-card">
+      <div class="corredor-row">
+        <div class="corredor-pair">PEN → VES<div class="corredor-txn">284 transacciones</div></div>
+        <div class="corredor-ganancia">S/ 3,890.00</div>
+      </div>
+      <div class="corredor-row">
+        <div class="corredor-pair">COP → VES<div class="corredor-txn">48 transacciones</div></div>
+        <div class="corredor-ganancia">S/ 721.40</div>
+      </div>
+      <div class="corredor-row">
+        <div class="corredor-pair">USD → VES<div class="corredor-txn">15 transacciones</div></div>
+        <div class="corredor-ganancia">S/ 210.00</div>
+      </div>
+    </div>
+
+    <!-- Ranking vendedores -->
+    <div class="section-label">Ranking de vendedores por volumen</div>
+    <div class="rank-card">
+      <div class="rank-head">Top vendedores — Mayo 2026</div>
+      <div class="rank-row">
+        <div class="rank-pos top">1</div>
+        <div class="rank-avatar">MG</div>
+        <div class="rank-info"><div class="rank-nombre">María González</div><div class="rank-meta">87 transacciones</div></div>
+        <div class="rank-vol">S/ 28,400</div>
+      </div>
+      <div class="rank-row">
+        <div class="rank-pos top">2</div>
+        <div class="rank-avatar">JR</div>
+        <div class="rank-info"><div class="rank-nombre">José Rodríguez</div><div class="rank-meta">61 transacciones</div></div>
+        <div class="rank-vol">S/ 19,800</div>
+      </div>
+      <div class="rank-row">
+        <div class="rank-pos">3</div>
+        <div class="rank-avatar">AP</div>
+        <div class="rank-info"><div class="rank-nombre">Ana Pérez</div><div class="rank-meta">44 transacciones</div></div>
+        <div class="rank-vol">S/ 14,200</div>
+      </div>
+    </div>
+
+    <!-- Tabla detalle -->
+    <div class="section-label">Detalle de transacciones</div>
+    <div class="table-card">
+      <div class="table-head-row">
+        <div class="th">ID / Fecha</div>
+        <div class="th">Monto</div>
+        <div class="th right">Comisión</div>
+        <div class="th right">Neto</div>
+      </div>
+      <div class="table-row">
+        <div><div class="td bold">#TXN-0091</div><div class="td-meta">17 may</div></div>
+        <div class="td">S/ 1,500<div class="td-meta">3% margen</div></div>
+        <div class="td right">S/ 15.00</div>
+        <div class="td right bold">S/ 30.00</div>
+      </div>
+      <div class="table-row">
+        <div><div class="td bold">#TXN-0090</div><div class="td-meta">16 may</div></div>
+        <div class="td">S/ 800<div class="td-meta">3% margen</div></div>
+        <div class="td right">S/ 8.00</div>
+        <div class="td right bold">S/ 16.00</div>
+      </div>
+      <div class="table-row">
+        <div><div class="td bold">#TXN-0089</div><div class="td-meta">14 may</div></div>
+        <div class="td">S/ 1,200<div class="td-meta">3% margen</div></div>
+        <div class="td right">S/ 12.00</div>
+        <div class="td right bold">S/ 24.00</div>
+      </div>
+    </div>
+
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="window.location.href='01_dashboard.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" onclick="window.location.href='07_transacciones.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+      Transacciones
+    </button>
+    <button class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Ganancias
+    </button>
+    <button class="nav-item" onclick="window.location.href='11_configuracion.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Config
+    </button>
+  </nav>
+
+  <script>
+    function setPeriod(btn){
+      document.querySelectorAll('.period-pill').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      // [WF] GET /admin/ganancias?periodo=... → actualiza todos los KPIs
+    }
+  </script>
+
+</body>
+</html>
+
+<!-- ============================================================
+     UX NOTES — Ganancias generales del negocio
+     Rol: Admin / Dueño
+     Módulo: screens/05_admin/16_ganancias.html
+     ============================================================
+
+     Decisiones de diseño:
+     - 4 KPIs en dark card → jerarquía: total enviado → bruto → comisiones → neto
+     - Ganancia neta en verde → diferencia visual inmediata del resultado final
+     - Gráfico por semanas → granularidad adecuada para gestión mensual
+     - Desglose por corredor → el dueño ve cuál ruta genera más
+     - Ranking de vendedores → motivación indirecta y visibilidad de rendimiento
+     - Botón exportar en topbar → siempre accesible, no entierra la acción
+     - Tabla de detalle scrolleable → sin sacrificar información
+
+     Estados cubiertos:
+     - [x] Período mensual (estado principal)
+     - [x] Selector de período funcional
+     - [x] KPIs con 4 métricas clave
+     - [x] Gráfico de barras semanal
+     - [ ] Vista por "hoy" (menos datos) → pendiente
+     - [ ] Período personalizado → pendiente
+     - [ ] Modal de exportación CSV/PDF → pendiente
+     ============================================================ -->

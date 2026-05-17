@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>[WF] 04/03_aprobar-solicitud — Cambio J Vendedor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --g-900:#111827;--g-800:#1F2937;--g-700:#374151;--g-600:#4B5563;
+      --g-500:#6B7280;--g-400:#9CA3AF;--g-300:#D1D5DB;--g-200:#E5E7EB;
+      --g-100:#F3F4F6;--g-50:#F9FAFB;--white:#FFFFFF;
+      --font:'Figtree',system-ui,sans-serif;
+      --r-4:4px;--r-8:8px;--r-12:12px;--r-16:16px;--r-24:24px;--r-f:999px;
+      --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-24:24px;--sp-32:32px;--sp-48:48px;
+      --nav-h:64px;
+    
+      /* ── Paleta de marca Cambio J ── */
+      --cj-morado:        #7C3AED;
+      --cj-morado-medio:  #A78BFA;
+      --cj-morado-claro:  #DDD6FE;
+      --cj-turquesa:      #06B6D4;
+      --cj-turquesa-claro:#67E8F9;
+      --cj-rosa:          #EC4899;
+      --cj-fondo:         #F8FAFC;
+      --cj-texto:         #1E293B;
+      --cj-texto-claro:   #64748B;
+
+      /* Semánticos de marca */
+      --brand-primary:    var(--cj-morado);
+      --brand-secondary:  var(--cj-turquesa);
+      --brand-accent:     var(--cj-rosa);
+      --brand-surface:    var(--cj-morado-claro);
+}
+    html { background:var(--cj-fondo); }
+    body { font-family:var(--font);color:var(--g-900);-webkit-font-smoothing:antialiased;min-height:100dvh;max-width:390px;margin:0 auto;display:flex;flex-direction:column; }
+    .navbar { position:sticky;top:0;z-index:50;background:var(--white);border-bottom:1px solid var(--g-200);height:56px;padding:0 var(--sp-16);display:flex;align-items:center;justify-content:space-between; }
+    .nav-back { display:flex;align-items:center;gap:var(--sp-8);text-decoration:none;color:var(--g-600);font-size:13px;font-weight:600;padding:var(--sp-8);border-radius:var(--r-8);transition:color 0.15s; }
+    .nav-back:hover { color:var(--g-900); }
+    .nav-back svg { width:16px;height:16px;stroke:currentColor; }
+    .nav-center { position:absolute;left:50%;transform:translateX(-50%);font-size:14px;font-weight:700; }
+    main { flex:1;padding:var(--sp-16) var(--sp-16) var(--sp-48);display:flex;flex-direction:column;gap:var(--sp-16); }
+
+    /* Hero confirmación */
+    .confirm-hero { background:var(--g-800);border-radius:var(--r-16);padding:var(--sp-24);text-align:center; }
+    .confirm-icon { width:56px;height:56px;background:var(--g-600);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto var(--sp-12); }
+    .confirm-icon svg { width:26px;height:26px;stroke:var(--white); }
+    .confirm-title { font-size:18px;font-weight:800;color:var(--white); }
+    .confirm-sub { font-size:12px;color:var(--g-300);margin-top:var(--sp-4);line-height:1.5; }
+
+    /* Resumen readonly */
+    .resumen-card { background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05); }
+    .res-header { background:var(--g-800);padding:var(--sp-16); }
+    .res-row-montos { display:flex;align-items:center;justify-content:space-between;gap:var(--sp-12); }
+    .res-grupo { display:flex;flex-direction:column;gap:var(--sp-4); }
+    .res-tag { font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-400); }
+    .res-val { font-size:22px;font-weight:800;color:var(--white);font-variant-numeric:tabular-nums; }
+    .res-sub-txt { font-size:11px;color:var(--g-500); }
+    .res-arrow { width:24px;height:24px;background:var(--g-600);border-radius:50%;display:flex;align-items:center;justify-content:center; }
+    .res-arrow svg { width:11px;height:11px;stroke:var(--white); }
+    .res-det { display:flex;flex-direction:column; }
+    .res-det-row { display:flex;justify-content:space-between;align-items:center;padding:var(--sp-12) var(--sp-16);border-bottom:1px solid var(--g-200); }
+    .res-det-row:last-child { border-bottom:none; }
+    .res-det-key { font-size:13px;color:var(--g-500);font-weight:500; }
+    .res-det-val { font-size:13px;font-weight:700;color:var(--g-900); }
+
+    /* Checkbox de confirmación */
+    .check-wrap { display:flex;align-items:flex-start;gap:var(--sp-12);background:var(--g-50);border:1.5px solid var(--g-200);border-radius:var(--r-12);padding:var(--sp-16);cursor:pointer;transition:border-color 0.15s; }
+    .check-wrap:hover { border-color:var(--g-400); }
+    .check-box { width:22px;height:22px;border:2px solid var(--g-300);border-radius:var(--r-4);flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--white);transition:all 0.15s;margin-top:1px; }
+    .check-box.checked { background:var(--g-900);border-color:var(--g-900); }
+    .check-box svg { display:none;width:13px;height:13px;stroke:var(--white); }
+    .check-box.checked svg { display:block; }
+    .check-txt { font-size:13px;color:var(--g-700);line-height:1.6;font-weight:500; }
+    .check-txt strong { color:var(--g-900);font-weight:700; }
+
+    /* Botones */
+    .btn-primary { width:100%;background:var(--cj-morado);color:var(--white);border:none;border-radius:var(--r-12);padding:var(--sp-16);font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:var(--sp-8);transition:background 0.15s,transform 0.1s; }
+    .btn-primary:hover { background:var(--g-700); }
+    .btn-primary:active { transform:scale(0.98); }
+    .btn-primary:disabled { background:var(--g-200);color:var(--g-400);cursor:not-allowed; }
+    .spinner { display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:var(--white);border-radius:50%;animation:spin 0.7s linear infinite; }
+    .btn-primary.is-loading .spinner { display:block; }
+    .btn-primary.is-loading .btn-txt { opacity:0.7; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* Estado éxito */
+    .success-state { display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center;gap:var(--sp-16);padding:var(--sp-48) var(--sp-24); }
+    .success-state.is-visible { display:flex; }
+    .success-icon { width:80px;height:80px;background:var(--g-800);border-radius:50%;display:flex;align-items:center;justify-content:center; }
+    .success-icon svg { width:38px;height:38px;stroke:var(--white); }
+    .success-title { font-size:22px;font-weight:800;color:var(--g-900); }
+    .success-sub { font-size:13px;color:var(--g-500);line-height:1.6; }
+    .btn-volver { background:var(--g-900);color:var(--white);border:none;border-radius:var(--r-12);padding:var(--sp-16) var(--sp-32);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;transition:background 0.15s; }
+    .btn-volver:hover { background:var(--g-700); }
+  
+    /* ── Sobrescrituras de marca Cambio J ─────────────────────────────────── */
+    .topbar,
+    .nav-logo,
+    .header-dark { background: var(--cj-morado) !important; }
+
+    /* Botones primarios */
+    .btn-primary,
+    button[class*="btn"]:not(.btn-ghost):not(.btn-outline),
+    a.btn:not(.btn-ghost) {
+      background: var(--cj-morado);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--cj-morado-medio); }
+
+    /* Fondo de secciones de marca */
+    .section-brand { background: var(--cj-morado-claro); }
+
+    /* Highlight numérico (montos, KPIs) */
+    .kpi-val.highlight,
+    .tx-monto.positive { color: var(--cj-turquesa) !important; }
+
+    /* Alert badge */
+    .acceso-badge.alert-badge { background: var(--cj-rosa) !important; }
+
+    /* Alerta icon */
+    .alerta-icon { background: rgba(236,72,153,0.15) !important; }
+    .alerta-icon svg { stroke: var(--cj-rosa) !important; }
+
+    /* Topbar: ajustar colores de texto secundario */
+    .topbar-role,
+    .topbar-date { color: var(--cj-morado-claro); }
+
+    .topbar-avatar {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    /* Bottom-nav active */
+    .nav-item.active .nav-icon svg { stroke: var(--cj-morado); }
+    .nav-item.active .nav-label { color: var(--cj-morado); }
+
+    /* Tabs activos */
+    .tab.active {
+      color: var(--cj-morado);
+      border-bottom-color: var(--cj-morado);
+    }
+
+    /* Status chips */
+    .chip-pending  { background: #FEF3C7; color: #92400E; }
+    .chip-approved { background: #D1FAE5; color: #065F46; }
+    .chip-rejected { background: #FEE2E2; color: #991B1B; }
+    .chip-paid     { background: var(--cj-morado-claro); color: var(--cj-morado); }
+
+    /* Inputs focus */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--cj-morado) !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    }
+
+    /* Links */
+    a.link-primary { color: var(--cj-morado); }
+
+    /* KPI cards con acento */
+    .kpi-block { border-left: 3px solid var(--cj-turquesa); }
+
+    /* Scroll indicator / progress bar */
+    .progress-bar { background: var(--cj-morado); }
+    /* ──────────────────────────────────────────────────────────────────────── */
+</style>
+</head>
+<body>
+  <nav class="navbar" role="navigation">
+    <a href="02_detalle-solicitud.html" class="nav-back" aria-label="Volver">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Volver
+    </a>
+    <div class="nav-center">Aprobar solicitud</div>
+    <div style="width:64px"></div>
+  </nav>
+
+  <main id="main-content" role="main" aria-label="Confirmar aprobación">
+
+    <div class="confirm-hero">
+      <div class="confirm-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h1 class="confirm-title">Confirmar aprobación</h1>
+      <p class="confirm-sub">Verifica los datos antes de aprobar.<br>Esta acción notificará al dueño para procesar el envío.</p>
+    </div>
+
+    <!-- Resumen readonly -->
+    <div class="resumen-card" aria-label="Resumen de la solicitud">
+      <div class="res-header">
+        <div class="res-row-montos">
+          <div class="res-grupo">
+            <div class="res-tag">Cliente envía</div>
+            <div class="res-val">S/ 500.00</div>
+            <div class="res-sub-txt">Juan Pérez</div>
+          </div>
+          <div class="res-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+          <div class="res-grupo" style="text-align:right">
+            <div class="res-tag">Familiar recibe</div>
+            <div class="res-val">Bs. 7,100.00</div>
+            <div class="res-sub-txt">Venezuela 🇻🇪</div>
+          </div>
+        </div>
+      </div>
+      <div class="res-det">
+        <div class="res-det-row">
+          <span class="res-det-key">Cuenta verificada</span>
+          <span class="res-det-val">BCP · 191-12345678</span>
+        </div>
+        <div class="res-det-row">
+          <span class="res-det-key">Tasa aplicada</span>
+          <span class="res-det-val">1 PEN = 14.20 VES</span>
+        </div>
+        <div class="res-det-row">
+          <span class="res-det-key">Transacción</span>
+          <span class="res-det-val" style="font-family:monospace">TRX-2026-00847</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Checkbox de confirmación -->
+    <div class="check-wrap" onclick="toggleCheck()" role="checkbox" aria-checked="false" id="check-wrap" tabindex="0"
+      onkeydown="if(event.key==='Enter'||event.key===' ')toggleCheck()"
+      aria-label="Confirmar que el depósito es correcto">
+      <div class="check-box" id="check-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <p class="check-txt">
+        Confirmo que el <strong>depósito es correcto</strong> y que el monto coincide con la cotización del cliente.
+      </p>
+    </div>
+
+    <button class="btn-primary" id="btn-aprobar" onclick="aprobar()" disabled aria-label="Aprobar solicitud">
+      <div class="spinner" aria-hidden="true"></div>
+      <span class="btn-txt">Aprobar solicitud →</span>
+    </button>
+
+  </main>
+
+  <!-- Estado de éxito -->
+  <div class="success-state" id="success-state" aria-live="polite">
+    <div class="success-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2 class="success-title">¡Solicitud aprobada!</h2>
+    <p class="success-sub">El dueño ha sido notificado para procesar la transferencia. El cliente también fue notificado.</p>
+    <a href="01_dashboard.html" class="btn-volver">Volver a bandeja</a>
+  </div>
+
+  <script>
+    let confirmado = false;
+    function toggleCheck() {
+      confirmado = !confirmado;
+      const box  = document.getElementById('check-box');
+      const wrap = document.getElementById('check-wrap');
+      box.classList.toggle('checked', confirmado);
+      wrap.setAttribute('aria-checked', String(confirmado));
+      document.getElementById('btn-aprobar').disabled = !confirmado;
+    }
+    function aprobar() {
+      const btn = document.getElementById('btn-aprobar');
+      btn.classList.add('is-loading'); btn.disabled = true;
+      setTimeout(() => {
+        document.getElementById('main-content').style.display = 'none';
+        document.getElementById('success-state').classList.add('is-visible');
+      }, 1500);
+    }
+  </script>
+</body>
+</html>
+<!-- ============================================================
+     UX NOTES — Aprobar Solicitud
+     Módulo: screens/04_vendedor/03_aprobar-solicitud.html
+     ============================================================
+     Decisiones:
+     - Pantalla separada del detalle → la aprobación es una acción
+       irreversible; una pantalla dedicada obliga a un clic adicional
+       (confirmation step — Nielsen #3: User control y #5: Error prevention).
+     - Checkbox de confirmación obligatorio → el vendedor debe leer
+       y confirmar activamente que el depósito es correcto; el botón
+       permanece deshabilitado hasta marcar el check.
+     - Resumen readonly completo → el vendedor verifica los datos por
+       última vez antes de confirmar; no hay ambigüedad sobre qué está aprobando.
+     - Estado de éxito como pantalla completa → celebración clara de
+       la acción completada; el vendedor sabe que el dueño fue notificado.
+
+     Estados cubiertos:
+     - [x] Formulario — check sin marcar, botón deshabilitado
+     - [x] Check marcado — botón habilitado
+     - [x] Aprobando — spinner
+     - [x] Aprobada — pantalla de éxito
+     ============================================================ -->

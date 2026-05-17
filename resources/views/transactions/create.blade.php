@@ -68,7 +68,7 @@
                         <!-- Código de Vendedor -->
                         <div class="mb-6">
                             <label for="seller_code" class="block text-sm font-medium text-cj-texto mb-2">
-                                Código de Vendedor (Opcional)
+                                Código de Vendedor <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-cj-texto-claro font-medium">#</span>
@@ -77,13 +77,94 @@
                                     name="seller_code"
                                     id="seller_code"
                                     value="{{ old('seller_code') }}"
+                                    required
+                                    x-model="sellerCode"
+                                    @input.debounce.500ms="searchSeller()"
                                     class="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all uppercase"
-                                    placeholder="VEND001">
+                                    placeholder="VEN-XXXXXX">
                             </div>
-                            <p class="text-xs text-cj-texto-claro mt-1">Si tienes un código de vendedor preferido, ingrésalo aquí</p>
+
+                            <!-- Estado de búsqueda -->
+                            <div class="mt-2">
+                                <p x-show="sellerSearching" class="text-sm text-blue-600 flex items-center gap-2">
+                                    <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Verificando código...
+                                </p>
+                                <p x-show="sellerError" class="text-sm text-red-600" x-text="sellerError"></p>
+                                <p x-show="sellerFound" class="text-sm text-green-600 flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Vendedor encontrado: <span x-text="sellerData?.name" class="font-semibold"></span>
+                                </p>
+                            </div>
+
                             @error('seller_code')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
+                        </div>
+
+                        <!-- Cuentas bancarias asignadas al vendedor (catálogo centralizado) -->
+                        <div x-show="sellerFound && sellerAccounts.length > 0" x-cloak class="mb-6 bg-green-50 border-2 border-green-300 rounded-xl p-5">
+                            <h5 class="text-sm font-bold text-green-800 mb-3 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                </svg>
+                                Cuenta(s) para realizar tu transferencia
+                            </h5>
+
+                            <template x-for="(account, index) in sellerAccounts" :key="account.id">
+                                <div class="bg-white rounded-xl p-4 mb-3 border border-green-200">
+                                    <p class="text-xs uppercase tracking-wider text-green-700 font-bold mb-2"
+                                       x-text="index === 0 ? 'Cuenta Principal' : 'Cuenta Alternativa ' + index"></p>
+                                    <div class="grid grid-cols-2 gap-3 text-sm">
+                                        <div>
+                                            <span class="text-gray-400 text-xs">Banco</span>
+                                            <p class="font-bold text-gray-900" x-text="account.bank_name"></p>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-400 text-xs">Tipo</span>
+                                            <p class="font-semibold text-gray-900" x-text="account.account_type"></p>
+                                        </div>
+                                        <div class="col-span-2">
+                                            <span class="text-gray-400 text-xs">Nº de Cuenta</span>
+                                            <p class="font-mono font-bold text-lg text-green-700" x-text="account.account_number"></p>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-400 text-xs">Titular</span>
+                                            <p class="font-semibold text-gray-900" x-text="account.account_holder"></p>
+                                        </div>
+                                        <div x-show="account.dni_ruc">
+                                            <span class="text-gray-400 text-xs">DNI / RUC</span>
+                                            <p class="font-mono text-gray-900" x-text="account.dni_ruc"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Sin cuentas asignadas -->
+                            <div x-show="sellerFound && sellerAccounts.length === 0" x-cloak
+                                 class="bg-yellow-50 border border-yellow-300 rounded-xl p-4 text-sm text-yellow-800">
+                                ⚠️ Este vendedor aún no tiene cuentas asignadas. Contacta con tu vendedor.
+                            </div>
+
+                            <div class="mt-3 bg-yellow-50 border border-yellow-300 rounded-lg p-3">
+                                <p class="text-xs text-yellow-800">
+                                    <strong>⚠️ Importante:</strong> Realiza la transferencia a una de estas cuentas y adjunta el comprobante más abajo.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Vendedor encontrado sin cuentas -->
+                        <div x-show="sellerFound && sellerAccounts.length === 0" x-cloak
+                             class="mb-6 bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4">
+                            <p class="text-sm text-yellow-800 font-medium">
+                                ⚠️ El vendedor <span x-text="sellerData?.name" class="font-bold"></span> no tiene cuentas bancarias asignadas todavía.
+                                Comunícate con tu vendedor para obtener los datos de transferencia.
+                            </p>
                         </div>
 
                         <!-- Sección de cotización -->
@@ -391,9 +472,56 @@
             inputUSD: '',
             inputEUR: '',
 
+            // Búsqueda de vendedor
+            sellerCode: '',
+            sellerData: null,
+            sellerAccounts: [],
+            sellerFound: false,
+            sellerSearching: false,
+            sellerError: '',
+
             init() {
                 // Intentar cargar datos del simulador
                 this.loadSimulatorData();
+            },
+
+            async searchSeller() {
+                const code = this.sellerCode.trim().toUpperCase();
+
+                if (code.length < 3) {
+                    this.sellerFound = false;
+                    this.sellerData = null;
+                    this.sellerError = '';
+                    return;
+                }
+
+                this.sellerSearching = true;
+                this.sellerError = '';
+                this.sellerFound = false;
+
+                try {
+                    const response = await fetch(`/api/sellers/search/${code}`);
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        this.sellerData = data.seller;
+                        this.sellerAccounts = data.accounts || [];
+                        this.sellerFound = true;
+                        this.sellerError = '';
+                    } else {
+                        this.sellerFound = false;
+                        this.sellerData = null;
+                        this.sellerAccounts = [];
+                        this.sellerError = '❌ Código de vendedor no encontrado';
+                    }
+                } catch (error) {
+                    console.error('Error buscando vendedor:', error);
+                    this.sellerError = 'Error al buscar vendedor. Intenta de nuevo.';
+                    this.sellerFound = false;
+                    this.sellerData = null;
+                } finally {
+                    this.sellerSearching = false;
+                }
             },
 
             loadSimulatorData() {

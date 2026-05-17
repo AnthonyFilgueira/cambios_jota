@@ -159,6 +159,18 @@ class Seller extends Model
         return $this->hasMany(Sale::class);
     }
 
+    public function businessAccounts()
+    {
+        return $this->belongsToMany(BusinessAccount::class, 'business_account_seller')
+            ->withTimestamps()
+            ->wherePivotNull('unassigned_at');
+    }
+
+    public function allBusinessAccounts()
+    {
+        return $this->belongsToMany(BusinessAccount::class, 'business_account_seller')->withTimestamps();
+    }
+
     public function walletTransactions()
     {
         return $this->hasMany(WalletTransaction::class)->orderBy('created_at', 'desc');

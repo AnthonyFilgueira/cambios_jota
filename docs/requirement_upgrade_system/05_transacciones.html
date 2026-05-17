@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>[WF] 05/05_transacciones — Cambio J Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --g-900:#111827;--g-800:#1F2937;--g-700:#374151;--g-600:#4B5563;
+      --g-500:#6B7280;--g-400:#9CA3AF;--g-300:#D1D5DB;--g-200:#E5E7EB;
+      --g-100:#F3F4F6;--g-50:#F9FAFB;--white:#FFFFFF;
+      --font:'Figtree',system-ui,sans-serif;
+      --r-4:4px;--r-8:8px;--r-12:12px;--r-16:16px;--r-24:24px;--r-f:999px;
+      --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-24:24px;--sp-32:32px;--sp-48:48px;
+      --nav-h:64px;
+    
+      /* ── Paleta de marca Cambio J ── */
+      --cj-morado:        #7C3AED;
+      --cj-morado-medio:  #A78BFA;
+      --cj-morado-claro:  #DDD6FE;
+      --cj-turquesa:      #06B6D4;
+      --cj-turquesa-claro:#67E8F9;
+      --cj-rosa:          #EC4899;
+      --cj-fondo:         #F8FAFC;
+      --cj-texto:         #1E293B;
+      --cj-texto-claro:   #64748B;
+
+      /* Semánticos de marca */
+      --brand-primary:    var(--cj-morado);
+      --brand-secondary:  var(--cj-turquesa);
+      --brand-accent:     var(--cj-rosa);
+      --brand-surface:    var(--cj-morado-claro);
+}
+    html { background:var(--cj-fondo); }
+    body { font-family:var(--font);color:var(--g-900);-webkit-font-smoothing:antialiased;min-height:100dvh;max-width:390px;margin:0 auto;display:flex;flex-direction:column; }
+    .topbar { background:var(--cj-morado);padding:var(--sp-16) var(--sp-16) var(--sp-12); }
+    .topbar-title { font-size:20px;font-weight:800;color:var(--white); }
+    .topbar-sub { font-size:11px;color:var(--g-500);margin-top:2px; }
+    .filtros-wrap { background:var(--white);border-bottom:1px solid var(--g-200);padding:var(--sp-12) var(--sp-16);display:flex;gap:var(--sp-8);overflow-x:auto;scrollbar-width:none; }
+    .filtros-wrap::-webkit-scrollbar { display:none; }
+    .badge { display:inline-flex;align-items:center;gap:var(--sp-4);border-radius:var(--r-f);padding:6px 14px;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;border:1.5px solid var(--g-200);color:var(--g-500);background:var(--white);flex-shrink:0;transition:all 0.15s; }
+    .badge.active { background:var(--g-900);border-color:var(--g-900);color:var(--white); }
+    .badge-dot { width:7px;height:7px;border-radius:50%; }
+    main { flex:1;padding:var(--sp-16) var(--sp-16) calc(var(--nav-h)+var(--sp-32));display:flex;flex-direction:column;gap:var(--sp-8); }
+
+    /* TX card — admin tiene más info que cliente */
+    .tx-card { background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04);text-decoration:none;color:inherit;display:block;transition:border-color 0.15s,box-shadow 0.15s; }
+    .tx-card:hover { border-color:var(--g-400);box-shadow:0 2px 8px rgba(0,0,0,0.07); }
+    /* Resalta "Aprobado" — acción requerida del admin */
+    .tx-card.needs-action { border-left:3px solid var(--g-700); }
+    .tx-header { background:var(--g-50);padding:var(--sp-10, 10px) var(--sp-16);border-bottom:1px solid var(--g-200);display:flex;justify-content:space-between;align-items:center; }
+    .tx-id { font-size:11px;font-weight:700;color:var(--g-400);font-family:monospace; }
+    .tx-fecha { font-size:11px;color:var(--g-400); }
+    .tx-body { padding:var(--sp-12) var(--sp-16); }
+    .tx-personas { display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-8); }
+    .tx-persona { display:flex;align-items:center;gap:var(--sp-8); }
+    .tx-av { width:28px;height:28px;background:var(--g-200);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--g-600);flex-shrink:0; }
+    .tx-persona-info { }
+    .tx-cliente-name { font-size:12px;font-weight:700;color:var(--g-900); }
+    .tx-vendedor-name { font-size:11px;color:var(--g-500); }
+    .tx-montos { display:flex;align-items:center;gap:var(--sp-8); }
+    .tx-envia { font-size:20px;font-weight:800;color:var(--g-900);font-variant-numeric:tabular-nums; }
+    .tx-arr svg { width:14px;height:14px;stroke:var(--g-400); }
+    .tx-recibe { font-size:13px;font-weight:700;color:var(--g-500);font-variant-numeric:tabular-nums; }
+    .tx-footer { padding:var(--sp-10, 10px) var(--sp-16);border-top:1px solid var(--g-200);display:flex;align-items:center;justify-content:space-between; }
+    .tx-badge { display:inline-flex;align-items:center;gap:4px;border-radius:var(--r-f);padding:4px 10px;font-size:11px;font-weight:700; }
+    .tx-badge.pendiente  { background:#F3F4F6;color:#6B7280; }
+    .tx-badge.aprobado   { background:#ECFDF5;color:#065F46;border:1px solid #6EE7B7; }
+    .tx-badge.observado  { background:#FFFBEB;color:#92400E; }
+    .tx-badge.completado { background:#F3F4F6;color:#374151; }
+    .tx-badge.denegado   { background:#FEF2F2;color:#991B1B; }
+    .tx-action-hint { font-size:11px;font-weight:700;color:var(--g-700);display:flex;align-items:center;gap:var(--sp-4); }
+    .tx-action-hint svg { width:12px;height:12px;stroke:currentColor; }
+
+    /* Bottom nav */
+    .bottom-nav { position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:var(--white);border-top:1px solid var(--g-200);height:var(--nav-h);display:flex;align-items:center;justify-content:space-around;padding:0 var(--sp-4);z-index:50; }
+    .nav-item { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:var(--sp-8) var(--sp-4);cursor:pointer;text-decoration:none;border:none;background:none;font-family:var(--font);transition:color 0.15s;color:var(--g-400);position:relative; }
+    .nav-item.active { color:var(--g-900); }
+    .nav-item svg { width:20px;height:20px;stroke:currentColor; }
+    .nav-item span { font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px; }
+    .nav-badge { position:absolute;top:4px;right:calc(50% - 16px);min-width:16px;height:16px;background:var(--g-900);border-radius:var(--r-f);font-size:9px;font-weight:800;color:var(--white);display:flex;align-items:center;justify-content:center;padding:0 4px; }
+    .section-label { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-500); }
+  
+    /* ── Sobrescrituras de marca Cambio J ─────────────────────────────────── */
+    .topbar,
+    .nav-logo,
+    .header-dark { background: var(--cj-morado) !important; }
+
+    /* Botones primarios */
+    .btn-primary,
+    button[class*="btn"]:not(.btn-ghost):not(.btn-outline),
+    a.btn:not(.btn-ghost) {
+      background: var(--cj-morado);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--cj-morado-medio); }
+
+    /* Fondo de secciones de marca */
+    .section-brand { background: var(--cj-morado-claro); }
+
+    /* Highlight numérico (montos, KPIs) */
+    .kpi-val.highlight,
+    .tx-monto.positive { color: var(--cj-turquesa) !important; }
+
+    /* Alert badge */
+    .acceso-badge.alert-badge { background: var(--cj-rosa) !important; }
+
+    /* Alerta icon */
+    .alerta-icon { background: rgba(236,72,153,0.15) !important; }
+    .alerta-icon svg { stroke: var(--cj-rosa) !important; }
+
+    /* Topbar: ajustar colores de texto secundario */
+    .topbar-role,
+    .topbar-date { color: var(--cj-morado-claro); }
+
+    .topbar-avatar {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    /* Bottom-nav active */
+    .nav-item.active .nav-icon svg { stroke: var(--cj-morado); }
+    .nav-item.active .nav-label { color: var(--cj-morado); }
+
+    /* Tabs activos */
+    .tab.active {
+      color: var(--cj-morado);
+      border-bottom-color: var(--cj-morado);
+    }
+
+    /* Status chips */
+    .chip-pending  { background: #FEF3C7; color: #92400E; }
+    .chip-approved { background: #D1FAE5; color: #065F46; }
+    .chip-rejected { background: #FEE2E2; color: #991B1B; }
+    .chip-paid     { background: var(--cj-morado-claro); color: var(--cj-morado); }
+
+    /* Inputs focus */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--cj-morado) !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    }
+
+    /* Links */
+    a.link-primary { color: var(--cj-morado); }
+
+    /* KPI cards con acento */
+    .kpi-block { border-left: 3px solid var(--cj-turquesa); }
+
+    /* Scroll indicator / progress bar */
+    .progress-bar { background: var(--cj-morado); }
+    /* ──────────────────────────────────────────────────────────────────────── */
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-title">Transacciones</div>
+    <div class="topbar-sub">Todas las operaciones · Todos los vendedores</div>
+  </header>
+
+  <div class="filtros-wrap" role="group" aria-label="Filtrar transacciones">
+    <button class="badge active" onclick="filtrar('todas')">Todas</button>
+    <button class="badge" onclick="filtrar('Aprobado')" style="border-color:#6EE7B7;color:#065F46">
+      <span class="badge-dot" style="background:#10B981"></span>Aprobado ⚡
+    </button>
+    <button class="badge" onclick="filtrar('Pendiente')">
+      <span class="badge-dot" style="background:#9CA3AF"></span>Pendiente
+    </button>
+    <button class="badge" onclick="filtrar('Completado')">
+      <span class="badge-dot" style="background:#374151"></span>Completado
+    </button>
+    <button class="badge" onclick="filtrar('Observado')">
+      <span class="badge-dot" style="background:#F59E0B"></span>Observado
+    </button>
+  </div>
+
+  <main role="main" aria-label="Listado de transacciones">
+    <p class="section-label" id="lista-label">16 transacciones · 4 requieren acción</p>
+    <div id="tx-list" style="display:flex;flex-direction:column;gap:var(--sp-8)"></div>
+  </main>
+
+  <nav class="bottom-nav" role="navigation" aria-label="Navegación admin">
+    <a href="01_dashboard.html" class="nav-item" aria-label="Dashboard"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+    <a href="05_transacciones.html" class="nav-item active" aria-current="page" aria-label="Transacciones"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Transac.</span><div class="nav-badge">4</div></a>
+    <a href="02_vendedores.html" class="nav-item" aria-label="Vendedores"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Vendedores</span></a>
+    <a href="09_configuracion.html" class="nav-item" aria-label="Configuración"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Config.</span></a>
+  </nav>
+
+  <script>
+    const TXS = [
+      { id:'TRX-847', cliente:'Juan Pérez',   ini:'JP', vendedor:'M. González', envia:'S/ 500.00',  recibe:'Bs. 7,100.00',  estado:'Aprobado',   fecha:'Hoy 14:32',   needsAction:true  },
+      { id:'TRX-846', cliente:'Ana Torres',   ini:'AT', vendedor:'C. Ramírez',  envia:'S/ 300.00',  recibe:'Bs. 4,260.00',  estado:'Aprobado',   fecha:'Hoy 13:15',   needsAction:true  },
+      { id:'TRX-845', cliente:'Luis Vargas',  ini:'LV', vendedor:'M. González', envia:'S/ 750.00',  recibe:'Bs. 10,650.00', estado:'Aprobado',   fecha:'Hoy 11:00',   needsAction:true  },
+      { id:'TRX-844', cliente:'Rosa Mendez',  ini:'RM', vendedor:'A. Rodríguez',envia:'S/ 200.00',  recibe:'Bs. 2,840.00',  estado:'Aprobado',   fecha:'Hoy 10:20',   needsAction:true  },
+      { id:'TRX-843', cliente:'Carlos Díaz',  ini:'CD', vendedor:'M. González', envia:'S/ 1,000.00',recibe:'Bs. 14,200.00', estado:'Pendiente',  fecha:'Hoy 09:45',   needsAction:false },
+      { id:'TRX-841', cliente:'Elena Ruiz',   ini:'ER', vendedor:'C. Ramírez',  envia:'S/ 400.00',  recibe:'Bs. 5,680.00',  estado:'Observado',  fecha:'Hoy 08:30',   needsAction:false },
+      { id:'TRX-838', cliente:'Pedro Soto',   ini:'PS', vendedor:'A. Rodríguez',envia:'S/ 600.00',  recibe:'Bs. 8,520.00',  estado:'Completado', fecha:'Ayer 17:00',  needsAction:false },
+      { id:'TRX-831', cliente:'María López',  ini:'ML', vendedor:'M. González', envia:'S/ 250.00',  recibe:'Bs. 3,550.00',  estado:'Completado', fecha:'Ayer 15:30',  needsAction:false },
+    ];
+
+    function renderTxs(lista) {
+      const cont = document.getElementById('tx-list');
+      cont.innerHTML = '';
+      lista.forEach(tx => {
+        const a = document.createElement('a');
+        a.href = `06_detalle-transaccion.html?id=${tx.id}`;
+        a.className = `tx-card${tx.needsAction ? ' needs-action' : ''}`;
+        a.setAttribute('aria-label', `${tx.cliente} · ${tx.envia} · ${tx.estado}`);
+        a.innerHTML = `
+          <div class="tx-header">
+            <span class="tx-id">${tx.id}</span>
+            <span class="tx-fecha">${tx.fecha}</span>
+          </div>
+          <div class="tx-body">
+            <div class="tx-personas">
+              <div class="tx-persona">
+                <div class="tx-av" aria-hidden="true">${tx.ini}</div>
+                <div class="tx-persona-info">
+                  <div class="tx-cliente-name">${tx.cliente}</div>
+                  <div class="tx-vendedor-name">via ${tx.vendedor}</div>
+                </div>
+              </div>
+            </div>
+            <div class="tx-montos">
+              <span class="tx-envia">${tx.envia}</span>
+              <span class="tx-arr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              <span class="tx-recibe">${tx.recibe} 🇻🇪</span>
+            </div>
+          </div>
+          <div class="tx-footer">
+            <span class="tx-badge ${tx.estado.toLowerCase()}">${tx.estado}</span>
+            ${tx.needsAction ? `<span class="tx-action-hint"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 19 12"/><path d="M12 5l7 7-7 7"/></svg> Procesar</span>` : ''}
+          </div>
+        `;
+        cont.appendChild(a);
+      });
+    }
+
+    function filtrar(estado) {
+      document.querySelectorAll('.filtros-wrap .badge').forEach(b=>b.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      const lista = estado==='todas' ? TXS : TXS.filter(t=>t.estado===estado);
+      renderTxs(lista);
+    }
+
+    renderTxs(TXS);
+  </script>
+</body>
+</html>
+<!-- UX NOTES — Bandeja de Transacciones (Admin)
+     Decisiones: las "Aprobadas" destacadas visualmente con franja y hint "Procesar" → el admin
+     sabe exactamente cuáles requieren su acción sin leer cada estado.
+     Filtro "Aprobado ⚡" con color verde por defecto → diferencia semántica del filtro de acción.
+     Vista de cliente + vendedor en cada card → el admin necesita el contexto completo.
+     Estados: [x] todas [x] filtradas [x] needs-action destacadas
+     Flujo: tap card → 06_detalle-transaccion -->

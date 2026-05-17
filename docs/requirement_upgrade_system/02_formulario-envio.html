@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>[WF] 02/02_formulario-envio — Cambio J</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --g-900:#111827;--g-800:#1F2937;--g-700:#374151;--g-600:#4B5563;
+      --g-500:#6B7280;--g-400:#9CA3AF;--g-300:#D1D5DB;--g-200:#E5E7EB;
+      --g-100:#F3F4F6;--g-50:#F9FAFB;--white:#FFFFFF;
+      --font:'Figtree',system-ui,sans-serif;
+      --r-4:4px;--r-8:8px;--r-12:12px;--r-16:16px;--r-24:24px;
+      --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-24:24px;--sp-32:32px;--sp-48:48px;
+    
+      /* ── Paleta de marca Cambio J ── */
+      --cj-morado:        #7C3AED;
+      --cj-morado-medio:  #A78BFA;
+      --cj-morado-claro:  #DDD6FE;
+      --cj-turquesa:      #06B6D4;
+      --cj-turquesa-claro:#67E8F9;
+      --cj-rosa:          #EC4899;
+      --cj-fondo:         #F8FAFC;
+      --cj-texto:         #1E293B;
+      --cj-texto-claro:   #64748B;
+
+      /* Semánticos de marca */
+      --brand-primary:    var(--cj-morado);
+      --brand-secondary:  var(--cj-turquesa);
+      --brand-accent:     var(--cj-rosa);
+      --brand-surface:    var(--cj-morado-claro);
+}
+    html { background:var(--cj-fondo); }
+    body { font-family:var(--font);color:var(--g-900);-webkit-font-smoothing:antialiased;min-height:100dvh;max-width:390px;margin:0 auto;display:flex;flex-direction:column; }
+
+    /* ── NAVBAR ── */
+    .navbar { position:sticky;top:0;z-index:50;background:var(--white);border-bottom:1px solid var(--g-200);height:56px;padding:0 var(--sp-16);display:flex;align-items:center;justify-content:space-between; }
+    .nav-back { display:flex;align-items:center;gap:var(--sp-8);text-decoration:none;color:var(--g-600);font-size:13px;font-weight:600;padding:var(--sp-8);border-radius:var(--r-8);transition:color 0.15s; }
+    .nav-back:hover { color:var(--g-900); }
+    .nav-back svg { width:16px;height:16px;stroke:currentColor; }
+    .nav-center { position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:var(--sp-8); }
+    .nav-logo { width:28px;height:28px;background:var(--cj-morado);border-radius:var(--r-8);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--white); }
+    .nav-title { font-size:14px;font-weight:700; }
+    .nav-step { font-size:11px;font-weight:600;color:var(--g-500);background:var(--g-100);border:1px solid var(--g-200);border-radius:var(--r-4);padding:3px var(--sp-8); }
+
+    /* ── PROGRESS BAR ── */
+    .progress-bar { background:var(--white);border-bottom:1px solid var(--g-200);padding:var(--sp-12) var(--sp-16); }
+    .steps { display:flex;align-items:center; }
+    .step { display:flex;align-items:center;flex:1; }
+    .step-circle { width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;border:2px solid var(--g-200);color:var(--g-400);background:var(--white); }
+    .step-circle.active { background:var(--g-900);border-color:var(--g-900);color:var(--white); }
+    .step-circle.done   { background:var(--g-500);border-color:var(--g-500);color:var(--white); }
+    .step-line { flex:1;height:2px;background:var(--g-200);margin:0 var(--sp-4); }
+    .step-line.done { background:var(--g-500); }
+    .step-labels { display:flex;margin-top:var(--sp-8); }
+    .step-label { flex:1;text-align:center;font-size:9px;font-weight:700;color:var(--g-400);text-transform:uppercase;letter-spacing:0.8px;line-height:1.3; }
+    .step-label.active { color:var(--g-800); }
+    .step-label.done   { color:var(--g-500); }
+
+    /* ── MAIN ── */
+    main { flex:1;padding:var(--sp-16) var(--sp-16) 120px;display:flex;flex-direction:column;gap:var(--sp-12); }
+
+    /* ── Resumen mini ── */
+    .resumen-mini { background:var(--g-800);border-radius:var(--r-12);padding:var(--sp-12) var(--sp-16);display:flex;align-items:center;justify-content:space-between; }
+    .res-grupo { display:flex;flex-direction:column;gap:2px; }
+    .res-tag { font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-400); }
+    .res-val { font-size:18px;font-weight:800;color:var(--white);font-variant-numeric:tabular-nums; }
+    .res-sub { font-size:10px;color:var(--g-400); }
+    .res-div { width:1px;height:36px;background:var(--g-600); }
+
+    /* ── Sección del formulario ── */
+    .form-section {
+      background:var(--white);border:1px solid var(--g-200);
+      border-radius:var(--r-16);overflow:hidden;
+      box-shadow:0 1px 4px rgba(0,0,0,0.05);
+    }
+    .section-header {
+      padding:var(--sp-16);border-bottom:1px solid var(--g-100);
+      display:flex;align-items:center;gap:var(--sp-12);
+    }
+    .section-num {
+      width:28px;height:28px;background:var(--g-900);border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-size:11px;font-weight:800;color:var(--white);flex-shrink:0;
+    }
+    .section-heading { flex:1; }
+    .section-title { font-size:14px;font-weight:800;color:var(--g-900); }
+    .section-desc  { font-size:11px;color:var(--g-400);margin-top:2px; }
+    .section-body { padding:var(--sp-16);display:flex;flex-direction:column;gap:var(--sp-16); }
+
+    /* ── Campos ── */
+    .field { display:flex;flex-direction:column;gap:var(--sp-8); }
+    .field-label { font-size:12px;font-weight:700;color:var(--g-700);display:flex;align-items:center;gap:var(--sp-4); }
+    .req { color:var(--g-500);font-size:10px;font-weight:600; }
+    .field-input {
+      width:100%;padding:var(--sp-12) var(--sp-16);
+      border:1.5px solid var(--g-200);border-radius:var(--r-8);
+      background:var(--white);font-family:var(--font);font-size:15px;font-weight:600;
+      color:var(--g-900);outline:none;transition:border-color 0.15s;
+      -webkit-appearance:none;
+    }
+    .field-input::placeholder { color:var(--g-300);font-weight:400;font-size:14px; }
+    .field-input:focus { border-color:var(--g-600);box-shadow:0 0 0 3px rgba(0,0,0,0.06); }
+    .field-input.is-error { border-color:#EF4444;background:#FFF9F9; }
+    .field-select {
+      width:100%;padding:var(--sp-12) var(--sp-16);
+      border:1.5px solid var(--g-200);border-radius:var(--r-8);
+      background:var(--white);font-family:var(--font);font-size:15px;font-weight:600;
+      color:var(--g-900);outline:none;transition:border-color 0.15s;
+      -webkit-appearance:none;appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:right 14px center;
+      padding-right:40px;
+    }
+    .field-select:focus { border-color:var(--g-600);box-shadow:0 0 0 3px rgba(0,0,0,0.06); }
+    .field-hint { font-size:11px;color:var(--g-400);line-height:1.5; }
+    .field-error { font-size:11px;color:#EF4444;font-weight:600;display:none; }
+    .field.has-error .field-error { display:block; }
+    .field.has-error .field-input { border-color:#EF4444;background:#FFF9F9; }
+
+    /* ── Tipo de operación (Sección 2) ── */
+    .tipo-selector { display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-8); }
+    .tipo-card {
+      border:2px solid var(--g-200);border-radius:var(--r-12);
+      padding:var(--sp-12);cursor:pointer;transition:border-color 0.15s,background 0.15s;
+      text-align:center;display:flex;flex-direction:column;align-items:center;gap:var(--sp-8);
+    }
+    .tipo-card:hover { border-color:var(--g-400); }
+    .tipo-card.is-selected { border-color:var(--g-900);background:var(--g-50); }
+    .tipo-icon { width:36px;height:36px;border-radius:50%;background:var(--g-100);display:flex;align-items:center;justify-content:center; }
+    .tipo-icon svg { width:18px;height:18px;stroke:var(--g-600); }
+    .tipo-card.is-selected .tipo-icon { background:var(--g-900); }
+    .tipo-card.is-selected .tipo-icon svg { stroke:var(--white); }
+    .tipo-label { font-size:12px;font-weight:800;color:var(--g-900); }
+    .tipo-sub   { font-size:10px;color:var(--g-400);line-height:1.3; }
+
+    /* Campos condicionales por tipo de operación */
+    .campos-transferencia { display:flex;flex-direction:column;gap:var(--sp-16); }
+    .campos-pago-movil    { display:flex;flex-direction:column;gap:var(--sp-16); }
+    .campos-condicionales { display:none; }
+    .campos-condicionales.is-visible { display:flex;flex-direction:column;gap:var(--sp-16); }
+
+    /* ── Tipo de cuenta (radio inline) ── */
+    .tipo-cuenta-row { display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-8); }
+    .tipo-cuenta-opt {
+      border:1.5px solid var(--g-200);border-radius:var(--r-8);padding:var(--sp-10) var(--sp-12);
+      cursor:pointer;transition:border-color 0.15s,background 0.15s;
+      display:flex;align-items:center;gap:var(--sp-8);
+    }
+    .tipo-cuenta-opt:hover { border-color:var(--g-400); }
+    .tipo-cuenta-opt.is-selected { border-color:var(--g-900);background:var(--g-50); }
+    .tipo-radio { width:16px;height:16px;border:2px solid var(--g-300);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center; }
+    .tipo-cuenta-opt.is-selected .tipo-radio { border-color:var(--g-900); }
+    .tipo-radio-dot { width:8px;height:8px;background:var(--g-900);border-radius:50%;display:none; }
+    .tipo-cuenta-opt.is-selected .tipo-radio-dot { display:block; }
+    .tipo-cuenta-label { font-size:13px;font-weight:700;color:var(--g-800); }
+
+    /* ── Sección 3 — cotizador multi-moneda ── */
+    .cotizador-row { display:grid;grid-template-columns:1fr auto 1fr;gap:var(--sp-8);align-items:end; }
+    .cotizador-arrow { width:28px;height:28px;background:var(--g-100);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:2px;flex-shrink:0; }
+    .cotizador-arrow svg { width:12px;height:12px;stroke:var(--g-500); }
+    .field-prefix { position:relative; }
+    .field-prefix-tag { position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:var(--g-500);pointer-events:none;white-space:nowrap; }
+    .field-prefix .field-input { padding-left:42px; }
+    .tasa-info { display:flex;align-items:center;justify-content:center;gap:var(--sp-8);padding:var(--sp-8);background:var(--g-50);border-radius:var(--r-8);border:1px solid var(--g-200); }
+    .tasa-info-txt { font-size:11px;color:var(--g-600);font-weight:600;text-align:center; }
+    .tasa-badge { font-size:9px;font-weight:700;color:var(--g-500);text-transform:uppercase;letter-spacing:1px;background:var(--g-200);border-radius:var(--r-4);padding:2px 6px; }
+    .bcv-row { display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-8); }
+    .bcv-item { background:var(--g-50);border:1px solid var(--g-200);border-radius:var(--r-8);padding:var(--sp-8) var(--sp-12); }
+    .bcv-tag { font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g-400); }
+    .bcv-val { font-size:14px;font-weight:800;color:var(--g-700);margin-top:2px;font-variant-numeric:tabular-nums; }
+
+    /* ── Cuenta bancaria selector ── */
+    .cuenta-selector { display:flex;flex-direction:column;gap:var(--sp-8); }
+    .cuenta-radio-card {
+      display:flex;align-items:center;gap:var(--sp-12);
+      border:1.5px solid var(--g-200);border-radius:var(--r-8);padding:var(--sp-12);
+      cursor:pointer;transition:border-color 0.15s,background 0.15s;
+    }
+    .cuenta-radio-card:hover { border-color:var(--g-400); }
+    .cuenta-radio-card.is-selected { border-color:var(--g-900);background:var(--g-50); }
+    .cuenta-radio-btn { width:18px;height:18px;border:2px solid var(--g-300);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center; }
+    .cuenta-radio-card.is-selected .cuenta-radio-btn { border-color:var(--g-900); }
+    .cuenta-radio-dot2 { width:9px;height:9px;background:var(--g-900);border-radius:50%;display:none; }
+    .cuenta-radio-card.is-selected .cuenta-radio-dot2 { display:block; }
+    .cuenta-chip { background:var(--g-100);border:1px solid var(--g-200);border-radius:var(--r-4);padding:3px 8px;font-size:11px;font-weight:800;color:var(--g-600);flex-shrink:0; }
+    .cuenta-detail { flex:1;min-width:0; }
+    .cuenta-detail-num { font-size:12px;font-weight:700;color:var(--g-700);font-family:monospace;letter-spacing:0.5px; }
+    .cuenta-detail-tipo { font-size:10px;color:var(--g-400); }
+
+    /* ── Notas ── */
+    .field-textarea {
+      width:100%;padding:var(--sp-12) var(--sp-16);min-height:80px;
+      border:1.5px solid var(--g-200);border-radius:var(--r-8);
+      background:var(--white);font-family:var(--font);font-size:14px;font-weight:500;
+      color:var(--g-900);outline:none;transition:border-color 0.15s;
+      resize:vertical;
+    }
+    .field-textarea::placeholder { color:var(--g-300);font-weight:400; }
+    .field-textarea:focus { border-color:var(--g-600);box-shadow:0 0 0 3px rgba(0,0,0,0.06); }
+
+    /* ── CTA fijo ── */
+    .cta-wrap {
+      position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+      width:100%;max-width:390px;
+      background:var(--white);border-top:1px solid var(--g-200);
+      padding:var(--sp-16);
+    }
+    .btn-continuar {
+      width:100%;background:var(--g-900);color:var(--white);border:none;border-radius:var(--r-12);
+      padding:var(--sp-16);font-family:var(--font);font-size:15px;font-weight:700;
+      cursor:pointer;text-align:center;transition:background 0.15s,transform 0.1s;
+    }
+    .btn-continuar:hover { background:var(--g-700); }
+    .btn-continuar:active { transform:scale(0.98); }
+    .btn-continuar:disabled { background:var(--g-200);color:var(--g-400);cursor:not-allowed; }
+    .cta-hint { text-align:center;font-size:10px;color:var(--g-400);margin-top:var(--sp-8); }
+
+    .wf-note { display:inline-block;background:var(--g-200);border:1px dashed var(--g-400);border-radius:var(--r-4);padding:1px var(--sp-4);font-size:8px;font-weight:700;color:var(--g-600);font-family:monospace;vertical-align:middle;margin-left:var(--sp-4);cursor:help; }
+
+    /* ── Divisor entre secciones ── */
+    .section-spacer { height:var(--sp-4); }
+  
+    /* ── Sobrescrituras de marca Cambio J ─────────────────────────────────── */
+    .topbar,
+    .nav-logo,
+    .header-dark { background: var(--cj-morado) !important; }
+
+    /* Botones primarios */
+    .btn-primary,
+    button[class*="btn"]:not(.btn-ghost):not(.btn-outline),
+    a.btn:not(.btn-ghost) {
+      background: var(--cj-morado);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--cj-morado-medio); }
+
+    /* Fondo de secciones de marca */
+    .section-brand { background: var(--cj-morado-claro); }
+
+    /* Highlight numérico (montos, KPIs) */
+    .kpi-val.highlight,
+    .tx-monto.positive { color: var(--cj-turquesa) !important; }
+
+    /* Alert badge */
+    .acceso-badge.alert-badge { background: var(--cj-rosa) !important; }
+
+    /* Alerta icon */
+    .alerta-icon { background: rgba(236,72,153,0.15) !important; }
+    .alerta-icon svg { stroke: var(--cj-rosa) !important; }
+
+    /* Topbar: ajustar colores de texto secundario */
+    .topbar-role,
+    .topbar-date { color: var(--cj-morado-claro); }
+
+    .topbar-avatar {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    /* Bottom-nav active */
+    .nav-item.active .nav-icon svg { stroke: var(--cj-morado); }
+    .nav-item.active .nav-label { color: var(--cj-morado); }
+
+    /* Tabs activos */
+    .tab.active {
+      color: var(--cj-morado);
+      border-bottom-color: var(--cj-morado);
+    }
+
+    /* Status chips */
+    .chip-pending  { background: #FEF3C7; color: #92400E; }
+    .chip-approved { background: #D1FAE5; color: #065F46; }
+    .chip-rejected { background: #FEE2E2; color: #991B1B; }
+    .chip-paid     { background: var(--cj-morado-claro); color: var(--cj-morado); }
+
+    /* Inputs focus */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--cj-morado) !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    }
+
+    /* Links */
+    a.link-primary { color: var(--cj-morado); }
+
+    /* KPI cards con acento */
+    .kpi-block { border-left: 3px solid var(--cj-turquesa); }
+
+    /* Scroll indicator / progress bar */
+    .progress-bar { background: var(--cj-morado); }
+    /* ──────────────────────────────────────────────────────────────────────── */
+</style>
+</head>
+<body>
+
+  <nav class="navbar" role="navigation" aria-label="Navegación">
+    <a href="01_ingresar-codigo-vendedor.html" class="nav-back" aria-label="Volver">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Volver
+    </a>
+    <div class="nav-center">
+      <div class="nav-logo" aria-hidden="true">CJ</div>
+      <span class="nav-title">Datos del envío</span>
+    </div>
+    <span class="nav-step">Paso 2/4</span>
+  </nav>
+
+  <div class="progress-bar" role="navigation" aria-label="Progreso del envío">
+    <div class="steps">
+      <div class="step"><div class="step-circle done" aria-label="Paso 1 completado">✓</div><div class="step-line done"></div></div>
+      <div class="step"><div class="step-circle active" aria-current="step">2</div><div class="step-line"></div></div>
+      <div class="step"><div class="step-circle">3</div><div class="step-line"></div></div>
+      <div class="step"><div class="step-circle">4</div></div>
+    </div>
+    <div class="step-labels" aria-hidden="true">
+      <span class="step-label done">Vendedor</span>
+      <span class="step-label active">Formulario</span>
+      <span class="step-label">Comprobante</span>
+      <span class="step-label">Confirmación</span>
+    </div>
+  </div>
+
+  <main role="main" aria-label="Formulario de envío">
+
+    <!-- Resumen mini de cotización -->
+    <div class="resumen-mini" aria-label="Resumen de cotización">
+      <div class="res-grupo">
+        <span class="res-tag">Tú envías</span>
+        <span class="res-val" id="res-envia">S/ 500.00</span>
+        <span class="res-sub">Soles peruanos</span>
+      </div>
+      <div class="res-div" aria-hidden="true"></div>
+      <div class="res-grupo" style="text-align:right">
+        <span class="res-tag">Recibe</span>
+        <span class="res-val" id="res-recibe">Bs. 7,100.00</span>
+        <span class="res-sub" id="res-tasa">1 PEN = 14.20 VES</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECCIÓN 1 — Cotización y cuenta de destino
+    ═══════════════════════════════════════════════ -->
+    <div class="form-section" role="region" aria-labelledby="sec1-title">
+      <div class="section-header">
+        <div class="section-num" aria-hidden="true">1</div>
+        <div class="section-heading">
+          <div class="section-title" id="sec1-title">Montos de la operación</div>
+          <div class="section-desc">Tasa vigente del admin · Calcula en tiempo real</div>
+        </div>
+      </div>
+      <div class="section-body">
+
+        <!-- Cotizador multi-moneda -->
+        <div class="field">
+          <label class="field-label" for="monto-pen">
+            Monto a enviar (Soles)
+            <span class="req">*</span>
+            <span class="wf-note" title="El PEN es el campo principal que va al backend. USD y EUR son referencia BCV.">principal</span>
+          </label>
+          <div class="cotizador-row">
+            <div class="field field-prefix">
+              <div class="field-prefix-tag">S/</div>
+              <input class="field-input" type="number" id="monto-pen" name="monto_pen"
+                placeholder="0.00" inputmode="decimal"
+                oninput="calcularConversion('pen')"
+                aria-label="Monto en soles peruanos" required>
+            </div>
+            <div class="cotizador-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+            <div class="field field-prefix">
+              <div class="field-prefix-tag">Bs.</div>
+              <input class="field-input" type="number" id="monto-ves" name="monto_ves_calculado"
+                placeholder="0.00" inputmode="decimal"
+                oninput="calcularConversion('ves')"
+                aria-label="Monto en bolívares (calculado)" style="background:var(--g-50);color:var(--g-600);" readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tasa aplicada -->
+        <div class="tasa-info" role="note" aria-label="Tasa de cambio aplicada">
+          <span class="tasa-badge">Tasa admin</span>
+          <span class="tasa-info-txt" id="tasa-display">1 PEN = 14.20 VES · Margen ya aplicado</span>
+        </div>
+
+        <!-- Tasas BCV (USD y EUR — campos ocultos para referencia contable) -->
+        <div>
+          <div class="section-label" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g-400);margin-bottom:var(--sp-8);">
+            Tasas BCV de referencia
+            <span class="wf-note" title="Se guardan como campos ocultos en el backend para referencia contable. No afectan el cálculo del cliente.">ref contable</span>
+          </div>
+          <div class="bcv-row">
+            <div class="bcv-item">
+              <div class="bcv-tag">USD · BCV</div>
+              <div class="bcv-val" id="bcv-usd">Bs. 36.50</div>
+            </div>
+            <div class="bcv-item">
+              <div class="bcv-tag">EUR · BCV</div>
+              <div class="bcv-val" id="bcv-eur">Bs. 40.20</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cuenta bancaria a depositar (asignadas al vendedor por el dueño) -->
+        <div class="field">
+          <label class="field-label">
+            Depositar en
+            <span class="req">*</span>
+          </label>
+          <div class="cuenta-selector" role="radiogroup" aria-label="Cuenta bancaria para el depósito">
+            <div class="cuenta-radio-card is-selected" role="radio" aria-checked="true" tabindex="0" onclick="seleccionarCuenta(this,'1','BCP','191-12345678-0-12','Cuenta Corriente')" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
+              <div class="cuenta-radio-btn"><div class="cuenta-radio-dot2"></div></div>
+              <div class="cuenta-chip">BCP</div>
+              <div class="cuenta-detail">
+                <div class="cuenta-detail-num">191-12345678-0-12</div>
+                <div class="cuenta-detail-tipo">Cuenta Corriente · Cambio J SAC</div>
+              </div>
+            </div>
+            <div class="cuenta-radio-card" role="radio" aria-checked="false" tabindex="0" onclick="seleccionarCuenta(this,'2','Interbank','200-3009876543','Cuenta Ahorros')" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
+              <div class="cuenta-radio-btn"><div class="cuenta-radio-dot2"></div></div>
+              <div class="cuenta-chip">IBK</div>
+              <div class="cuenta-detail">
+                <div class="cuenta-detail-num">200-3009876543</div>
+                <div class="cuenta-detail-tipo">Cuenta Ahorros · Cambio J SAC</div>
+              </div>
+            </div>
+            <div class="cuenta-radio-card" role="radio" aria-checked="false" tabindex="0" onclick="seleccionarCuenta(this,'3','BBVA','0011-0389-01-00123456','Cuenta Corriente')" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
+              <div class="cuenta-radio-btn"><div class="cuenta-radio-dot2"></div></div>
+              <div class="cuenta-chip">BBVA</div>
+              <div class="cuenta-detail">
+                <div class="cuenta-detail-num">0011-0389-01-00123456</div>
+                <div class="cuenta-detail-tipo">Cuenta Corriente · Cambio J SAC</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECCIÓN 2 — Datos del receptor en Venezuela
+    ═══════════════════════════════════════════════ -->
+    <div class="form-section" role="region" aria-labelledby="sec2-title">
+      <div class="section-header">
+        <div class="section-num" aria-hidden="true">2</div>
+        <div class="section-heading">
+          <div class="section-title" id="sec2-title">Receptor en Venezuela</div>
+          <div class="section-desc">A quién le llega el dinero</div>
+        </div>
+      </div>
+      <div class="section-body">
+
+        <!-- Tipo de operación -->
+        <div class="field">
+          <label class="field-label">Tipo de operación <span class="req">*</span></label>
+          <div class="tipo-selector" role="radiogroup" aria-label="Tipo de operación de destino">
+            <div class="tipo-card is-selected" role="radio" aria-checked="true" tabindex="0"
+                 onclick="seleccionarTipo('transferencia')" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"
+                 aria-label="Transferencia bancaria">
+              <div class="tipo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              </div>
+              <div class="tipo-label">Transferencia</div>
+              <div class="tipo-sub">Cuenta bancaria</div>
+            </div>
+            <div class="tipo-card" role="radio" aria-checked="false" tabindex="0"
+                 onclick="seleccionarTipo('pago_movil')" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"
+                 aria-label="Pago móvil">
+              <div class="tipo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              </div>
+              <div class="tipo-label">Pago móvil</div>
+              <div class="tipo-sub">Teléfono</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campos comunes (ambos tipos) -->
+        <div class="field">
+          <label class="field-label" for="cedula-receptor">Cédula del titular <span class="req">*</span></label>
+          <input class="field-input" type="text" id="cedula-receptor" name="cedula_receptor"
+            placeholder="Ej. V-12345678" inputmode="text" autocomplete="off"
+            aria-label="Cédula de identidad del receptor" required>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="banco-receptor">Banco receptor <span class="req">*</span></label>
+          <select class="field-select" id="banco-receptor" name="banco_receptor_id"
+            aria-label="Banco receptor en Venezuela" required>
+            <option value="" disabled selected>Selecciona banco</option>
+            <option value="1">Banco de Venezuela</option>
+            <option value="2">Banesco</option>
+            <option value="3">Mercantil</option>
+            <option value="4">Provincial</option>
+            <option value="5">Bicentenario</option>
+            <option value="6">BOD - Banco Occidental de Descuento</option>
+          </select>
+          <span class="field-hint">Bancos activos configurados por el admin <span class="wf-note" title="Se carga desde la tabla bancos_pais del admin. Módulo 05/06_bancos-pais.">admin</span></span>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="telefono-receptor">Teléfono del titular <span class="req">*</span></label>
+          <input class="field-input" type="tel" id="telefono-receptor" name="telefono_receptor"
+            placeholder="Ej. 0412-1234567" inputmode="tel"
+            aria-label="Teléfono del receptor" required>
+        </div>
+
+        <!-- Campos exclusivos: Transferencia bancaria -->
+        <div class="campos-condicionales campos-transferencia is-visible" id="campos-transferencia"
+             aria-label="Datos adicionales para transferencia bancaria">
+          <div class="field">
+            <label class="field-label" for="numero-cuenta-receptor">Número de cuenta <span class="req">*</span></label>
+            <input class="field-input" type="text" id="numero-cuenta-receptor" name="numero_cuenta_receptor"
+              placeholder="Ej. 0102-0000-00-0000000000" inputmode="numeric"
+              aria-label="Número de cuenta bancaria del receptor" required>
+          </div>
+          <div class="field">
+            <label class="field-label">Tipo de cuenta <span class="req">*</span></label>
+            <div class="tipo-cuenta-row" role="radiogroup" aria-label="Tipo de cuenta bancaria">
+              <div class="tipo-cuenta-opt is-selected" role="radio" aria-checked="true" tabindex="0"
+                   onclick="seleccionarTipoCuenta(this,'Ahorro')" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
+                <div class="tipo-radio"><div class="tipo-radio-dot"></div></div>
+                <span class="tipo-cuenta-label">Ahorro</span>
+              </div>
+              <div class="tipo-cuenta-opt" role="radio" aria-checked="false" tabindex="0"
+                   onclick="seleccionarTipoCuenta(this,'Corriente')" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
+                <div class="tipo-radio"><div class="tipo-radio-dot"></div></div>
+                <span class="tipo-cuenta-label">Corriente</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campos exclusivos: Pago móvil (solo teléfono + banco, ya capturados arriba) -->
+        <div class="campos-condicionales campos-pago-movil" id="campos-pago-movil"
+             aria-label="Información para pago móvil">
+          <div style="background:var(--g-50);border:1px solid var(--g-200);border-radius:var(--r-8);padding:var(--sp-12);">
+            <p style="font-size:12px;color:var(--g-500);line-height:1.6;">
+              Para <strong>Pago Móvil</strong> solo necesitas la <strong>cédula</strong>, el <strong>banco</strong> y el <strong>teléfono</strong> asociado ingresados arriba. No se requiere número de cuenta.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECCIÓN 3 — Datos de la transferencia desde Perú
+    ═══════════════════════════════════════════════ -->
+    <div class="form-section" role="region" aria-labelledby="sec3-title">
+      <div class="section-header">
+        <div class="section-num" aria-hidden="true">3</div>
+        <div class="section-heading">
+          <div class="section-title" id="sec3-title">Tu transferencia desde Perú</div>
+          <div class="section-desc">Datos de la operación que realizaste</div>
+        </div>
+      </div>
+      <div class="section-body">
+
+        <div class="field">
+          <label class="field-label" for="dni-titular">DNI del titular que transfiere <span class="req">*</span></label>
+          <input class="field-input" type="text" id="dni-titular" name="dni_titular_peru"
+            placeholder="Ej. 70123456" inputmode="numeric" maxlength="8"
+            aria-label="DNI de quien realiza la transferencia" required>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="banco-origen">Banco desde donde transferiste <span class="req">*</span></label>
+          <select class="field-select" id="banco-origen" name="banco_origen_id"
+            aria-label="Banco peruano de origen" required>
+            <option value="" disabled selected>Selecciona banco</option>
+            <option value="1">BCP</option>
+            <option value="2">Interbank</option>
+            <option value="3">BBVA Perú</option>
+            <option value="4">Scotiabank</option>
+            <option value="5">BanBif</option>
+            <option value="6">Pichincha</option>
+            <option value="7">Yape</option>
+            <option value="8">Plin</option>
+          </select>
+          <span class="field-hint">Bancos activos de Perú configurados por el admin <span class="wf-note" title="Cargado desde bancos_pais filtrado por país=Perú. Módulo 05/06_bancos-pais.">admin</span></span>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="cuenta-origen">Número de cuenta origen</label>
+          <input class="field-input" type="text" id="cuenta-origen" name="numero_cuenta_origen"
+            placeholder="Ej. 191-12345678-0-12" inputmode="text"
+            aria-label="Número de cuenta desde donde se transfirió">
+          <span class="field-hint">Opcional, pero recomendado para verificación.</span>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="monto-depositado">Monto depositado declarado <span class="req">*</span></label>
+          <div class="field-prefix">
+            <div class="field-prefix-tag">S/</div>
+            <input class="field-input" type="number" id="monto-depositado" name="monto_depositado"
+              placeholder="0.00" inputmode="decimal"
+              aria-label="Monto depositado en soles" required>
+          </div>
+          <span class="field-hint">Debe coincidir con el comprobante que subirás en el siguiente paso.</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECCIÓN 4 — Notas adicionales (opcional)
+    ═══════════════════════════════════════════════ -->
+    <div class="form-section" role="region" aria-labelledby="sec4-title">
+      <div class="section-header">
+        <div class="section-num" aria-hidden="true">4</div>
+        <div class="section-heading">
+          <div class="section-title" id="sec4-title">Notas adicionales</div>
+          <div class="section-desc">Opcional</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field">
+          <label class="field-label" for="notas">Mensaje para tu vendedor</label>
+          <textarea class="field-textarea" id="notas" name="notas"
+            placeholder="Ej. Es urgente, por favor procesar hoy. O cualquier aclaración sobre el envío."
+            maxlength="500" aria-label="Notas adicionales para el vendedor"></textarea>
+          <span class="field-hint">Máximo 500 caracteres. Solo lo ve tu vendedor.</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- CTA fijo -->
+  <div class="cta-wrap">
+    <button class="btn-continuar" id="btn-continuar" onclick="continuar()" disabled
+            aria-label="Continuar a subir comprobante">
+      Continuar →
+    </button>
+    <p class="cta-hint">El siguiente paso es subir tu comprobante de depósito</p>
+  </div>
+
+  <script>
+    // ── Estado del formulario ──
+    let tipoOperacion = 'transferencia';
+    let tipoCuenta    = 'Ahorro';
+    let cuentaSeleccionadaId = '1';
+
+    // ── Seed datos de sesión ──
+    if (!sessionStorage.getItem('pendingTransaction')) {
+      sessionStorage.setItem('pendingTransaction', JSON.stringify({
+        amount_origen:'500.00', amount_ves:'7100.00', from_currency:'PEN',
+        pair_id:1, ves_rate:14.20, usd_bcv_rate:36.50, eur_bcv_rate:40.20,
+        exchange_rate_id:1, vendedor_codigo:'VND-001', vendedor_nombre:'María González'
+      }));
+    }
+
+    function cargarResumen() {
+      const d = JSON.parse(sessionStorage.getItem('pendingTransaction') || '{}');
+      const fmt = n => new Intl.NumberFormat('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(parseFloat(n)||0);
+      if (d.amount_origen) {
+        document.getElementById('res-envia').textContent  = `S/ ${fmt(d.amount_origen)}`;
+        document.getElementById('res-recibe').textContent = `Bs. ${fmt(d.amount_ves)}`;
+        document.getElementById('monto-pen').value = parseFloat(d.amount_origen);
+        document.getElementById('monto-ves').value = parseFloat(d.amount_ves);
+      }
+      if (d.ves_rate) {
+        document.getElementById('tasa-display').textContent = `1 PEN = ${d.ves_rate} VES · Margen ya aplicado`;
+        document.getElementById('res-tasa').textContent     = `1 PEN = ${d.ves_rate} VES`;
+      }
+      if (d.usd_bcv_rate) document.getElementById('bcv-usd').textContent = `Bs. ${d.usd_bcv_rate}`;
+      if (d.eur_bcv_rate) document.getElementById('bcv-eur').textContent = `Bs. ${d.eur_bcv_rate}`;
+    }
+
+    function calcularConversion(origen) {
+      const d   = JSON.parse(sessionStorage.getItem('pendingTransaction') || '{}');
+      const rate = parseFloat(d.ves_rate) || 14.20;
+      const fmt  = n => new Intl.NumberFormat('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
+      if (origen === 'pen') {
+        const pen = parseFloat(document.getElementById('monto-pen').value) || 0;
+        document.getElementById('monto-ves').value = pen ? fmt(pen * rate) : '';
+        document.getElementById('res-envia').textContent  = `S/ ${fmt(pen)}`;
+        document.getElementById('res-recibe').textContent = `Bs. ${fmt(pen * rate)}`;
+      }
+      validarFormulario();
+    }
+
+    function seleccionarTipo(tipo) {
+      tipoOperacion = tipo;
+      document.querySelectorAll('.tipo-card').forEach(c => {
+        c.classList.remove('is-selected');
+        c.setAttribute('aria-checked','false');
+      });
+      const idx = tipo === 'transferencia' ? 0 : 1;
+      document.querySelectorAll('.tipo-card')[idx].classList.add('is-selected');
+      document.querySelectorAll('.tipo-card')[idx].setAttribute('aria-checked','true');
+      // Mostrar/ocultar campos condicionales
+      const tx = document.getElementById('campos-transferencia');
+      const pm = document.getElementById('campos-pago-movil');
+      if (tipo === 'transferencia') {
+        tx.classList.add('is-visible');
+        pm.classList.remove('is-visible');
+      } else {
+        pm.classList.add('is-visible');
+        tx.classList.remove('is-visible');
+      }
+      validarFormulario();
+    }
+
+    function seleccionarTipoCuenta(el, tipo) {
+      tipoCuenta = tipo;
+      document.querySelectorAll('.tipo-cuenta-opt').forEach(o => {
+        o.classList.remove('is-selected');
+        o.setAttribute('aria-checked','false');
+      });
+      el.classList.add('is-selected');
+      el.setAttribute('aria-checked','true');
+    }
+
+    function seleccionarCuenta(el, id, banco, numero, tipo) {
+      cuentaSeleccionadaId = id;
+      document.querySelectorAll('.cuenta-radio-card').forEach(c => {
+        c.classList.remove('is-selected');
+        c.setAttribute('aria-checked','false');
+      });
+      el.classList.add('is-selected');
+      el.setAttribute('aria-checked','true');
+    }
+
+    function validarFormulario() {
+      const pen     = parseFloat(document.getElementById('monto-pen').value) || 0;
+      const cedula  = document.getElementById('cedula-receptor').value.trim();
+      const banco   = document.getElementById('banco-receptor').value;
+      const tel     = document.getElementById('telefono-receptor').value.trim();
+      const dni     = document.getElementById('dni-titular').value.trim();
+      const bancoO  = document.getElementById('banco-origen').value;
+      const montoDep= parseFloat(document.getElementById('monto-depositado').value) || 0;
+      let ok = pen > 0 && cedula && banco && tel && dni && bancoO && montoDep > 0;
+      if (tipoOperacion === 'transferencia') {
+        const numCta = document.getElementById('numero-cuenta-receptor').value.trim();
+        ok = ok && !!numCta;
+      }
+      document.getElementById('btn-continuar').disabled = !ok;
+    }
+
+    // Validación en tiempo real
+    document.querySelectorAll('.field-input, .field-select, .field-textarea').forEach(el => {
+      el.addEventListener('input', validarFormulario);
+      el.addEventListener('change', validarFormulario);
+    });
+
+    function continuar() {
+      // Guardar datos del formulario en sessionStorage
+      const d = JSON.parse(sessionStorage.getItem('pendingTransaction') || '{}');
+      d.tipo_operacion      = tipoOperacion;
+      d.tipo_cuenta         = tipoCuenta;
+      d.cuenta_deposito_id  = cuentaSeleccionadaId;
+      d.cedula_receptor     = document.getElementById('cedula-receptor').value.trim();
+      d.banco_receptor_id   = document.getElementById('banco-receptor').value;
+      d.telefono_receptor   = document.getElementById('telefono-receptor').value.trim();
+      d.numero_cuenta_recep = document.getElementById('numero-cuenta-receptor').value.trim();
+      d.dni_titular         = document.getElementById('dni-titular').value.trim();
+      d.banco_origen_id     = document.getElementById('banco-origen').value;
+      d.cuenta_origen       = document.getElementById('cuenta-origen').value.trim();
+      d.monto_depositado    = document.getElementById('monto-depositado').value;
+      d.notas               = document.getElementById('notas').value.trim();
+      d.monto_pen_form      = document.getElementById('monto-pen').value;
+      sessionStorage.setItem('pendingTransaction', JSON.stringify(d));
+      window.location.href = '03_subir-comprobante.html';
+    }
+
+    cargarResumen();
+  </script>
+
+</body>
+</html>
+
+<!-- ============================================================
+     UX NOTES — Formulario de envío completo
+     Rol: Cliente autenticado
+     Módulo: screens/02_envio/02_formulario-envio.html
+     ============================================================
+
+     NUEVO en v2.0 (Plan v2.0 / Propuesta v4.0):
+     Esta pantalla reemplaza la antigua 02_cuentas-bancarias.html.
+     Integra los 4 bloques del flujo de envío en una sola vista scrolleable:
+
+     SECCIÓN 1 — Montos y cuenta de destino
+       - Cotizador editable: cliente ingresa monto PEN, se calcula VES en tiempo real
+       - La tasa viene del admin (sessionStorage) — no hardcodeada
+       - Tasas BCV (USD y EUR) visibles como referencia contable → campos ocultos al backend
+       - Selector de cuenta bancaria (radio cards) — cuentas asignadas por el dueño al vendedor
+         del cliente (cargadas desde la API, no hardcodeadas)
+
+     SECCIÓN 2 — Receptor en Venezuela
+       - Tipo de operación: Transferencia Bancaria | Pago Móvil
+       - Campos comunes: cédula, banco receptor (de bancos_pais admin, país=Venezuela), teléfono
+       - Campos condicionales Transferencia: número de cuenta, tipo (Ahorro/Corriente)
+       - Campos condicionales Pago Móvil: solo un aviso (los campos comunes ya son suficientes)
+       - Los bancos venezolanos los gestiona el admin en 05/06_bancos-pais
+
+     SECCIÓN 3 — Datos de la transferencia desde Perú
+       - DNI del titular que transfiere (obligatorio)
+       - Banco peruano (de bancos_pais admin, país=Perú)
+       - Número de cuenta origen (opcional)
+       - Monto depositado declarado (obligatorio — debe coincidir con el comprobante)
+
+     SECCIÓN 4 — Notas
+       - Campo libre opcional, máx 500 chars
+
+     Decisiones de diseño:
+     - Secciones numeradas con header visual → orientación clara en scroll largo
+     - CTA bloqueado hasta campos mínimos completos → error prevention Nielsen #5
+     - Campos condicionales con transición de visibilidad → el formulario se adapta
+       al tipo de operación seleccionado sin navegar a otra pantalla
+     - Resumen mini siempre visible en top → ancla motivacional del flujo
+     - Tasas BCV visibles pero no editables → transparencia, el cliente entiende
+       el marco de referencia del negocio
+     - Barra de progreso 4 pasos → consistente con el nuevo flujo
+
+     Estados cubiertos:
+     - [x] Tipo: Transferencia (default)
+     - [x] Tipo: Pago Móvil (campos condicionales ocultos)
+     - [x] CTA bloqueado hasta campos obligatorios
+     - [x] CTA habilitado → persiste datos en sessionStorage y navega
+     - [ ] Validación inline por campo (iteración 2)
+     - [ ] Estado cargando cuentas / bancos desde API (iteración 2)
+     - [ ] Banco inactivo desactivado del select (iteración 2)
+
+     Flujo:
+     - ← Volver → 02_envio/01_ingresar-codigo-vendedor.html
+     - Continuar → 02_envio/03_subir-comprobante.html
+     ============================================================ -->

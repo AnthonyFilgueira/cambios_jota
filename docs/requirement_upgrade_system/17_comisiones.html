@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>[WF] 05/17_comisiones — Cambio J Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --g-900:#111827;--g-800:#1F2937;--g-700:#374151;--g-600:#4B5563;
+      --g-500:#6B7280;--g-400:#9CA3AF;--g-300:#D1D5DB;--g-200:#E5E7EB;
+      --g-100:#F3F4F6;--g-50:#F9FAFB;--white:#FFFFFF;
+      --font:'Figtree',system-ui,sans-serif;
+      --r-4:4px;--r-8:8px;--r-12:12px;--r-16:16px;--r-f:999px;
+      --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-24:24px;--sp-32:32px;
+      --nav-h:64px;
+    }
+    html { background:var(--cj-fondo)}
+    body{font-family:var(--font);color:var(--g-900);-webkit-font-smoothing:antialiased;min-height:100dvh;max-width:390px;margin:0 auto;display:flex;flex-direction:column}
+
+    .topbar{background:var(--cj-morado);padding:var(--sp-16);display:flex;align-items:center;justify-content:space-between}
+    .topbar-title{font-size:20px;font-weight:800;color:var(--white)}
+    .btn-export{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.1);color:var(--g-300);border:none;border-radius:var(--r-8);padding:var(--sp-8) var(--sp-12);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer}
+    .btn-export svg{width:14px;height:14px;stroke:currentColor}
+
+    /* FILTROS */
+    .filtros{background:var(--g-800);padding:var(--sp-12) var(--sp-16);display:flex;flex-direction:column;gap:var(--sp-8)}
+    .filtros-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-8)}
+    .filtro-select{width:100%;padding:8px 12px;border:1px solid rgba(255,255,255,0.1);border-radius:var(--r-8);font-family:var(--font);font-size:12px;font-weight:600;color:var(--g-300);background:rgba(255,255,255,0.06) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 10px center;padding-right:28px;-webkit-appearance:none;appearance:none;outline:none}
+    .filtro-select option{background:var(--g-800);color:var(--white)}
+
+    main{flex:1;padding:var(--sp-16) var(--sp-16) calc(var(--nav-h)+var(--sp-32));display:flex;flex-direction:column;gap:var(--sp-12)}
+
+    /* KPI ROW */
+    .kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-8)}
+    .kpi-chip{background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-12);padding:var(--sp-12);display:flex;flex-direction:column;gap:4px}
+    .kpi-val{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--g-900)}
+    .kpi-val.yellow{color:#d97706}
+    .kpi-val.green{color:#16a34a}
+    .kpi-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--g-400);line-height:1.3}
+
+    /* LIQUIDAR BANNER */
+    .liq-banner{background:var(--g-900);border-radius:var(--r-12);padding:var(--sp-16);display:flex;align-items:center;gap:var(--sp-12)}
+    .liq-banner-info{flex:1}
+    .liq-banner-title{font-size:13px;font-weight:800;color:var(--white)}
+    .liq-banner-sub{font-size:11px;color:var(--g-500);margin-top:2px}
+    .btn-liquidar{background:var(--white);color:var(--g-900);border:none;border-radius:var(--r-8);padding:var(--sp-8) var(--sp-16);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+
+    /* SECTION LABEL */
+    .section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-500)}
+
+    /* COMISION CARD */
+    .com-card{background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden}
+    .com-vendor-header{background:var(--g-50);padding:10px var(--sp-16);border-bottom:1px solid var(--g-200);display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+    .com-vendor-info{display:flex;align-items:center;gap:var(--sp-8)}
+    .com-avatar{width:28px;height:28px;background:var(--g-200);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--g-700)}
+    .com-vendor-nombre{font-size:13px;font-weight:800;color:var(--g-900)}
+    .com-vendor-txn{font-size:11px;color:var(--g-500)}
+    .com-vendor-total{text-align:right}
+    .com-vendor-monto{font-size:15px;font-weight:800;color:var(--g-900);font-variant-numeric:tabular-nums}
+    .com-vendor-estado{font-size:10px;font-weight:700;border-radius:var(--r-f);padding:2px 8px;display:inline-block}
+    .estado-pendiente{background:#fffbeb;color:#d97706}
+    .estado-pagado{background:#f0fdf4;color:#16a34a}
+
+    .com-row{padding:10px var(--sp-16);border-bottom:1px solid var(--g-100);display:grid;grid-template-columns:1fr 48px 48px 64px;gap:4px;align-items:center}
+    .com-row:last-child{border-bottom:none}
+    .com-txn{font-size:11px;font-weight:700;color:var(--g-900)}
+    .com-txn-meta{font-size:10px;color:var(--g-400);margin-top:1px}
+    .com-td{font-size:11px;color:var(--g-600);text-align:right;font-variant-numeric:tabular-nums}
+    .com-td.bold{font-weight:800;color:var(--g-900)}
+    .com-td.bono{color:#16a34a;font-weight:700}
+
+    /* SELECCIÓN PARA LIQUIDAR */
+    .select-bar{position:fixed;bottom:calc(var(--nav-h)+var(--sp-8));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:358px;background:var(--g-900);border-radius:var(--r-12);padding:var(--sp-12) var(--sp-16);display:none;align-items:center;justify-content:space-between;z-index:99;box-shadow:0 4px 24px rgba(0,0,0,0.3)}
+    .select-bar.visible{display:flex}
+    .select-info{font-size:13px;font-weight:700;color:var(--white)}
+    .select-sub{font-size:11px;color:var(--g-500)}
+    .btn-confirmar-liq{background:var(--white);color:var(--g-900);border:none;border-radius:var(--r-8);padding:10px var(--sp-16);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer}
+
+    /* BOTTOM NAV */
+    .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:var(--white);border-top:1px solid var(--g-200);display:flex;height:var(--nav-h);z-index:100}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--g-400);font-size:10px;font-weight:700;cursor:pointer;background:none;border:none;font-family:var(--font)}
+    .nav-item.active{color:var(--g-900)}
+    .nav-item svg{width:20px;height:20px;stroke:currentColor
+      /* ── Paleta de marca Cambio J ── */
+      --cj-morado:        #7C3AED;
+      --cj-morado-medio:  #A78BFA;
+      --cj-morado-claro:  #DDD6FE;
+      --cj-turquesa:      #06B6D4;
+      --cj-turquesa-claro:#67E8F9;
+      --cj-rosa:          #EC4899;
+      --cj-fondo:         #F8FAFC;
+      --cj-texto:         #1E293B;
+      --cj-texto-claro:   #64748B;
+
+      /* Semánticos de marca */
+      --brand-primary:    var(--cj-morado);
+      --brand-secondary:  var(--cj-turquesa);
+      --brand-accent:     var(--cj-rosa);
+      --brand-surface:    var(--cj-morado-claro);
+}
+  
+    /* ── Sobrescrituras de marca Cambio J ─────────────────────────────────── */
+    .topbar,
+    .nav-logo,
+    .header-dark { background: var(--cj-morado) !important; }
+
+    /* Botones primarios */
+    .btn-primary,
+    button[class*="btn"]:not(.btn-ghost):not(.btn-outline),
+    a.btn:not(.btn-ghost) {
+      background: var(--cj-morado);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--cj-morado-medio); }
+
+    /* Fondo de secciones de marca */
+    .section-brand { background: var(--cj-morado-claro); }
+
+    /* Highlight numérico (montos, KPIs) */
+    .kpi-val.highlight,
+    .tx-monto.positive { color: var(--cj-turquesa) !important; }
+
+    /* Alert badge */
+    .acceso-badge.alert-badge { background: var(--cj-rosa) !important; }
+
+    /* Alerta icon */
+    .alerta-icon { background: rgba(236,72,153,0.15) !important; }
+    .alerta-icon svg { stroke: var(--cj-rosa) !important; }
+
+    /* Topbar: ajustar colores de texto secundario */
+    .topbar-role,
+    .topbar-date { color: var(--cj-morado-claro); }
+
+    .topbar-avatar {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    /* Bottom-nav active */
+    .nav-item.active .nav-icon svg { stroke: var(--cj-morado); }
+    .nav-item.active .nav-label { color: var(--cj-morado); }
+
+    /* Tabs activos */
+    .tab.active {
+      color: var(--cj-morado);
+      border-bottom-color: var(--cj-morado);
+    }
+
+    /* Status chips */
+    .chip-pending  { background: #FEF3C7; color: #92400E; }
+    .chip-approved { background: #D1FAE5; color: #065F46; }
+    .chip-rejected { background: #FEE2E2; color: #991B1B; }
+    .chip-paid     { background: var(--cj-morado-claro); color: var(--cj-morado); }
+
+    /* Inputs focus */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--cj-morado) !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    }
+
+    /* Links */
+    a.link-primary { color: var(--cj-morado); }
+
+    /* KPI cards con acento */
+    .kpi-block { border-left: 3px solid var(--cj-turquesa); }
+
+    /* Scroll indicator / progress bar */
+    .progress-bar { background: var(--cj-morado); }
+    /* ──────────────────────────────────────────────────────────────────────── */
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-title">Comisiones</div>
+    <button class="btn-export">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Exportar
+    </button>
+  </header>
+
+  <!-- Filtros -->
+  <div class="filtros">
+    <div class="filtros-row">
+      <select class="filtro-select">
+        <option>Este mes</option>
+        <option>Esta semana</option>
+        <option>Personalizado</option>
+      </select>
+      <select class="filtro-select">
+        <option>Todos los vendedores</option>
+        <option>María González</option>
+        <option>José Rodríguez</option>
+        <option>Ana Pérez</option>
+      </select>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- KPIs -->
+    <div class="kpi-row">
+      <div class="kpi-chip">
+        <div class="kpi-val">S/ 1,323</div>
+        <div class="kpi-lbl">Total generado</div>
+      </div>
+      <div class="kpi-chip">
+        <div class="kpi-val yellow">S/ 487</div>
+        <div class="kpi-lbl">Pendiente de pago</div>
+      </div>
+      <div class="kpi-chip">
+        <div class="kpi-val green">S/ 836</div>
+        <div class="kpi-lbl">Ya liquidado</div>
+      </div>
+    </div>
+
+    <!-- Banner liquidar pendientes -->
+    <div class="liq-banner">
+      <div class="liq-banner-info">
+        <div class="liq-banner-title">S/ 487.00 pendientes de pago</div>
+        <div class="liq-banner-sub">Selecciona las comisiones y liquida</div>
+      </div>
+      <button class="btn-liquidar" onclick="mostrarSeleccion()">Liquidar</button>
+    </div>
+
+    <!-- Comisiones por vendedor -->
+    <div class="section-label">Desglose por vendedor</div>
+
+    <!-- María González -->
+    <div class="com-card">
+      <div class="com-vendor-header">
+        <div class="com-vendor-info">
+          <div class="com-avatar">MG</div>
+          <div>
+            <div class="com-vendor-nombre">María González</div>
+            <div class="com-vendor-txn">87 transacciones</div>
+          </div>
+        </div>
+        <div class="com-vendor-total">
+          <div class="com-vendor-monto">S/ 847.50</div>
+          <div><span class="com-vendor-estado estado-pendiente">Pendiente</span></div>
+        </div>
+      </div>
+      <!-- Encabezado de columnas mini -->
+      <div style="display:grid;grid-template-columns:1fr 48px 48px 64px;gap:4px;padding:6px 16px;background:var(--g-50);border-bottom:1px solid var(--g-200)">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g-400)">Transacción</div>
+        <div style="font-size:9px;font-weight:700;color:var(--g-400);text-align:right">Base</div>
+        <div style="font-size:9px;font-weight:700;color:var(--g-400);text-align:right">Bono</div>
+        <div style="font-size:9px;font-weight:700;color:var(--g-400);text-align:right">Total</div>
+      </div>
+      <div class="com-row">
+        <div><div class="com-txn">#TXN-0091</div><div class="com-txn-meta">17 may · S/ 1,500</div></div>
+        <div class="com-td">S/45</div>
+        <div class="com-td bono">+S/6</div>
+        <div class="com-td bold">S/51</div>
+      </div>
+      <div class="com-row">
+        <div><div class="com-txn">#TXN-0089</div><div class="com-txn-meta">14 may · S/ 1,200</div></div>
+        <div class="com-td">S/36</div>
+        <div class="com-td bono">+S/4.50</div>
+        <div class="com-td bold">S/40.50</div>
+      </div>
+      <div class="com-row">
+        <div><div class="com-txn">#TXN-0088</div><div class="com-txn-meta">13 may · S/ 850</div></div>
+        <div class="com-td">S/25.50</div>
+        <div class="com-td" style="color:var(--g-300)">—</div>
+        <div class="com-td bold">S/25.50</div>
+      </div>
+    </div>
+
+    <!-- José Rodríguez -->
+    <div class="com-card">
+      <div class="com-vendor-header">
+        <div class="com-vendor-info">
+          <div class="com-avatar">JR</div>
+          <div>
+            <div class="com-vendor-nombre">José Rodríguez</div>
+            <div class="com-vendor-txn">61 transacciones</div>
+          </div>
+        </div>
+        <div class="com-vendor-total">
+          <div class="com-vendor-monto">S/ 476.00</div>
+          <div><span class="com-vendor-estado estado-pagado">Liquidado</span></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 48px 48px 64px;gap:4px;padding:6px 16px;background:var(--g-50);border-bottom:1px solid var(--g-200)">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g-400)">Transacción</div>
+        <div style="font-size:9px;font-weight:700;color:var(--g-400);text-align:right">Base</div>
+        <div style="font-size:9px;font-weight:700;color:var(--g-400);text-align:right">Bono</div>
+        <div style="font-size:9px;font-weight:700;color:var(--g-400);text-align:right">Total</div>
+      </div>
+      <div class="com-row" style="opacity:0.7">
+        <div><div class="com-txn">#TXN-0085</div><div class="com-txn-meta">11 may · S/ 2,000</div></div>
+        <div class="com-td">S/60</div>
+        <div class="com-td bono">+S/7.50</div>
+        <div class="com-td bold">S/67.50</div>
+      </div>
+      <div class="com-row" style="opacity:0.7">
+        <div><div class="com-txn">#TXN-0083</div><div class="com-txn-meta">9 may · S/ 600</div></div>
+        <div class="com-td">S/18</div>
+        <div class="com-td" style="color:var(--g-300)">—</div>
+        <div class="com-td bold">S/18</div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Barra de liquidación -->
+  <div class="select-bar" id="select-bar">
+    <div>
+      <div class="select-info">3 comisiones seleccionadas</div>
+      <div class="select-sub">S/ 117.00 a liquidar</div>
+    </div>
+    <button class="btn-confirmar-liq" onclick="liquidar()">Confirmar pago</button>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="window.location.href='01_dashboard.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" onclick="window.location.href='07_transacciones.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+      Transacciones
+    </button>
+    <button class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Comisiones
+    </button>
+    <button class="nav-item" onclick="window.location.href='11_configuracion.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Config
+    </button>
+  </nav>
+
+  <script>
+    function mostrarSeleccion(){
+      document.getElementById('select-bar').classList.add('visible');
+    }
+    function liquidar(){
+      document.getElementById('select-bar').classList.remove('visible');
+      // [WF] POST /admin/comisiones/liquidar { ids: [...], fecha_pago: now }
+      // → marca las comisiones seleccionadas como "Pagado" + genera registro de liquidación
+    }
+  </script>
+
+</body>
+</html>
+
+<!-- ============================================================
+     UX NOTES — Reporte de comisiones por transacción
+     Rol: Admin / Dueño
+     Módulo: screens/05_admin/17_comisiones.html
+     ============================================================
+
+     Decisiones de diseño:
+     - Filtros en la barra oscura (contexto del topbar) → siempre visibles al desplazarse
+     - Agrupación por vendedor → el dueño ve quién cobrar de un vistazo
+     - KPIs compactos: total / pendiente / pagado → responde la pregunta central
+     - Banner "Liquidar" destacado → acción principal de este módulo
+     - Barra flotante de confirmación → patrón de selección múltiple sin modal
+     - Comisiones liquidadas con opacity → presente en el historial, diferenciadas
+     - Base + Bono separados → el dueño ve qué parte viene de incentivos
+
+     Estados cubiertos:
+     - [x] Lista de comisiones pendientes y pagadas
+     - [x] Filtro por período y vendedor
+     - [x] Banner de liquidación con total pendiente
+     - [x] Barra flotante de confirmación de pago
+     - [ ] Vista vacía / sin comisiones en el período → pendiente
+     - [ ] Modal de confirmación antes de liquidar → pendiente
+     - [ ] Exportación CSV / PDF → pendiente
+     ============================================================ -->

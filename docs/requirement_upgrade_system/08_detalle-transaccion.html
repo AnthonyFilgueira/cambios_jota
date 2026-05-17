@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>[WF] 05/08_detalle-transaccion — Cambio J Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --g-900:#111827;--g-800:#1F2937;--g-700:#374151;--g-600:#4B5563;
+      --g-500:#6B7280;--g-400:#9CA3AF;--g-300:#D1D5DB;--g-200:#E5E7EB;
+      --g-100:#F3F4F6;--g-50:#F9FAFB;--white:#FFFFFF;
+      --font:'Figtree',system-ui,sans-serif;
+      --r-4:4px;--r-8:8px;--r-12:12px;--r-16:16px;--r-f:999px;
+      --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-24:24px;
+      --nav-h:64px;
+    }
+    html { background:var(--cj-fondo)}
+    body{font-family:var(--font);color:var(--g-900);-webkit-font-smoothing:antialiased;min-height:100dvh;max-width:390px;margin:0 auto;display:flex;flex-direction:column}
+    .topbar{background:var(--cj-morado);padding:var(--sp-12) var(--sp-16);display:flex;align-items:center;gap:var(--sp-12)}
+    .btn-back{background:none;border:none;color:var(--g-400);cursor:pointer;padding:4px;display:flex;align-items:center}
+    .btn-back svg{width:20px;height:20px;stroke:currentColor}
+    .topbar-info{flex:1}
+    .topbar-id{font-size:14px;font-weight:800;color:var(--white)}
+    .topbar-sub{font-size:10px;color:var(--g-500);margin-top:1px}
+    /* Demo bar */
+    .wf-demo-bar{background:var(--g-800);padding:8px 16px;display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none}
+    .wf-demo-bar::-webkit-scrollbar{display:none}
+    .wf-demo-label{font-size:10px;font-weight:700;color:var(--g-400);white-space:nowrap;text-transform:uppercase;letter-spacing:1px}
+    .wf-demo-btn{padding:4px 10px;border:1px solid var(--g-600);border-radius:var(--r-f);font-size:10px;font-weight:700;color:var(--g-400);background:none;cursor:pointer;white-space:nowrap;font-family:var(--font)}
+    .wf-demo-btn.on,.wf-demo-btn:hover{border-color:var(--g-300);color:var(--white)}
+    main{flex:1;padding:var(--sp-16) var(--sp-16) calc(var(--nav-h)+100px);display:flex;flex-direction:column;gap:var(--sp-12)}
+    /* Card base */
+    .card{background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+    .card-dark-head{background:var(--g-800);padding:var(--sp-16)}
+    .montos-grid{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px}
+    .m-grupo{display:flex;flex-direction:column;gap:3px}
+    .m-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-400)}
+    .m-val{font-size:24px;font-weight:800;color:var(--white);font-variant-numeric:tabular-nums;line-height:1}
+    .m-sub{font-size:11px;color:var(--g-500)}
+    .m-arrow{width:28px;height:28px;background:var(--g-600);border-radius:50%;display:flex;align-items:center;justify-content:center}
+    .m-arrow svg{width:12px;height:12px;stroke:var(--white)}
+    /* Det rows */
+    .det-list{display:flex;flex-direction:column}
+    .det-row{display:flex;align-items:flex-start;justify-content:space-between;padding:10px var(--sp-16);border-bottom:1px solid var(--g-200);gap:8px}
+    .det-row:last-child{border-bottom:none}
+    .det-key{font-size:12px;color:var(--g-500);font-weight:500;flex-shrink:0}
+    .det-val{font-size:12px;font-weight:700;color:var(--g-900);text-align:right}
+    .det-val.mono{font-family:monospace;letter-spacing:0.5px}
+    /* Card subheader */
+    .card-subhead{padding:10px var(--sp-16);border-bottom:1px solid var(--g-200);display:flex;align-items:center;justify-content:space-between}
+    .card-subhead-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-500)}
+    .tipo-op-badge{display:inline-flex;align-items:center;gap:4px;background:var(--g-100);border:1px solid var(--g-200);border-radius:var(--r-4);padding:2px 8px;font-size:10px;font-weight:700;color:var(--g-600)}
+    .tipo-op-badge svg{width:10px;height:10px;stroke:var(--g-500)}
+    /* Timeline */
+    .tl-list{display:flex;flex-direction:column;padding:var(--sp-16)}
+    .tl-item{display:flex;gap:12px}
+    .tl-left{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+    .tl-dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--g-200);background:var(--white);display:flex;align-items:center;justify-content:center}
+    .tl-dot.done{border-color:var(--g-500);background:var(--g-500)}
+    .tl-dot.active{border-color:var(--g-900);background:var(--g-900)}
+    .tl-dot.warn{border-color:var(--g-400);background:var(--g-300)}
+    .tl-dot.error{border-color:var(--g-500);background:var(--g-500)}
+    .tl-dot svg{width:12px;height:12px;stroke:var(--white)}
+    .tl-dot.pending svg{stroke:var(--g-300)}
+    .tl-line{width:2px;flex:1;min-height:24px;margin:2px auto}
+    .tl-line.done{background:var(--g-500)}
+    .tl-line.empty{background:var(--g-200)}
+    .tl-item:last-child .tl-line{display:none}
+    .tl-content{flex:1;padding-bottom:20px}
+    .tl-item:last-child .tl-content{padding-bottom:0}
+    .tl-label{font-size:13px;font-weight:700;color:var(--g-900)}
+    .tl-label.muted{color:var(--g-400)}
+    .tl-actor{font-size:11px;color:var(--g-500);margin-top:1px;font-weight:600}
+    .tl-time{font-size:10px;color:var(--g-400);margin-top:3px}
+    .tl-motivo{font-size:11px;font-weight:600;color:var(--g-700);background:var(--g-100);border-radius:var(--r-8);padding:8px 10px;margin-top:6px;border-left:3px solid var(--g-400);line-height:1.5}
+    .tl-motivo-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g-400);display:block;margin-bottom:2px}
+    /* Panel de acciones del dueño */
+    .acciones-panel{background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+    .acc-head{background:var(--g-50);padding:var(--sp-12) var(--sp-16);border-bottom:1px solid var(--g-200)}
+    .acc-head-title{font-size:12px;font-weight:800;color:var(--g-900)}
+    .acc-head-sub{font-size:11px;color:var(--g-500);margin-top:2px}
+    .acc-body{padding:var(--sp-16);display:flex;flex-direction:column;gap:var(--sp-12)}
+    .motivo-field{display:flex;flex-direction:column;gap:6px}
+    .motivo-label{font-size:12px;font-weight:700;color:var(--g-700)}
+    .motivo-req{font-size:10px;color:var(--g-400)}
+    .motivo-textarea{width:100%;padding:10px 14px;min-height:72px;border:1.5px solid var(--g-200);border-radius:var(--r-8);font-family:var(--font);font-size:13px;color:var(--g-900);outline:none;resize:none;transition:border-color 0.15s}
+    .motivo-textarea:focus{border-color:var(--g-600)}
+    .acc-btns{display:flex;flex-direction:column;gap:8px}
+    .btn-aprobar{width:100%;background:var(--g-900);color:var(--white);border:none;border-radius:var(--r-12);padding:14px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s}
+    .btn-aprobar:hover{background:var(--g-700)}
+    .btn-sec-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .btn-observar,.btn-denegar{width:100%;background:var(--g-100);border:1.5px solid var(--g-200);border-radius:var(--r-8);padding:10px;font-family:var(--font);font-size:13px;font-weight:700;color:var(--g-700);cursor:pointer;transition:all 0.15s}
+    .btn-observar:hover{border-color:var(--g-400)}
+    .btn-denegar{color:var(--g-600)}
+    .btn-denegar:hover{border-color:var(--g-400)}
+    /* Solo lectura badge */
+    .readonly-banner{background:var(--g-50);border:1px solid var(--g-200);border-radius:var(--r-8);padding:var(--sp-12) var(--sp-16);display:flex;align-items:center;gap:var(--sp-8)}
+    .readonly-banner svg{width:14px;height:14px;stroke:var(--g-400);flex-shrink:0}
+    .readonly-banner-txt{font-size:12px;color:var(--g-500)}
+    /* Bottom nav */
+    .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:var(--white);border-top:1px solid var(--g-200);height:var(--nav-h);display:flex;align-items:center;justify-content:space-around;padding:0 4px;z-index:50}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px;cursor:pointer;text-decoration:none;border:none;background:none;font-family:var(--font);transition:color 0.15s;color:var(--g-400);position:relative}
+    .nav-item.active{color:var(--g-900)}
+    .nav-item svg{width:20px;height:20px;stroke:currentColor}
+    .nav-item span{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px}
+    .nav-badge{position:absolute;top:4px;right:calc(50% - 16px);min-width:16px;height:16px;background:var(--g-900);border-radius:var(--r-f);font-size:9px;font-weight:800;color:var(--white);display:flex;align-items:center;justify-content:center;padding:0 4px}
+    .wf-note{display:inline-block;background:var(--g-200);border:1px dashed var(--g-400);border-radius:var(--r-4);padding:1px 4px;font-size:8px;font-weight:700;color:var(--g-600);font-family:monospace;vertical-align:middle;margin-left:4px;cursor:help
+      /* ── Paleta de marca Cambio J ── */
+      --cj-morado:        #7C3AED;
+      --cj-morado-medio:  #A78BFA;
+      --cj-morado-claro:  #DDD6FE;
+      --cj-turquesa:      #06B6D4;
+      --cj-turquesa-claro:#67E8F9;
+      --cj-rosa:          #EC4899;
+      --cj-fondo:         #F8FAFC;
+      --cj-texto:         #1E293B;
+      --cj-texto-claro:   #64748B;
+
+      /* Semánticos de marca */
+      --brand-primary:    var(--cj-morado);
+      --brand-secondary:  var(--cj-turquesa);
+      --brand-accent:     var(--cj-rosa);
+      --brand-surface:    var(--cj-morado-claro);
+}
+  
+    /* ── Sobrescrituras de marca Cambio J ─────────────────────────────────── */
+    .topbar,
+    .nav-logo,
+    .header-dark { background: var(--cj-morado) !important; }
+
+    /* Botones primarios */
+    .btn-primary,
+    button[class*="btn"]:not(.btn-ghost):not(.btn-outline),
+    a.btn:not(.btn-ghost) {
+      background: var(--cj-morado);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--cj-morado-medio); }
+
+    /* Fondo de secciones de marca */
+    .section-brand { background: var(--cj-morado-claro); }
+
+    /* Highlight numérico (montos, KPIs) */
+    .kpi-val.highlight,
+    .tx-monto.positive { color: var(--cj-turquesa) !important; }
+
+    /* Alert badge */
+    .acceso-badge.alert-badge { background: var(--cj-rosa) !important; }
+
+    /* Alerta icon */
+    .alerta-icon { background: rgba(236,72,153,0.15) !important; }
+    .alerta-icon svg { stroke: var(--cj-rosa) !important; }
+
+    /* Topbar: ajustar colores de texto secundario */
+    .topbar-role,
+    .topbar-date { color: var(--cj-morado-claro); }
+
+    .topbar-avatar {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    /* Bottom-nav active */
+    .nav-item.active .nav-icon svg { stroke: var(--cj-morado); }
+    .nav-item.active .nav-label { color: var(--cj-morado); }
+
+    /* Tabs activos */
+    .tab.active {
+      color: var(--cj-morado);
+      border-bottom-color: var(--cj-morado);
+    }
+
+    /* Status chips */
+    .chip-pending  { background: #FEF3C7; color: #92400E; }
+    .chip-approved { background: #D1FAE5; color: #065F46; }
+    .chip-rejected { background: #FEE2E2; color: #991B1B; }
+    .chip-paid     { background: var(--cj-morado-claro); color: var(--cj-morado); }
+
+    /* Inputs focus */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--cj-morado) !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    }
+
+    /* Links */
+    a.link-primary { color: var(--cj-morado); }
+
+    /* KPI cards con acento */
+    .kpi-block { border-left: 3px solid var(--cj-turquesa); }
+
+    /* Scroll indicator / progress bar */
+    .progress-bar { background: var(--cj-morado); }
+    /* ──────────────────────────────────────────────────────────────────────── */
+</style>
+</head>
+<body>
+
+  <div class="wf-demo-bar" aria-hidden="true">
+    <span class="wf-demo-label">Estado:</span>
+    <button class="wf-demo-btn on" onclick="setEstado('aprobada_vendedor')">Aprobada x vendedor</button>
+    <button class="wf-demo-btn" onclick="setEstado('completada')">Completada</button>
+    <button class="wf-demo-btn" onclick="setEstado('denegada')">Denegada</button>
+  </div>
+
+  <header class="topbar">
+    <button class="btn-back" onclick="history.back()" aria-label="Volver a transacciones">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </button>
+    <div class="topbar-info">
+      <div class="topbar-id">TRX-2026-00847</div>
+      <div class="topbar-sub" id="topbar-estado">Aprobada por vendedor · Requiere acción</div>
+    </div>
+  </header>
+
+  <main role="main" aria-label="Detalle de transacción — Admin">
+
+    <!-- Montos -->
+    <div class="card">
+      <div class="card-dark-head">
+        <div class="montos-grid">
+          <div class="m-grupo"><div class="m-tag">Cliente envía</div><div class="m-val">S/ 500.00</div><div class="m-sub">Soles · Perú</div></div>
+          <div class="m-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+          <div class="m-grupo" style="text-align:right"><div class="m-tag">Familiar recibe</div><div class="m-val">Bs. 7,100</div><div class="m-sub">Bolívares · Venezuela</div></div>
+        </div>
+      </div>
+      <div class="det-list">
+        <div class="det-row"><span class="det-key">Seguimiento</span><span class="det-val mono">TRX-2026-00847</span></div>
+        <div class="det-row"><span class="det-key">Cliente</span><span class="det-val">Juan Pérez · jp@email.com</span></div>
+        <div class="det-row"><span class="det-key">Vendedor</span><span class="det-val">María González · VND-001</span></div>
+        <div class="det-row"><span class="det-key">Tasa aplicada</span><span class="det-val">1 PEN = 14.20 VES · 3% margen</span></div>
+        <div class="det-row"><span class="det-key">Fecha solicitud</span><span class="det-val">16 may 2026, 14:32</span></div>
+      </div>
+    </div>
+
+    <!-- Transferencia desde Perú -->
+    <div class="card">
+      <div class="card-subhead">
+        <span class="card-subhead-title">Transferencia desde Perú</span>
+      </div>
+      <div class="det-list">
+        <div class="det-row"><span class="det-key">DNI titular</span><span class="det-val mono">70123456</span></div>
+        <div class="det-row"><span class="det-key">Banco origen</span><span class="det-val">BCP</span></div>
+        <div class="det-row"><span class="det-key">Cuenta origen</span><span class="det-val mono">191-12345678-0-12</span></div>
+        <div class="det-row"><span class="det-key">Monto declarado</span><span class="det-val">S/ 500.00</span></div>
+        <div class="det-row">
+          <span class="det-key">Comprobante</span>
+          <a href="03_visor-comprobante.html" style="font-size:12px;font-weight:700;color:var(--g-700);text-decoration:none">Ver comprobante →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Receptor en Venezuela -->
+    <div class="card">
+      <div class="card-subhead">
+        <span class="card-subhead-title">Receptor en Venezuela</span>
+        <div id="tipo-op-badge"></div>
+      </div>
+      <div class="det-list" id="receptor-list">
+        <!-- Renderizado por JS según tipo_operacion -->
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="card">
+      <div class="card-subhead">
+        <span class="card-subhead-title">Timeline de acciones</span>
+        <span style="font-size:11px;font-weight:600;color:var(--g-400)" id="tl-count"></span>
+      </div>
+      <div class="tl-list" id="tl-list" role="list"></div>
+    </div>
+
+    <!-- Panel de acciones o estado solo-lectura -->
+    <div id="acciones-wrap"></div>
+
+  </main>
+
+  <nav class="bottom-nav" role="navigation" aria-label="Navegación admin">
+    <a href="01_dashboard.html" class="nav-item" aria-label="Dashboard"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+    <a href="07_transacciones.html" class="nav-item active" aria-current="page" aria-label="Transacciones"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Transac.</span><div class="nav-badge">4</div></a>
+    <a href="02_vendedores.html" class="nav-item" aria-label="Vendedores"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Vendedores</span></a>
+    <a href="11_configuracion.html" class="nav-item" aria-label="Configuración"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Config.</span></a>
+  </nav>
+
+  <script>
+    const TIPO_OP = 'transferencia'; // 'transferencia' | 'pago_movil'
+
+    const ICONOS = {
+      check:`<svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+      clock:`<svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+      cross:`<svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+      empty:`<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>`,
+    };
+
+    const ESTADOS = {
+      aprobada_vendedor: {
+        sub:'Aprobada por vendedor · Requiere acción',
+        pasos:[
+          { label:'Solicitud recibida',      actor:'Sistema',          time:'16 may, 14:32', st:'done' },
+          { label:'Aprobada por vendedor',    actor:'María González',   time:'16 may, 15:45', st:'done' },
+          { label:'En revisión admin',        actor:'Tú',              time:'Ahora',          st:'active'},
+          { label:'Completada',               actor:'—',               time:'',               st:'pending'},
+        ],
+        mostrarAcciones: true, soloLectura: false,
+      },
+      completada: {
+        sub:'Completada · Solo lectura',
+        pasos:[
+          { label:'Solicitud recibida',       actor:'Sistema',         time:'16 may, 14:32', st:'done' },
+          { label:'Aprobada por vendedor',    actor:'María González',  time:'16 may, 15:45', st:'done' },
+          { label:'Aprobada por admin',       actor:'Tú',              time:'16 may, 17:00', st:'done' },
+          { label:'Comprobante subido',       actor:'Tú',              time:'16 may, 17:20', st:'done' },
+          { label:'Completada',               actor:'Sistema',         time:'16 may, 17:22', st:'done',
+            motivo:'Notificación enviada a cliente y vendedor. Comisión calculada.' },
+        ],
+        mostrarAcciones: false, soloLectura: true,
+      },
+      denegada: {
+        sub:'Denegada por admin · Solo lectura',
+        pasos:[
+          { label:'Solicitud recibida',       actor:'Sistema',         time:'12 may, 10:00', st:'done'  },
+          { label:'Aprobada por vendedor',    actor:'Carlos Ramírez',  time:'12 may, 11:00', st:'done'  },
+          { label:'Denegada por admin',       actor:'Tú',              time:'12 may, 12:30', st:'error',
+            motivo:'El monto depositado no coincide con la cotización activa. Diferencia de S/ 50.' },
+        ],
+        mostrarAcciones: false, soloLectura: true,
+      },
+    };
+
+    function dotCfg(st) {
+      if(st==='done')   return { icon:ICONOS.check, cls:'done',    line:'done'  };
+      if(st==='active') return { icon:ICONOS.clock, cls:'active',  line:'empty' };
+      if(st==='error')  return { icon:ICONOS.cross, cls:'error',   line:'empty' };
+      return                   { icon:ICONOS.empty, cls:'pending', line:'empty' };
+    }
+
+    function renderReceptor() {
+      const badgeSvg = TIPO_OP==='transferencia'
+        ? `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>`
+        : `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`;
+      document.getElementById('tipo-op-badge').innerHTML =
+        `<div class="tipo-op-badge">${badgeSvg}${TIPO_OP==='transferencia'?'Transferencia bancaria':'Pago Móvil'}</div>`;
+      const base = `
+        <div class="det-row"><span class="det-key">Cédula titular</span><span class="det-val mono">V-12345678</span></div>
+        <div class="det-row"><span class="det-key">Banco receptor</span><span class="det-val">Banco de Venezuela</span></div>
+        <div class="det-row"><span class="det-key">Teléfono</span><span class="det-val mono">0412-1234567</span></div>`;
+      const extra = TIPO_OP==='transferencia' ? `
+        <div class="det-row"><span class="det-key">Nº cuenta</span><span class="det-val mono" style="font-size:11px">0102-0000-00-0000123456</span></div>
+        <div class="det-row"><span class="det-key">Tipo cuenta</span><span class="det-val">Ahorro</span></div>` : '';
+      document.getElementById('receptor-list').innerHTML = base + extra;
+    }
+
+    function setEstado(estado) {
+      document.querySelectorAll('.wf-demo-btn').forEach(b =>
+        b.classList.toggle('on', b.dataset.e === estado || b.textContent.trim().toLowerCase().includes(estado.split('_')[0])));
+      const cfg = ESTADOS[estado];
+      document.getElementById('topbar-estado').textContent = cfg.sub;
+
+      // Timeline
+      const list = document.getElementById('tl-list');
+      list.innerHTML = '';
+      const hechos = cfg.pasos.filter(p=>p.st==='done').length;
+      document.getElementById('tl-count').textContent = `${hechos}/${cfg.pasos.length}`;
+      cfg.pasos.forEach((p, i) => {
+        const { icon, cls, line } = dotCfg(p.st);
+        const isLast = i === cfg.pasos.length-1;
+        const item = document.createElement('div');
+        item.className = 'tl-item'; item.setAttribute('role','listitem');
+        item.innerHTML = `
+          <div class="tl-left">
+            <div class="tl-dot ${cls}">${icon}</div>
+            ${!isLast?`<div class="tl-line ${line}"></div>`:''}
+          </div>
+          <div class="tl-content">
+            <div class="tl-label ${cls==='pending'?'muted':''}">${p.label}</div>
+            ${p.actor?`<div class="tl-actor">${p.actor}</div>`:''}
+            ${p.time?`<div class="tl-time">${p.time}</div>`:''}
+            ${p.motivo?`<div class="tl-motivo"><span class="tl-motivo-lbl">Nota registrada</span>${p.motivo}</div>`:''}
+          </div>`;
+        list.appendChild(item);
+      });
+
+      // Acciones
+      const wrap = document.getElementById('acciones-wrap');
+      if (cfg.mostrarAcciones) {
+        wrap.innerHTML = `
+          <div class="acciones-panel">
+            <div class="acc-head">
+              <div class="acc-head-title">Acción requerida</div>
+              <div class="acc-head-sub">Aprobada por el vendedor. ¿Qué decides?</div>
+            </div>
+            <div class="acc-body">
+              <div class="motivo-field">
+                <label class="motivo-label">Motivo <span class="motivo-req">(obligatorio para Observar o Denegar)</span></label>
+                <textarea class="motivo-textarea" id="motivo-txt" placeholder="Describe el motivo de la observación o denegación. Será enviado al vendedor inmediatamente."></textarea>
+              </div>
+              <div class="acc-btns">
+                <button class="btn-aprobar" onclick="accion('aprobar')" aria-label="Aprobar transacción">
+                  ✓ Aprobar y ejecutar transferencia
+                </button>
+                <div class="btn-sec-row">
+                  <button class="btn-observar" onclick="accion('observar')" aria-label="Observar transacción">Observar →</button>
+                  <button class="btn-denegar" onclick="accion('denegar')" aria-label="Denegar transacción">Denegar</button>
+                </div>
+              </div>
+            </div>
+          </div>`;
+      } else {
+        wrap.innerHTML = `
+          <div class="readonly-banner" role="note">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span class="readonly-banner-txt">Esta transacción está cerrada. Solo lectura — no se puede modificar ni revertir.</span>
+          </div>`;
+      }
+    }
+
+    function accion(tipo) {
+      const motivo = document.getElementById('motivo-txt')?.value.trim();
+      if ((tipo==='observar'||tipo==='denegar') && !motivo) {
+        alert('[WF] El motivo es obligatorio para Observar o Denegar. El vendedor lo recibirá de inmediato.');
+        return;
+      }
+      const msgs = {
+        aprobar: '[WF] Transacción aprobada. Ir a subir comprobante final → 09_subir-comprobante-final.html',
+        observar:'[WF] Observación registrada. Notificación enviada a María González con el motivo.',
+        denegar: '[WF] Transacción denegada. Notificación enviada a María González con el motivo.',
+      };
+      alert(msgs[tipo]);
+    }
+
+    renderReceptor();
+    setEstado('aprobada_vendedor');
+  </script>
+</body>
+</html>

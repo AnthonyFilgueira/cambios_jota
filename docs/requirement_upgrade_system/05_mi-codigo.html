@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>[WF] 04/05_mi-codigo — Cambio J Vendedor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --g-900:#111827;--g-800:#1F2937;--g-700:#374151;--g-600:#4B5563;
+      --g-500:#6B7280;--g-400:#9CA3AF;--g-300:#D1D5DB;--g-200:#E5E7EB;
+      --g-100:#F3F4F6;--g-50:#F9FAFB;--white:#FFFFFF;
+      --font:'Figtree',system-ui,sans-serif;
+      --r-4:4px;--r-8:8px;--r-12:12px;--r-16:16px;--r-24:24px;--r-f:999px;
+      --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-24:24px;--sp-32:32px;--sp-48:48px;
+      --nav-h:64px;
+    
+      /* ── Paleta de marca Cambio J ── */
+      --cj-morado:        #7C3AED;
+      --cj-morado-medio:  #A78BFA;
+      --cj-morado-claro:  #DDD6FE;
+      --cj-turquesa:      #06B6D4;
+      --cj-turquesa-claro:#67E8F9;
+      --cj-rosa:          #EC4899;
+      --cj-fondo:         #F8FAFC;
+      --cj-texto:         #1E293B;
+      --cj-texto-claro:   #64748B;
+
+      /* Semánticos de marca */
+      --brand-primary:    var(--cj-morado);
+      --brand-secondary:  var(--cj-turquesa);
+      --brand-accent:     var(--cj-rosa);
+      --brand-surface:    var(--cj-morado-claro);
+}
+    html { background:var(--cj-fondo); }
+    body { font-family:var(--font);color:var(--g-900);-webkit-font-smoothing:antialiased;min-height:100dvh;max-width:390px;margin:0 auto;display:flex;flex-direction:column; }
+
+    .topbar { background:var(--g-800);padding:var(--sp-16) var(--sp-16) var(--sp-12);display:flex;align-items:center;justify-content:space-between; }
+    .topbar-title { font-size:20px;font-weight:800;color:var(--white); }
+    .topbar-role { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-400); }
+
+    main { flex:1;padding:var(--sp-16) var(--sp-16) calc(var(--nav-h) + var(--sp-32));display:flex;flex-direction:column;gap:var(--sp-12); }
+
+    /* Código hero */
+    .codigo-hero { background:var(--g-800);border-radius:var(--r-16);padding:var(--sp-32) var(--sp-24);text-align:center;display:flex;flex-direction:column;align-items:center;gap:var(--sp-16); }
+    .codigo-lbl { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--g-400); }
+    .codigo-display { font-size:40px;font-weight:800;color:var(--white);letter-spacing:6px;font-family:monospace;line-height:1; }
+    .codigo-sub { font-size:12px;color:var(--g-500);line-height:1.5; }
+    .codigo-actions { display:flex;gap:var(--sp-8);width:100%; }
+    .btn-codigo { flex:1;display:flex;align-items:center;justify-content:center;gap:var(--sp-8);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);border-radius:var(--r-8);padding:var(--sp-12);font-family:var(--font);font-size:13px;font-weight:700;color:var(--g-200);cursor:pointer;transition:background 0.15s; }
+    .btn-codigo:hover { background:rgba(255,255,255,0.16); }
+    .btn-codigo svg { width:14px;height:14px;stroke:currentColor; }
+
+    /* QR placeholder */
+    .qr-wrap { background:var(--g-800);border-radius:var(--r-16);padding:var(--sp-24);display:flex;flex-direction:column;align-items:center;gap:var(--sp-12); }
+    .qr-lbl { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-400); }
+    .qr-box { width:160px;height:160px;background:var(--white);border-radius:var(--r-12);display:flex;align-items:center;justify-content:center;border:4px solid var(--white); }
+    .qr-inner { display:grid;grid-template-columns:repeat(8,1fr);gap:2px;width:120px;height:120px; }
+    .qr-cell { border-radius:1px; }
+    .qr-sub { font-size:11px;color:var(--g-500);text-align:center;line-height:1.5; }
+    .btn-qr { background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);border-radius:var(--r-8);padding:var(--sp-8) var(--sp-16);font-family:var(--font);font-size:12px;font-weight:700;color:var(--g-300);cursor:pointer;display:flex;align-items:center;gap:var(--sp-8);transition:background 0.15s; }
+    .btn-qr:hover { background:rgba(255,255,255,0.16); }
+    .btn-qr svg { width:14px;height:14px;stroke:currentColor; }
+
+    /* KPIs del vendedor */
+    .kpis-card { background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05); }
+    .kpis-header { background:var(--g-800);padding:var(--sp-12) var(--sp-16); }
+    .kpis-title { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-400); }
+    .kpis-grid { display:grid;grid-template-columns:1fr 1fr;gap:0; }
+    .kpi-item { padding:var(--sp-16);border-bottom:1px solid var(--g-200); }
+    .kpi-item:nth-child(odd) { border-right:1px solid var(--g-200); }
+    .kpi-item:nth-last-child(-n+2) { border-bottom:none; }
+    .kpi-val { font-size:24px;font-weight:800;color:var(--g-900);font-variant-numeric:tabular-nums; }
+    .kpi-lbl { font-size:12px;color:var(--g-500);font-weight:500;margin-top:var(--sp-4); }
+
+    /* Info readonly */
+    .info-row { display:flex;align-items:center;justify-content:space-between;padding:var(--sp-12) var(--sp-16);background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-12); }
+    .info-key { font-size:13px;color:var(--g-500);font-weight:500; }
+    .info-val { font-size:13px;font-weight:700;color:var(--g-900); }
+
+    /* Cerrar sesión */
+    .logout-btn { width:100%;background:transparent;color:var(--g-600);border:1.5px solid var(--g-200);border-radius:var(--r-12);padding:var(--sp-12);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:var(--sp-8);transition:border-color 0.15s,color 0.15s; }
+    .logout-btn:hover { border-color:var(--g-400);color:var(--g-900); }
+    .logout-btn svg { width:16px;height:16px;stroke:currentColor; }
+
+    /* Bottom nav */
+    .bottom-nav { position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:var(--white);border-top:1px solid var(--g-200);height:var(--nav-h);display:flex;align-items:center;justify-content:space-around;padding:0 var(--sp-8);z-index:50; }
+    .nav-item { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:var(--sp-8) 0;cursor:pointer;text-decoration:none;border:none;background:none;font-family:var(--font);transition:color 0.15s;color:var(--g-400); }
+    .nav-item.active { color:var(--g-900); }
+    .nav-item svg { width:22px;height:22px;stroke:currentColor; }
+    .nav-item span { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px; }
+
+    .wf-note { display:inline-block;background:var(--g-200);border:1px dashed var(--g-400);border-radius:var(--r-4);padding:1px var(--sp-4);font-size:8px;font-weight:700;color:var(--g-600);font-family:monospace;vertical-align:middle;margin-left:var(--sp-4);cursor:help; }
+  
+    /* ── Sobrescrituras de marca Cambio J ─────────────────────────────────── */
+    .topbar,
+    .nav-logo,
+    .header-dark { background: var(--cj-morado) !important; }
+
+    /* Botones primarios */
+    .btn-primary,
+    button[class*="btn"]:not(.btn-ghost):not(.btn-outline),
+    a.btn:not(.btn-ghost) {
+      background: var(--cj-morado);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--cj-morado-medio); }
+
+    /* Fondo de secciones de marca */
+    .section-brand { background: var(--cj-morado-claro); }
+
+    /* Highlight numérico (montos, KPIs) */
+    .kpi-val.highlight,
+    .tx-monto.positive { color: var(--cj-turquesa) !important; }
+
+    /* Alert badge */
+    .acceso-badge.alert-badge { background: var(--cj-rosa) !important; }
+
+    /* Alerta icon */
+    .alerta-icon { background: rgba(236,72,153,0.15) !important; }
+    .alerta-icon svg { stroke: var(--cj-rosa) !important; }
+
+    /* Topbar: ajustar colores de texto secundario */
+    .topbar-role,
+    .topbar-date { color: var(--cj-morado-claro); }
+
+    .topbar-avatar {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    /* Bottom-nav active */
+    .nav-item.active .nav-icon svg { stroke: var(--cj-morado); }
+    .nav-item.active .nav-label { color: var(--cj-morado); }
+
+    /* Tabs activos */
+    .tab.active {
+      color: var(--cj-morado);
+      border-bottom-color: var(--cj-morado);
+    }
+
+    /* Status chips */
+    .chip-pending  { background: #FEF3C7; color: #92400E; }
+    .chip-approved { background: #D1FAE5; color: #065F46; }
+    .chip-rejected { background: #FEE2E2; color: #991B1B; }
+    .chip-paid     { background: var(--cj-morado-claro); color: var(--cj-morado); }
+
+    /* Inputs focus */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--cj-morado) !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    }
+
+    /* Links */
+    a.link-primary { color: var(--cj-morado); }
+
+    /* KPI cards con acento */
+    .kpi-block { border-left: 3px solid var(--cj-turquesa); }
+
+    /* Scroll indicator / progress bar */
+    .progress-bar { background: var(--cj-morado); }
+    /* ──────────────────────────────────────────────────────────────────────── */
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div>
+      <div class="topbar-role">Vendedor · Cambio J</div>
+      <div class="topbar-title">Mi código</div>
+    </div>
+  </header>
+
+  <main role="main" aria-label="Mi código de vendedor">
+
+    <!-- Código hero -->
+    <div class="codigo-hero" aria-label="Tu código de vendedor">
+      <div class="codigo-lbl">
+        Tu código de vendedor
+        <span class="wf-note" title="Generado por el dueño (admin). Solo lectura para el vendedor.">admin</span>
+      </div>
+      <div class="codigo-display" id="codigo-display" aria-label="Código VND-001">VND-001</div>
+      <p class="codigo-sub">Comparte este código con tus clientes.<br>Lo necesitan para iniciar un envío contigo.</p>
+      <div class="codigo-actions">
+        <button class="btn-codigo" onclick="copiarCodigo()" aria-label="Copiar código">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copiar
+        </button>
+        <button class="btn-codigo" onclick="compartirCodigo()" aria-label="Compartir código">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Compartir
+        </button>
+      </div>
+    </div>
+
+    <!-- QR Code placeholder -->
+    <div class="qr-wrap" aria-label="Código QR de tu código de vendedor">
+      <div class="qr-lbl">Código QR para compartir</div>
+      <div class="qr-box" aria-label="QR generado de VND-001">
+        <!-- Mock QR generado con CSS -->
+        <div class="qr-inner" id="qr-inner" aria-hidden="true"></div>
+      </div>
+      <p class="qr-sub">Tus clientes pueden escanear este QR<br>para ingresar tu código automáticamente.</p>
+      <button class="btn-qr" onclick="descargarQR()" aria-label="Descargar QR">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Descargar QR
+      </button>
+    </div>
+
+    <!-- KPIs del vendedor -->
+    <div class="kpis-card" aria-label="Tus estadísticas">
+      <div class="kpis-header">
+        <div class="kpis-title">Tus estadísticas</div>
+      </div>
+      <div class="kpis-grid">
+        <div class="kpi-item">
+          <div class="kpi-val">48</div>
+          <div class="kpi-lbl">Solicitudes este mes</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-val">S/ 24,600</div>
+          <div class="kpi-lbl">Volumen procesado</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-val">12</div>
+          <div class="kpi-lbl">Clientes activos</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-val">98%</div>
+          <div class="kpi-lbl">Tasa de aprobación</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info de cuenta (readonly) -->
+    <div class="info-row" aria-label="Tu nombre registrado">
+      <span class="info-key">Nombre registrado</span>
+      <span class="info-val">María González</span>
+    </div>
+    <div class="info-row" aria-label="Tu correo">
+      <span class="info-key">Correo</span>
+      <span class="info-val">maria@cambioj.com</span>
+    </div>
+    <div class="info-row" aria-label="Rol asignado">
+      <span class="info-key">Rol</span>
+      <span class="info-val">Vendedor</span>
+    </div>
+
+    <!-- Cerrar sesión -->
+    <button class="logout-btn" onclick="alert('[WF] Cerrar sesión')" aria-label="Cerrar sesión">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Cerrar sesión
+    </button>
+
+  </main>
+
+  <!-- Bottom nav -->
+  <nav class="bottom-nav" role="navigation" aria-label="Navegación vendedor">
+    <a href="01_dashboard.html" class="nav-item" aria-label="Bandeja">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Bandeja</span>
+    </a>
+    <a href="#" class="nav-item" aria-label="Historial">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>Historial</span>
+    </a>
+    <a href="05_mi-codigo.html" class="nav-item active" aria-current="page" aria-label="Mi código">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span>Mi código</span>
+    </a>
+  </nav>
+
+  <script>
+    // Mock QR con patrón CSS
+    function renderQR() {
+      const grid = document.getElementById('qr-inner');
+      const pattern = [
+        1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,0,
+        1,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,
+        1,0,1,1,1,0,1,0,1,0,1,1,1,0,1,0,
+        1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        1,0,1,0,1,0,1,1,0,1,0,1,0,1,0,1,
+        0,1,0,1,0,1,0,0,1,0,1,0,1,0,1,0,
+        1,1,1,1,1,1,1,0,1,1,1,0,0,1,0,1,
+      ];
+      pattern.forEach(v => {
+        const cell = document.createElement('div');
+        cell.className = 'qr-cell';
+        cell.style.background = v ? '#111827' : '#F9FAFB';
+        grid.appendChild(cell);
+      });
+    }
+
+    function copiarCodigo() {
+      const code = document.getElementById('codigo-display').textContent;
+      navigator.clipboard?.writeText(code).then(() => {
+        const btn = document.querySelector('.btn-codigo');
+        const orig = btn.innerHTML;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> ¡Copiado!`;
+        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+      });
+    }
+
+    function compartirCodigo() {
+      const code = document.getElementById('codigo-display').textContent;
+      if (navigator.share) {
+        navigator.share({ title:'Mi código Cambio J', text:`Mi código de vendedor es: ${code}. Úsalo para iniciar tu envío en cambioj.com` });
+      } else {
+        alert(`[WF] Web Share API no disponible.\nCódigo: ${code}`);
+      }
+    }
+
+    function descargarQR() {
+      alert('[WIREFRAME] En producción: genera PNG del QR y dispara descarga.');
+    }
+
+    renderQR();
+  </script>
+</body>
+</html>
+<!-- ============================================================
+     UX NOTES — Mi Código de Vendedor
+     Módulo: screens/04_vendedor/05_mi-codigo.html
+     ============================================================
+     Decisiones:
+     - Código en 40px bold monospace con letter-spacing → scannable
+       de un vistazo; el vendedor necesita leerlo en una llamada o
+       dictarlo por WhatsApp sin errores.
+     - Copiar + Compartir juntos → los dos casos de uso principales:
+       copiar para pegar en un mensaje, o compartir directo con
+       Web Share API (WhatsApp, etc.).
+     - QR descargable → el vendedor puede imprimir o guardar el QR
+       como imagen de perfil en WhatsApp; el cliente lo escanea y
+       el campo se auto-rellena (reduce errores de tipeo).
+     - KPIs del vendedor → visibilidad de su propio rendimiento;
+       motivación intrínseca + contexto para conversaciones con el dueño.
+     - Código readonly + nota "admin" → el vendedor no puede cambiar
+       su propio código; lo gestiona el dueño (control de acceso claro).
+     - Datos de cuenta readonly → perfil simplificado; el vendedor
+       no necesita editar su perfil directamente.
+
+     Estados cubiertos:
+     - [x] Código visible, copiado con feedback, compartible
+     - [x] QR mock con patrón CSS + descarga simulada
+     - [x] KPIs: solicitudes, volumen, clientes, tasa aprobación
+     - [x] Cerrar sesión
+
+     Flujo: bottom nav → Bandeja / Historial / Mi código (activo)
+     ============================================================ -->

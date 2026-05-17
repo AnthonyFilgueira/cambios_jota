@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>[WF] 05/10_auditoria — Cambio J Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --g-900:#111827;--g-800:#1F2937;--g-700:#374151;--g-600:#4B5563;
+      --g-500:#6B7280;--g-400:#9CA3AF;--g-300:#D1D5DB;--g-200:#E5E7EB;
+      --g-100:#F3F4F6;--g-50:#F9FAFB;--white:#FFFFFF;
+      --font:'Figtree',system-ui,sans-serif;
+      --r-4:4px;--r-8:8px;--r-12:12px;--r-16:16px;--r-f:999px;
+      --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-24:24px;
+      --nav-h:64px;
+    }
+    html { background:var(--cj-fondo)}
+    body{font-family:var(--font);color:var(--g-900);-webkit-font-smoothing:antialiased;min-height:100dvh;max-width:390px;margin:0 auto;display:flex;flex-direction:column}
+    .topbar{background:var(--cj-morado);padding:var(--sp-16);display:flex;align-items:center;justify-content:space-between}
+    .topbar-role{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-500);margin-bottom:2px}
+    .topbar-title{font-size:20px;font-weight:800;color:var(--white)}
+    .topbar-sub{font-size:10px;color:var(--g-500);margin-top:2px}
+    .btn-export{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:var(--r-8);padding:8px 12px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--g-300);cursor:pointer;white-space:nowrap}
+    main{flex:1;padding:var(--sp-16) var(--sp-16) calc(var(--nav-h)+var(--sp-32));display:flex;flex-direction:column;gap:var(--sp-12)}
+    /* Filtros */
+    .filtros-card{background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-12);padding:var(--sp-12);display:flex;flex-direction:column;gap:var(--sp-8);box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+    .filtros-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-8)}
+    .filtro-select{width:100%;padding:8px 10px;border:1.5px solid var(--g-200);border-radius:var(--r-8);font-family:var(--font);font-size:12px;font-weight:600;color:var(--g-800);background:var(--white);outline:none;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+    .filtro-select:focus{border-color:var(--g-600)}
+    .filtro-input{width:100%;padding:8px 10px;border:1.5px solid var(--g-200);border-radius:var(--r-8);font-family:var(--font);font-size:12px;font-weight:600;color:var(--g-800);outline:none}
+    .filtro-input:focus{border-color:var(--g-600)}
+    .filtros-count{font-size:11px;color:var(--g-400);text-align:right;font-weight:600}
+    /* Log list */
+    .card{background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+    .log-row{display:flex;align-items:flex-start;gap:var(--sp-12);padding:var(--sp-12) var(--sp-16);border-bottom:1px solid var(--g-200);cursor:pointer;transition:background 0.15s}
+    .log-row:last-child{border-bottom:none}
+    .log-row:hover{background:var(--g-50)}
+    .log-tipo-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+    .log-tipo-dot.crear{background:var(--g-700)}
+    .log-tipo-dot.modificar{background:var(--g-500)}
+    .log-tipo-dot.aprobar{background:var(--g-600)}
+    .log-tipo-dot.denegar{background:var(--g-400)}
+    .log-tipo-dot.desactivar{background:var(--g-300)}
+    .log-info{flex:1;min-width:0}
+    .log-op{font-size:12px;font-weight:700;color:var(--g-900)}
+    .log-entidad{font-size:11px;color:var(--g-500);margin-top:1px}
+    .log-meta{font-size:10px;color:var(--g-400);margin-top:2px}
+    .log-arrow{color:var(--g-300)}
+    .log-arrow svg{width:14px;height:14px;stroke:currentColor}
+    /* Modal detalle */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:none;align-items:flex-end;justify-content:center}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--white);border-radius:var(--r-16) var(--r-16) 0 0;width:100%;max-width:390px;max-height:80vh;overflow-y:auto;padding:var(--sp-24) var(--sp-16) var(--sp-32)}
+    .modal-handle{width:40px;height:4px;background:var(--g-200);border-radius:var(--r-f);margin:0 auto var(--sp-16)}
+    .modal-title{font-size:16px;font-weight:800;color:var(--g-900);margin-bottom:4px}
+    .modal-meta{font-size:11px;color:var(--g-400);margin-bottom:var(--sp-16)}
+    .diff-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-8);margin-top:var(--sp-12)}
+    .diff-col{display:flex;flex-direction:column;gap:4px}
+    .diff-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g-400);padding:4px 8px;background:var(--g-100);border-radius:var(--r-4)}
+    .diff-content{background:var(--g-50);border:1px solid var(--g-200);border-radius:var(--r-8);padding:var(--sp-8);font-size:11px;color:var(--g-700);line-height:1.6;font-family:monospace}
+    .diff-content.nuevo{border-color:var(--g-300);background:var(--g-50)}
+    .modal-close{width:100%;margin-top:var(--sp-16);background:var(--g-100);border:1px solid var(--g-200);border-radius:var(--r-8);padding:10px;font-family:var(--font);font-size:13px;font-weight:700;color:var(--g-600);cursor:pointer}
+    /* Bottom nav */
+    .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:var(--white);border-top:1px solid var(--g-200);height:var(--nav-h);display:flex;align-items:center;justify-content:space-around;padding:0 4px;z-index:50}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px;cursor:pointer;text-decoration:none;border:none;background:none;font-family:var(--font);transition:color 0.15s;color:var(--g-400);position:relative}
+    .nav-item.active{color:var(--g-900)}
+    .nav-item svg{width:20px;height:20px;stroke:currentColor}
+    .nav-item span{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px}
+    .nav-badge{position:absolute;top:4px;right:calc(50% - 16px);min-width:16px;height:16px;background:var(--g-900);border-radius:var(--r-f);font-size:9px;font-weight:800;color:var(--white);display:flex;align-items:center;justify-content:center;padding:0 4px}
+    .wf-note{display:inline-block;background:var(--g-200);border:1px dashed var(--g-400);border-radius:var(--r-4);padding:1px 4px;font-size:8px;font-weight:700;color:var(--g-600);font-family:monospace;vertical-align:middle;margin-left:4px;cursor:help
+      /* ── Paleta de marca Cambio J ── */
+      --cj-morado:        #7C3AED;
+      --cj-morado-medio:  #A78BFA;
+      --cj-morado-claro:  #DDD6FE;
+      --cj-turquesa:      #06B6D4;
+      --cj-turquesa-claro:#67E8F9;
+      --cj-rosa:          #EC4899;
+      --cj-fondo:         #F8FAFC;
+      --cj-texto:         #1E293B;
+      --cj-texto-claro:   #64748B;
+
+      /* Semánticos de marca */
+      --brand-primary:    var(--cj-morado);
+      --brand-secondary:  var(--cj-turquesa);
+      --brand-accent:     var(--cj-rosa);
+      --brand-surface:    var(--cj-morado-claro);
+}
+  
+    /* ── Sobrescrituras de marca Cambio J ─────────────────────────────────── */
+    .topbar,
+    .nav-logo,
+    .header-dark { background: var(--cj-morado) !important; }
+
+    /* Botones primarios */
+    .btn-primary,
+    button[class*="btn"]:not(.btn-ghost):not(.btn-outline),
+    a.btn:not(.btn-ghost) {
+      background: var(--cj-morado);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--cj-morado-medio); }
+
+    /* Fondo de secciones de marca */
+    .section-brand { background: var(--cj-morado-claro); }
+
+    /* Highlight numérico (montos, KPIs) */
+    .kpi-val.highlight,
+    .tx-monto.positive { color: var(--cj-turquesa) !important; }
+
+    /* Alert badge */
+    .acceso-badge.alert-badge { background: var(--cj-rosa) !important; }
+
+    /* Alerta icon */
+    .alerta-icon { background: rgba(236,72,153,0.15) !important; }
+    .alerta-icon svg { stroke: var(--cj-rosa) !important; }
+
+    /* Topbar: ajustar colores de texto secundario */
+    .topbar-role,
+    .topbar-date { color: var(--cj-morado-claro); }
+
+    .topbar-avatar {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    /* Bottom-nav active */
+    .nav-item.active .nav-icon svg { stroke: var(--cj-morado); }
+    .nav-item.active .nav-label { color: var(--cj-morado); }
+
+    /* Tabs activos */
+    .tab.active {
+      color: var(--cj-morado);
+      border-bottom-color: var(--cj-morado);
+    }
+
+    /* Status chips */
+    .chip-pending  { background: #FEF3C7; color: #92400E; }
+    .chip-approved { background: #D1FAE5; color: #065F46; }
+    .chip-rejected { background: #FEE2E2; color: #991B1B; }
+    .chip-paid     { background: var(--cj-morado-claro); color: var(--cj-morado); }
+
+    /* Inputs focus */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--cj-morado) !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    }
+
+    /* Links */
+    a.link-primary { color: var(--cj-morado); }
+
+    /* KPI cards con acento */
+    .kpi-block { border-left: 3px solid var(--cj-turquesa); }
+
+    /* Scroll indicator / progress bar */
+    .progress-bar { background: var(--cj-morado); }
+    /* ──────────────────────────────────────────────────────────────────────── */
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="topbar-role">Administrador · Cambio J</div>
+      <div class="topbar-title">Auditoría</div>
+      <div class="topbar-sub">Solo lectura · Inmutable · Req 10</div>
+    </div>
+    <button class="btn-export" onclick="exportar()" aria-label="Exportar log filtrado">↓ Exportar</button>
+  </header>
+
+  <main role="main">
+    <!-- Filtros -->
+    <div class="filtros-card" role="search" aria-label="Filtros de auditoría">
+      <div class="filtros-row">
+        <select class="filtro-select" id="f-entidad" onchange="renderLog()" aria-label="Filtrar por entidad">
+          <option value="">Todas las entidades</option>
+          <option value="Transacción">Transacción</option>
+          <option value="Vendedor">Vendedor</option>
+          <option value="Cuenta bancaria">Cuenta bancaria</option>
+          <option value="Tasa">Tasa de cambio</option>
+          <option value="Banco">Banco por país</option>
+          <option value="Bono">Bono/Incentivo</option>
+          <option value="Usuario">Usuario/Cliente</option>
+        </select>
+        <select class="filtro-select" id="f-op" onchange="renderLog()" aria-label="Filtrar por operación">
+          <option value="">Toda operación</option>
+          <option value="Creación">Creación</option>
+          <option value="Modificación">Modificación</option>
+          <option value="Aprobación">Aprobación</option>
+          <option value="Rechazo">Rechazo</option>
+          <option value="Desactivación">Desactivación</option>
+          <option value="Asignación">Asignación</option>
+        </select>
+      </div>
+      <div class="filtros-row">
+        <select class="filtro-select" id="f-rol" onchange="renderLog()" aria-label="Filtrar por rol">
+          <option value="">Todos los roles</option>
+          <option value="Admin">Admin</option>
+          <option value="Vendedor">Vendedor</option>
+          <option value="Sistema">Sistema</option>
+        </select>
+        <input class="filtro-input" type="text" id="f-id" placeholder="ID registro" oninput="renderLog()" aria-label="Buscar por ID">
+      </div>
+      <div class="filtros-count" id="filtros-count">Mostrando 12 de 12 eventos</div>
+    </div>
+
+    <!-- Log de auditoría -->
+    <div class="card">
+      <div id="log-list" role="list" aria-label="Log de auditoría"></div>
+    </div>
+  </main>
+
+  <!-- Modal detalle (antes vs después) -->
+  <div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-label="Detalle del evento" onclick="if(event.target===this)cerrarModal()">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title" id="modal-title">Modificación de tasa</div>
+      <div class="modal-meta" id="modal-meta">Admin · 16 may 2026, 08:05 · Tasa PEN-VES</div>
+      <div class="diff-grid">
+        <div class="diff-col">
+          <div class="diff-label">Antes</div>
+          <div class="diff-content" id="modal-antes"></div>
+        </div>
+        <div class="diff-col">
+          <div class="diff-label">Después</div>
+          <div class="diff-content nuevo" id="modal-despues"></div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="cerrarModal()">Cerrar</button>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" role="navigation" aria-label="Navegación admin">
+    <a href="01_dashboard.html" class="nav-item" aria-label="Dashboard"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+    <a href="07_transacciones.html" class="nav-item" style="position:relative" aria-label="Transacciones"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Transac.</span><div class="nav-badge">4</div></a>
+    <a href="02_vendedores.html" class="nav-item" aria-label="Vendedores"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Vendedores</span></a>
+    <a href="11_configuracion.html" class="nav-item active" aria-current="page" aria-label="Configuración"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Config.</span></a>
+  </nav>
+
+  <script>
+    const LOG = [
+      { id:'AUD-012', op:'Aprobación',   entidad:'Transacción',    ref:'TRX-847', rol:'Admin',    quien:'Admin',          fecha:'Hoy 17:20', antes:'estado: aprobada_vendedor', despues:'estado: completada\ncomprobante: comp_final.jpg' },
+      { id:'AUD-011', op:'Modificación', entidad:'Tasa de cambio', ref:'PEN-VES',  rol:'Admin',    quien:'Admin',          fecha:'Hoy 08:05', antes:'tasa_base: 14.10\nmargen: 3%', despues:'tasa_base: 14.20\nmargen: 3%' },
+      { id:'AUD-010', op:'Modificación', entidad:'Tasa de cambio', ref:'BCV-USD',  rol:'Admin',    quien:'Admin',          fecha:'Hoy 07:58', antes:'usd_bcv: 36.40', despues:'usd_bcv: 36.50' },
+      { id:'AUD-009', op:'Aprobación',   entidad:'Transacción',    ref:'TRX-847',  rol:'Vendedor', quien:'María González', fecha:'Hoy 15:45', antes:'estado: pendiente', despues:'estado: aprobada_vendedor' },
+      { id:'AUD-008', op:'Creación',     entidad:'Transacción',    ref:'TRX-847',  rol:'Sistema',  quien:'Sistema',        fecha:'Hoy 14:32', antes:'—', despues:'estado: pendiente\nmonto: S/ 500\nvendedor: VND-001' },
+      { id:'AUD-007', op:'Asignación',   entidad:'Cuenta bancaria',ref:'CTA-001',  rol:'Admin',    quien:'Admin',          fecha:'Hoy 09:12', antes:'asignada a: [VND-002]', despues:'asignada a: [VND-001, VND-002]' },
+      { id:'AUD-006', op:'Modificación', entidad:'Tasa de cambio', ref:'COP-VES',  rol:'Admin',    quien:'Admin',          fecha:'Ayer 17:30', antes:'tasa_base: 0.0142', despues:'tasa_base: 0.0145' },
+      { id:'AUD-005', op:'Desactivación',entidad:'Banco',          ref:'BOD-VE',   rol:'Admin',    quien:'Admin',          fecha:'15 may',    antes:'activo: true', despues:'activo: false\nfecha_baja: 2026-05-15' },
+      { id:'AUD-004', op:'Creación',     entidad:'Vendedor',       ref:'VND-003',  rol:'Admin',    quien:'Admin',          fecha:'14 may',    antes:'—', despues:'nombre: Ana Rodríguez\ncodigo: VND-003\ncomision: 3%' },
+      { id:'AUD-003', op:'Rechazo',      entidad:'Transacción',    ref:'TRX-820',  rol:'Admin',    quien:'Admin',          fecha:'12 may',    antes:'estado: aprobada_vendedor', despues:'estado: denegada\nmotivo: Monto no coincide' },
+      { id:'AUD-002', op:'Modificación', entidad:'Usuario/Cliente', ref:'USR-041', rol:'Sistema',  quien:'Sistema',        fecha:'10 may',    antes:'vendedor: null', despues:'vendedor: VND-001' },
+      { id:'AUD-001', op:'Creación',     entidad:'Usuario/Cliente', ref:'USR-041', rol:'Sistema',  quien:'Sistema',        fecha:'10 may',    antes:'—', despues:'nombre: Juan Pérez\nemail: jp@email.com' },
+    ];
+
+    const TIPO_DOT = {
+      'Creación':'crear','Modificación':'modificar','Aprobación':'aprobar',
+      'Rechazo':'denegar','Desactivación':'desactivar','Asignación':'modificar',
+    };
+
+    function renderLog() {
+      const fEnt = document.getElementById('f-entidad').value;
+      const fOp  = document.getElementById('f-op').value;
+      const fRol = document.getElementById('f-rol').value;
+      const fId  = document.getElementById('f-id').value.trim().toLowerCase();
+      const filtrado = LOG.filter(e =>
+        (!fEnt || e.entidad === fEnt) &&
+        (!fOp  || e.op === fOp) &&
+        (!fRol || e.rol === fRol) &&
+        (!fId  || e.ref.toLowerCase().includes(fId) || e.id.toLowerCase().includes(fId))
+      );
+      document.getElementById('filtros-count').textContent =
+        `Mostrando ${filtrado.length} de ${LOG.length} eventos`;
+      document.getElementById('log-list').innerHTML = filtrado.map(e => `
+        <div class="log-row" role="listitem" onclick="abrirModal(${JSON.stringify(e).replace(/'/g,"\\'")})"
+             tabindex="0" onkeydown="if(event.key==='Enter')this.click()"
+             aria-label="${e.op} en ${e.entidad} ${e.ref}">
+          <div class="log-tipo-dot ${TIPO_DOT[e.op]||'modificar'}" aria-hidden="true"></div>
+          <div class="log-info">
+            <div class="log-op">${e.op} · ${e.entidad}</div>
+            <div class="log-entidad">${e.ref} · ${e.quien}</div>
+            <div class="log-meta">${e.id} · ${e.fecha}</div>
+          </div>
+          <div class="log-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </div>`).join('');
+    }
+
+    let eventoActivo = null;
+    function abrirModal(e) {
+      eventoActivo = e;
+      document.getElementById('modal-title').textContent = `${e.op} · ${e.entidad}`;
+      document.getElementById('modal-meta').textContent  = `${e.quien} · ${e.fecha} · ${e.ref} · ${e.id}`;
+      document.getElementById('modal-antes').textContent    = e.antes;
+      document.getElementById('modal-despues').textContent  = e.despues;
+      document.getElementById('modal').classList.add('open');
+    }
+    function cerrarModal() {
+      document.getElementById('modal').classList.remove('open');
+    }
+    function exportar() {
+      alert('[WF] Exportar log filtrado en CSV o PDF. En producción: descarga directa del backend con los filtros activos.');
+    }
+
+    renderLog();
+  </script>
+</body>
+</html>

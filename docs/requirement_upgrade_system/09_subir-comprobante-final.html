@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>[WF] 05/09_subir-comprobante-final — Cambio J Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --g-900:#111827;--g-800:#1F2937;--g-700:#374151;--g-600:#4B5563;
+      --g-500:#6B7280;--g-400:#9CA3AF;--g-300:#D1D5DB;--g-200:#E5E7EB;
+      --g-100:#F3F4F6;--g-50:#F9FAFB;--white:#FFFFFF;
+      --font:'Figtree',system-ui,sans-serif;
+      --r-4:4px;--r-8:8px;--r-12:12px;--r-16:16px;--r-f:999px;
+      --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-24:24px;
+      --nav-h:64px;
+    }
+    html { background:var(--cj-fondo)}
+    body{font-family:var(--font);color:var(--g-900);-webkit-font-smoothing:antialiased;min-height:100dvh;max-width:390px;margin:0 auto;display:flex;flex-direction:column}
+    .topbar{background:var(--cj-morado);padding:12px var(--sp-16);display:flex;align-items:center;gap:12px}
+    .btn-back{background:none;border:none;color:var(--g-400);cursor:pointer;padding:4px;display:flex;align-items:center}
+    .btn-back svg{width:20px;height:20px;stroke:currentColor}
+    .topbar-info{flex:1}
+    .topbar-title{font-size:16px;font-weight:800;color:var(--white)}
+    .topbar-sub{font-size:10px;color:var(--g-500);margin-top:1px}
+    main{flex:1;padding:var(--sp-16) var(--sp-16) 120px;display:flex;flex-direction:column;gap:var(--sp-12)}
+    /* Contexto de la transacción */
+    .ctx-card{background:var(--g-800);border-radius:var(--r-12);padding:var(--sp-16);display:flex;align-items:center;justify-content:space-between}
+    .ctx-grupo{display:flex;flex-direction:column;gap:2px}
+    .ctx-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-400)}
+    .ctx-val{font-size:18px;font-weight:800;color:var(--white);font-variant-numeric:tabular-nums}
+    .ctx-sub{font-size:10px;color:var(--g-400)}
+    .ctx-div{width:1px;height:36px;background:var(--g-600)}
+    /* Uploader */
+    .upload-card{background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+    .upload-head{background:var(--g-800);padding:var(--sp-16) var(--sp-16) var(--sp-12)}
+    .upload-head-title{font-size:16px;font-weight:800;color:var(--white)}
+    .upload-head-sub{font-size:11px;color:var(--g-300);margin-top:3px;line-height:1.5}
+    .upload-body{padding:var(--sp-16);display:flex;flex-direction:column;gap:var(--sp-12)}
+    /* Dropzone */
+    .dropzone{border:2px dashed var(--g-300);border-radius:var(--r-12);padding:var(--sp-32) var(--sp-16);text-align:center;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:var(--sp-8)}
+    .dropzone:hover,.dropzone.drag{border-color:var(--g-600);background:var(--g-50)}
+    .dropzone.has-file{border-color:var(--g-700);background:var(--g-50);border-style:solid}
+    .dz-icon{width:48px;height:48px;background:var(--g-100);border-radius:50%;display:flex;align-items:center;justify-content:center}
+    .dz-icon svg{width:22px;height:22px;stroke:var(--g-500)}
+    .dz-title{font-size:15px;font-weight:700;color:var(--g-800)}
+    .dz-sub{font-size:12px;color:var(--g-400)}
+    /* Preview */
+    .preview-box{background:var(--g-50);border:1px solid var(--g-200);border-radius:var(--r-8);padding:var(--sp-12);display:none;align-items:center;gap:var(--sp-12)}
+    .preview-box.is-visible{display:flex}
+    .preview-icon{width:36px;height:36px;background:var(--g-200);border-radius:var(--r-8);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .preview-icon svg{width:18px;height:18px;stroke:var(--g-600)}
+    .preview-info{flex:1;min-width:0}
+    .preview-name{font-size:13px;font-weight:700;color:var(--g-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .preview-size{font-size:11px;color:var(--g-400);margin-top:1px}
+    .btn-quitar{background:none;border:none;cursor:pointer;color:var(--g-400);padding:4px}
+    .btn-quitar svg{width:16px;height:16px;stroke:currentColor}
+    /* Checklist de cierre */
+    .cierre-list{background:var(--g-50);border:1px solid var(--g-200);border-radius:var(--r-8);padding:var(--sp-12)}
+    .cierre-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g-500);margin-bottom:8px}
+    .cierre-item{display:flex;align-items:center;gap:8px;padding:4px 0}
+    .cierre-check{width:16px;height:16px;border-radius:50%;background:var(--g-200);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .cierre-check svg{width:9px;height:9px;stroke:var(--white)}
+    .cierre-check.done{background:var(--g-700)}
+    .cierre-txt{font-size:12px;color:var(--g-600)}
+    /* CTA fijo */
+    .cta-wrap{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:var(--white);border-top:1px solid var(--g-200);padding:var(--sp-16);z-index:40}
+    .btn-completar{width:100%;background:var(--g-900);color:var(--white);border:none;border-radius:var(--r-12);padding:16px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s,transform 0.1s}
+    .btn-completar:hover{background:var(--g-700)}
+    .btn-completar:active{transform:scale(0.98)}
+    .btn-completar:disabled{background:var(--g-200);color:var(--g-400);cursor:not-allowed}
+    .cta-hint{text-align:center;font-size:10px;color:var(--g-400);margin-top:6px;line-height:1.4}
+    .wf-note{display:inline-block;background:var(--g-200);border:1px dashed var(--g-400);border-radius:var(--r-4);padding:1px 4px;font-size:8px;font-weight:700;color:var(--g-600);font-family:monospace;vertical-align:middle;margin-left:4px;cursor:help
+      /* ── Paleta de marca Cambio J ── */
+      --cj-morado:        #7C3AED;
+      --cj-morado-medio:  #A78BFA;
+      --cj-morado-claro:  #DDD6FE;
+      --cj-turquesa:      #06B6D4;
+      --cj-turquesa-claro:#67E8F9;
+      --cj-rosa:          #EC4899;
+      --cj-fondo:         #F8FAFC;
+      --cj-texto:         #1E293B;
+      --cj-texto-claro:   #64748B;
+
+      /* Semánticos de marca */
+      --brand-primary:    var(--cj-morado);
+      --brand-secondary:  var(--cj-turquesa);
+      --brand-accent:     var(--cj-rosa);
+      --brand-surface:    var(--cj-morado-claro);
+}
+  
+    /* ── Sobrescrituras de marca Cambio J ─────────────────────────────────── */
+    .topbar,
+    .nav-logo,
+    .header-dark { background: var(--cj-morado) !important; }
+
+    /* Botones primarios */
+    .btn-primary,
+    button[class*="btn"]:not(.btn-ghost):not(.btn-outline),
+    a.btn:not(.btn-ghost) {
+      background: var(--cj-morado);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--cj-morado-medio); }
+
+    /* Fondo de secciones de marca */
+    .section-brand { background: var(--cj-morado-claro); }
+
+    /* Highlight numérico (montos, KPIs) */
+    .kpi-val.highlight,
+    .tx-monto.positive { color: var(--cj-turquesa) !important; }
+
+    /* Alert badge */
+    .acceso-badge.alert-badge { background: var(--cj-rosa) !important; }
+
+    /* Alerta icon */
+    .alerta-icon { background: rgba(236,72,153,0.15) !important; }
+    .alerta-icon svg { stroke: var(--cj-rosa) !important; }
+
+    /* Topbar: ajustar colores de texto secundario */
+    .topbar-role,
+    .topbar-date { color: var(--cj-morado-claro); }
+
+    .topbar-avatar {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    /* Bottom-nav active */
+    .nav-item.active .nav-icon svg { stroke: var(--cj-morado); }
+    .nav-item.active .nav-label { color: var(--cj-morado); }
+
+    /* Tabs activos */
+    .tab.active {
+      color: var(--cj-morado);
+      border-bottom-color: var(--cj-morado);
+    }
+
+    /* Status chips */
+    .chip-pending  { background: #FEF3C7; color: #92400E; }
+    .chip-approved { background: #D1FAE5; color: #065F46; }
+    .chip-rejected { background: #FEE2E2; color: #991B1B; }
+    .chip-paid     { background: var(--cj-morado-claro); color: var(--cj-morado); }
+
+    /* Inputs focus */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--cj-morado) !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    }
+
+    /* Links */
+    a.link-primary { color: var(--cj-morado); }
+
+    /* KPI cards con acento */
+    .kpi-block { border-left: 3px solid var(--cj-turquesa); }
+
+    /* Scroll indicator / progress bar */
+    .progress-bar { background: var(--cj-morado); }
+    /* ──────────────────────────────────────────────────────────────────────── */
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <button class="btn-back" onclick="history.back()" aria-label="Volver">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </button>
+    <div class="topbar-info">
+      <div class="topbar-title">Subir comprobante final</div>
+      <div class="topbar-sub">TRX-2026-00847 · Cierre del ciclo</div>
+    </div>
+  </header>
+
+  <main role="main">
+    <!-- Contexto de la transacción -->
+    <div class="ctx-card" aria-label="Resumen de la transacción">
+      <div class="ctx-grupo">
+        <span class="ctx-tag">Cliente envió</span>
+        <span class="ctx-val">S/ 500.00</span>
+        <span class="ctx-sub">Juan Pérez</span>
+      </div>
+      <div class="ctx-div"></div>
+      <div class="ctx-grupo" style="text-align:right">
+        <span class="ctx-tag">Familiar recibe</span>
+        <span class="ctx-val">Bs. 7,100.00</span>
+        <span class="ctx-sub">Venezuela</span>
+      </div>
+    </div>
+
+    <!-- Card de upload -->
+    <div class="upload-card">
+      <div class="upload-head">
+        <div class="upload-head-title">Comprobante de transferencia</div>
+        <div class="upload-head-sub">Sube la imagen o PDF de la transferencia que realizaste al destinatario en Venezuela.</div>
+      </div>
+      <div class="upload-body">
+
+        <!-- Dropzone -->
+        <div class="dropzone" id="dropzone" role="button" tabindex="0"
+             onclick="document.getElementById('file-input').click()"
+             onkeydown="if(event.key==='Enter')this.click()"
+             aria-label="Seleccionar archivo de comprobante">
+          <div class="dz-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="dz-title" id="dz-title">Toca para subir</div>
+          <div class="dz-sub" id="dz-sub">JPG, PNG o PDF · Máx. 5 MB
+            <span class="wf-note" title="Validación en cliente y servidor. El archivo se almacena en S3/storage.">S3</span>
+          </div>
+          <input type="file" id="file-input" accept="image/*,.pdf" style="display:none" onchange="onFile(this)">
+        </div>
+
+        <!-- Preview del archivo -->
+        <div class="preview-box" id="preview-box" role="status">
+          <div class="preview-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div class="preview-info">
+            <div class="preview-name" id="preview-name">comprobante_venezuela.jpg</div>
+            <div class="preview-size" id="preview-size">245 KB · Listo para subir</div>
+          </div>
+          <button class="btn-quitar" onclick="quitarArchivo()" aria-label="Quitar archivo seleccionado">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <!-- Checklist de cierre que se dispara al completar -->
+        <div class="cierre-list" role="note">
+          <div class="cierre-title">Al completar se ejecuta automáticamente</div>
+          <div class="cierre-item">
+            <div class="cierre-check done"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <span class="cierre-txt">Estado → <strong>Completado</strong></span>
+          </div>
+          <div class="cierre-item">
+            <div class="cierre-check done"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <span class="cierre-txt">Notificación + comprobante al <strong>cliente</strong></span>
+          </div>
+          <div class="cierre-item">
+            <div class="cierre-check done"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <span class="cierre-txt">Notificación + comprobante al <strong>vendedor</strong></span>
+          </div>
+          <div class="cierre-item">
+            <div class="cierre-check done"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <span class="cierre-txt">Cálculo: <strong>ganancia neta</strong> + comisión del vendedor</span>
+          </div>
+          <div class="cierre-item">
+            <div class="cierre-check done"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <span class="cierre-txt">Registro en <strong>auditoría</strong> con snapshot completo</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <div class="cta-wrap">
+    <button class="btn-completar" id="btn-completar" disabled onclick="completar()"
+      aria-label="Marcar como completada y notificar">
+      Completar envío →
+    </button>
+    <p class="cta-hint">Esta acción es irreversible. El ciclo queda cerrado y notificado.</p>
+  </div>
+
+  <script>
+    let archivoListo = false;
+    function onFile(input) {
+      const f = input.files[0];
+      if (!f) return;
+      archivoListo = true;
+      document.getElementById('dropzone').classList.add('has-file');
+      document.getElementById('dz-title').textContent = 'Archivo seleccionado';
+      document.getElementById('preview-name').textContent = f.name;
+      document.getElementById('preview-size').textContent =
+        `${(f.size/1024).toFixed(0)} KB · Listo para subir`;
+      document.getElementById('preview-box').classList.add('is-visible');
+      document.getElementById('btn-completar').disabled = false;
+    }
+    function quitarArchivo() {
+      archivoListo = false;
+      document.getElementById('file-input').value = '';
+      document.getElementById('dropzone').classList.remove('has-file');
+      document.getElementById('dz-title').textContent = 'Toca para subir';
+      document.getElementById('preview-box').classList.remove('is-visible');
+      document.getElementById('btn-completar').disabled = true;
+    }
+    function completar() {
+      if (!archivoListo) return;
+      document.getElementById('btn-completar').textContent = 'Procesando…';
+      document.getElementById('btn-completar').disabled = true;
+      setTimeout(() => {
+        alert('[WF] Comprobante subido. Estado → Completado. Notificaciones enviadas a cliente y vendedor. Ganancia y comisión calculadas. Registro en auditoría creado.\n\n→ Redirigir a 07_transacciones.html');
+      }, 1200);
+    }
+  </script>
+</body>
+</html>

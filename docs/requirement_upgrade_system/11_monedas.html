@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>[WF] 05/11_monedas — Cambio J Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --g-900:#111827;--g-800:#1F2937;--g-700:#374151;--g-600:#4B5563;
+      --g-500:#6B7280;--g-400:#9CA3AF;--g-300:#D1D5DB;--g-200:#E5E7EB;
+      --g-100:#F3F4F6;--g-50:#F9FAFB;--white:#FFFFFF;
+      --font:'Figtree',system-ui,sans-serif;
+      --r-4:4px;--r-8:8px;--r-12:12px;--r-16:16px;--r-f:999px;
+      --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-24:24px;--sp-32:32px;
+      --nav-h:64px;
+    }
+    html { background:var(--cj-fondo)}
+    body{font-family:var(--font);color:var(--g-900);-webkit-font-smoothing:antialiased;min-height:100dvh;max-width:390px;margin:0 auto;display:flex;flex-direction:column}
+
+    .topbar{background:var(--cj-morado);padding:var(--sp-16);display:flex;align-items:center;justify-content:space-between}
+    .topbar-title{font-size:20px;font-weight:800;color:var(--white)}
+
+    .tabs{background:var(--g-800);display:flex;padding:0 var(--sp-16) var(--sp-12)}
+    .tab{flex:1;padding:var(--sp-8) var(--sp-12);font-family:var(--font);font-size:13px;font-weight:700;color:var(--g-400);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s}
+    .tab.active{color:var(--white);border-bottom-color:var(--white)}
+
+    main{flex:1;padding:var(--sp-16) var(--sp-16) calc(var(--nav-h)+var(--sp-32));display:flex;flex-direction:column;gap:var(--sp-12)}
+    .pane{display:none;flex-direction:column;gap:var(--sp-12)}
+    .pane.active{display:flex}
+
+    .section-header{display:flex;align-items:center;justify-content:space-between}
+    .section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-500)}
+    .btn-add-inline{display:flex;align-items:center;gap:4px;background:none;border:1.5px dashed var(--g-300);border-radius:var(--r-8);padding:6px 12px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--g-500);cursor:pointer}
+    .btn-add-inline svg{width:12px;height:12px;stroke:currentColor}
+
+    /* MONEDA ROW */
+    .moneda-card{background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-12);overflow:hidden}
+    .moneda-row{padding:var(--sp-12) var(--sp-16);display:flex;align-items:center;gap:var(--sp-12)}
+    .moneda-sym{width:40px;height:40px;background:var(--g-100);border-radius:var(--r-8);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--g-700);flex-shrink:0}
+    .moneda-info{flex:1}
+    .moneda-nombre{font-size:14px;font-weight:800;color:var(--g-900)}
+    .moneda-meta{display:flex;align-items:center;gap:var(--sp-8);margin-top:3px}
+    .moneda-iso{font-family:monospace;font-size:11px;font-weight:700;background:var(--g-100);border-radius:var(--r-4);padding:1px 6px;color:var(--g-600)}
+    .moneda-pais{font-size:11px;color:var(--g-500)}
+    .toggle{position:relative;width:44px;height:24px}
+    .toggle input{opacity:0;width:0;height:0;position:absolute}
+    .toggle-track{position:absolute;inset:0;background:var(--g-200);border-radius:var(--r-f);transition:background 0.2s;cursor:pointer}
+    .toggle input:checked+.toggle-track{background:var(--g-700)}
+    .toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;background:var(--white);border-radius:50%;transition:transform 0.2s;pointer-events:none}
+    .toggle input:checked~.toggle-thumb{transform:translateX(20px)}
+    .moneda-actions{border-top:1px solid var(--g-100);display:flex}
+    .moneda-btn{flex:1;padding:9px;font-family:var(--font);font-size:11px;font-weight:700;color:var(--g-500);background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px}
+    .moneda-btn svg{width:12px;height:12px;stroke:currentColor}
+
+    /* FORM INLINE */
+    .form-inline{background:var(--white);border:1.5px dashed var(--g-300);border-radius:var(--r-12);padding:var(--sp-16);display:none;flex-direction:column;gap:var(--sp-12)}
+    .form-inline.open{display:flex}
+    .form-title{font-size:13px;font-weight:800;color:var(--g-900)}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field-label{font-size:12px;font-weight:700;color:var(--g-700)}
+    .field-input{width:100%;padding:10px 12px;border:1.5px solid var(--g-200);border-radius:var(--r-8);font-family:var(--font);font-size:13px;font-weight:600;color:var(--g-900);outline:none;transition:border-color 0.15s}
+    .field-input:focus{border-color:var(--g-600)}
+    .field-select{width:100%;padding:10px 12px;border:1.5px solid var(--g-200);border-radius:var(--r-8);font-family:var(--font);font-size:13px;font-weight:600;color:var(--g-900);outline:none;-webkit-appearance:none;appearance:none;background:var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 12px center;padding-right:32px}
+    .form-btns{display:flex;gap:var(--sp-8)}
+    .btn-guardar{flex:1;background:var(--g-900);color:var(--white);border:none;border-radius:var(--r-8);padding:10px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer}
+    .btn-cancelar{background:none;border:1.5px solid var(--g-200);border-radius:var(--r-8);padding:10px 16px;font-family:var(--font);font-size:13px;font-weight:700;color:var(--g-500);cursor:pointer}
+
+    /* MATRIZ CORREDORES */
+    .matrix-card{background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden}
+    .matrix-head{padding:12px var(--sp-16);border-bottom:1px solid var(--g-200)}
+    .matrix-title{font-size:13px;font-weight:800;color:var(--g-900)}
+    .matrix-sub{font-size:11px;color:var(--g-500);margin-top:2px}
+    .matrix-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:var(--sp-16)}
+    .matrix-table{border-collapse:collapse;min-width:280px}
+    .matrix-table th,.matrix-table td{border:1px solid var(--g-200);padding:0}
+    .matrix-table th{background:var(--g-50);font-size:10px;font-weight:700;color:var(--g-500);text-align:center;padding:8px 10px;white-space:nowrap}
+    .matrix-table .row-header{background:var(--g-50);font-size:10px;font-weight:700;color:var(--g-500);padding:8px 10px;white-space:nowrap;text-align:left}
+    .matrix-cell{width:64px;text-align:center;padding:8px;cursor:pointer;transition:background 0.15s;position:relative}
+    .matrix-cell:hover{background:var(--g-50)}
+    .cell-toggle{width:36px;height:20px;position:relative;display:inline-flex}
+    .cell-toggle input{opacity:0;width:0;height:0;position:absolute}
+    .cell-track{position:absolute;inset:0;background:var(--g-200);border-radius:var(--r-f);transition:background 0.2s;cursor:pointer}
+    .cell-toggle input:checked+.cell-track{background:var(--g-700)}
+    .cell-thumb{position:absolute;top:2px;left:2px;width:16px;height:16px;background:var(--white);border-radius:50%;transition:transform 0.2s;pointer-events:none}
+    .cell-toggle input:checked~.cell-thumb{transform:translateX(16px)}
+    .cell-same{background:var(--g-100);cursor:default}
+
+    .legend{display:flex;gap:var(--sp-16);flex-wrap:wrap}
+    .legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--g-500)}
+    .legend-dot{width:12px;height:12px;border-radius:50%}
+    .legend-dot.on{background:var(--g-700)}
+    .legend-dot.off{background:var(--g-200);border:1px solid var(--g-300)}
+
+    /* BOTTOM NAV */
+    .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:var(--white);border-top:1px solid var(--g-200);display:flex;height:var(--nav-h);z-index:100}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--g-400);font-size:10px;font-weight:700;cursor:pointer;background:none;border:none;font-family:var(--font)}
+    .nav-item.active{color:var(--g-900)}
+    .nav-item svg{width:20px;height:20px;stroke:currentColor
+      /* ── Paleta de marca Cambio J ── */
+      --cj-morado:        #7C3AED;
+      --cj-morado-medio:  #A78BFA;
+      --cj-morado-claro:  #DDD6FE;
+      --cj-turquesa:      #06B6D4;
+      --cj-turquesa-claro:#67E8F9;
+      --cj-rosa:          #EC4899;
+      --cj-fondo:         #F8FAFC;
+      --cj-texto:         #1E293B;
+      --cj-texto-claro:   #64748B;
+
+      /* Semánticos de marca */
+      --brand-primary:    var(--cj-morado);
+      --brand-secondary:  var(--cj-turquesa);
+      --brand-accent:     var(--cj-rosa);
+      --brand-surface:    var(--cj-morado-claro);
+}
+  
+    /* ── Sobrescrituras de marca Cambio J ─────────────────────────────────── */
+    .topbar,
+    .nav-logo,
+    .header-dark { background: var(--cj-morado) !important; }
+
+    /* Botones primarios */
+    .btn-primary,
+    button[class*="btn"]:not(.btn-ghost):not(.btn-outline),
+    a.btn:not(.btn-ghost) {
+      background: var(--cj-morado);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--cj-morado-medio); }
+
+    /* Fondo de secciones de marca */
+    .section-brand { background: var(--cj-morado-claro); }
+
+    /* Highlight numérico (montos, KPIs) */
+    .kpi-val.highlight,
+    .tx-monto.positive { color: var(--cj-turquesa) !important; }
+
+    /* Alert badge */
+    .acceso-badge.alert-badge { background: var(--cj-rosa) !important; }
+
+    /* Alerta icon */
+    .alerta-icon { background: rgba(236,72,153,0.15) !important; }
+    .alerta-icon svg { stroke: var(--cj-rosa) !important; }
+
+    /* Topbar: ajustar colores de texto secundario */
+    .topbar-role,
+    .topbar-date { color: var(--cj-morado-claro); }
+
+    .topbar-avatar {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    /* Bottom-nav active */
+    .nav-item.active .nav-icon svg { stroke: var(--cj-morado); }
+    .nav-item.active .nav-label { color: var(--cj-morado); }
+
+    /* Tabs activos */
+    .tab.active {
+      color: var(--cj-morado);
+      border-bottom-color: var(--cj-morado);
+    }
+
+    /* Status chips */
+    .chip-pending  { background: #FEF3C7; color: #92400E; }
+    .chip-approved { background: #D1FAE5; color: #065F46; }
+    .chip-rejected { background: #FEE2E2; color: #991B1B; }
+    .chip-paid     { background: var(--cj-morado-claro); color: var(--cj-morado); }
+
+    /* Inputs focus */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--cj-morado) !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    }
+
+    /* Links */
+    a.link-primary { color: var(--cj-morado); }
+
+    /* KPI cards con acento */
+    .kpi-block { border-left: 3px solid var(--cj-turquesa); }
+
+    /* Scroll indicator / progress bar */
+    .progress-bar { background: var(--cj-morado); }
+    /* ──────────────────────────────────────────────────────────────────────── */
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-title">Monedas y corredores</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setTab('monedas',this)">Monedas</button>
+    <button class="tab" onclick="setTab('corredores',this)">Corredores</button>
+  </div>
+
+  <main>
+
+    <!-- MONEDAS -->
+    <div class="pane active" id="pane-monedas">
+
+      <div class="section-header">
+        <div class="section-label">5 monedas registradas</div>
+        <button class="btn-add-inline" onclick="toggleFormMoneda()">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva moneda
+        </button>
+      </div>
+
+      <div class="form-inline" id="form-moneda">
+        <div class="form-title">Registrar moneda</div>
+        <div class="field">
+          <div class="field-label">Nombre *</div>
+          <input class="field-input" type="text" placeholder="Ej. Sol peruano">
+        </div>
+        <div class="field">
+          <div class="field-label">Símbolo *</div>
+          <input class="field-input" type="text" placeholder="Ej. S/">
+        </div>
+        <div class="field">
+          <div class="field-label">Código ISO *</div>
+          <input class="field-input" type="text" placeholder="Ej. PEN" style="text-transform:uppercase" maxlength="3">
+        </div>
+        <div class="field">
+          <div class="field-label">País asociado *</div>
+          <select class="field-select">
+            <option>Perú</option>
+            <option>Venezuela</option>
+            <option>Colombia</option>
+            <option>Ecuador</option>
+          </select>
+        </div>
+        <div class="form-btns">
+          <button class="btn-guardar">Guardar</button>
+          <button class="btn-cancelar" onclick="toggleFormMoneda()">Cancelar</button>
+        </div>
+      </div>
+
+      <div class="moneda-card">
+        <div class="moneda-row">
+          <div class="moneda-sym">S/</div>
+          <div class="moneda-info">
+            <div class="moneda-nombre">Sol peruano</div>
+            <div class="moneda-meta"><span class="moneda-iso">PEN</span><span class="moneda-pais">🇵🇪 Perú</span></div>
+          </div>
+          <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="moneda-actions">
+          <button class="moneda-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar</button>
+        </div>
+      </div>
+
+      <div class="moneda-card">
+        <div class="moneda-row">
+          <div class="moneda-sym" style="font-size:12px">Bs.S</div>
+          <div class="moneda-info">
+            <div class="moneda-nombre">Bolívar soberano</div>
+            <div class="moneda-meta"><span class="moneda-iso">VES</span><span class="moneda-pais">🇻🇪 Venezuela</span></div>
+          </div>
+          <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="moneda-actions">
+          <button class="moneda-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar</button>
+        </div>
+      </div>
+
+      <div class="moneda-card">
+        <div class="moneda-row">
+          <div class="moneda-sym">$</div>
+          <div class="moneda-info">
+            <div class="moneda-nombre">Dólar americano</div>
+            <div class="moneda-meta"><span class="moneda-iso">USD</span><span class="moneda-pais">🌎 Global</span></div>
+          </div>
+          <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="moneda-actions">
+          <button class="moneda-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar</button>
+        </div>
+      </div>
+
+      <div class="moneda-card">
+        <div class="moneda-row">
+          <div class="moneda-sym" style="font-size:13px">COP</div>
+          <div class="moneda-info">
+            <div class="moneda-nombre">Peso colombiano</div>
+            <div class="moneda-meta"><span class="moneda-iso">COP</span><span class="moneda-pais">🇨🇴 Colombia</span></div>
+          </div>
+          <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="moneda-actions">
+          <button class="moneda-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CORREDORES -->
+    <div class="pane" id="pane-corredores">
+
+      <div class="section-label" style="margin-bottom:4px">Rutas de envío habilitadas</div>
+
+      <div class="matrix-card">
+        <div class="matrix-head">
+          <div class="matrix-title">Matriz de corredores</div>
+          <div class="matrix-sub">Filas = origen · Columnas = destino · Toggle = ruta activa</div>
+        </div>
+        <div class="matrix-scroll">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th style="min-width:60px">Origen ↓ / Destino →</th>
+                <th>VES</th>
+                <th>USD</th>
+                <th>COP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="row-header">PEN</td>
+                <td class="matrix-cell">
+                  <label class="cell-toggle"><input type="checkbox" checked><div class="cell-track"></div><div class="cell-thumb"></div></label>
+                </td>
+                <td class="matrix-cell">
+                  <label class="cell-toggle"><input type="checkbox"><div class="cell-track"></div><div class="cell-thumb"></div></label>
+                </td>
+                <td class="matrix-cell">
+                  <label class="cell-toggle"><input type="checkbox" checked><div class="cell-track"></div><div class="cell-thumb"></div></label>
+                </td>
+              </tr>
+              <tr>
+                <td class="row-header">COP</td>
+                <td class="matrix-cell">
+                  <label class="cell-toggle"><input type="checkbox" checked><div class="cell-track"></div><div class="cell-thumb"></div></label>
+                </td>
+                <td class="matrix-cell">
+                  <label class="cell-toggle"><input type="checkbox"><div class="cell-track"></div><div class="cell-thumb"></div></label>
+                </td>
+                <td class="matrix-cell cell-same">—</td>
+              </tr>
+              <tr>
+                <td class="row-header">USD</td>
+                <td class="matrix-cell">
+                  <label class="cell-toggle"><input type="checkbox" checked><div class="cell-track"></div><div class="cell-thumb"></div></label>
+                </td>
+                <td class="matrix-cell cell-same">—</td>
+                <td class="matrix-cell">
+                  <label class="cell-toggle"><input type="checkbox"><div class="cell-track"></div><div class="cell-thumb"></div></label>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot on"></div>Ruta activa — visible en simulador</div>
+        <div class="legend-item"><div class="legend-dot off"></div>Ruta inactiva — oculta al cliente</div>
+      </div>
+
+      <div style="background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-12);padding:var(--sp-16);font-size:12px;color:var(--g-500);line-height:1.6">
+        <strong style="color:var(--g-700)">Nota:</strong> Al activar una ruta nueva, el sistema pedirá confirmar la tasa base y el margen antes de publicarla. Puedes configurarlos en <strong>Tasas de cambio</strong>.
+      </div>
+
+    </div>
+
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="window.location.href='01_dashboard.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" onclick="window.location.href='07_transacciones.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+      Transacciones
+    </button>
+    <button class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><line x1="3.05" y1="9" x2="20.95" y2="9"/><line x1="3.05" y1="15" x2="20.95" y2="15"/><path d="M11.29 3a15 15 0 0 0 0 18"/><path d="M12.71 3a15 15 0 0 1 0 18"/></svg>
+      Monedas
+    </button>
+    <button class="nav-item" onclick="window.location.href='11_configuracion.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Config
+    </button>
+  </nav>
+
+  <script>
+    function setTab(id,btn){
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('pane-'+id).classList.add('active');
+    }
+    function toggleFormMoneda(){
+      document.getElementById('form-moneda').classList.toggle('open');
+    }
+  </script>
+
+</body>
+</html>
+
+<!-- ============================================================
+     UX NOTES — Monedas y corredores de envío
+     Rol: Admin / Dueño
+     Módulo: screens/05_admin/11_monedas.html
+     ============================================================
+
+     Decisiones de diseño:
+     - Tab Monedas / Corredores → contexto único, evita saltar entre pantallas
+     - Matriz visual de corredores → el dueño ve de un vistazo qué rutas están activas
+     - Toggle por celda en la matriz → activar/desactivar una ruta es un gesto
+     - Celda "—" para origen=destino → imposible lógicamente, no se ofrece
+     - Nota contextual sobre tasas → enlace conceptual sin salir de la pantalla
+     - Formulario inline para monedas → patrón consistente con bancos/cuentas
+
+     Estados cubiertos:
+     - [x] Lista de monedas activas
+     - [x] Formulario inline de nueva moneda
+     - [x] Matriz de corredores con rutas activas e inactivas
+     - [ ] Confirmación de nueva ruta (pedir tasa base) → pendiente
+     - [ ] Estado vacío (sin monedas registradas) → pendiente
+     ============================================================ -->

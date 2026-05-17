@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>[WF] 03_subir-comprobante — Cambio J</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --g-900:#111827;--g-800:#1F2937;--g-700:#374151;--g-600:#4B5563;
+      --g-500:#6B7280;--g-400:#9CA3AF;--g-300:#D1D5DB;--g-200:#E5E7EB;
+      --g-100:#F3F4F6;--g-50:#F9FAFB;--white:#FFFFFF;
+      --font:'Figtree',system-ui,sans-serif;
+      --r-4:4px;--r-8:8px;--r-12:12px;--r-16:16px;--r-24:24px;
+      --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-24:24px;--sp-32:32px;--sp-48:48px;
+    
+      /* ── Paleta de marca Cambio J ── */
+      --cj-morado:        #7C3AED;
+      --cj-morado-medio:  #A78BFA;
+      --cj-morado-claro:  #DDD6FE;
+      --cj-turquesa:      #06B6D4;
+      --cj-turquesa-claro:#67E8F9;
+      --cj-rosa:          #EC4899;
+      --cj-fondo:         #F8FAFC;
+      --cj-texto:         #1E293B;
+      --cj-texto-claro:   #64748B;
+
+      /* Semánticos de marca */
+      --brand-primary:    var(--cj-morado);
+      --brand-secondary:  var(--cj-turquesa);
+      --brand-accent:     var(--cj-rosa);
+      --brand-surface:    var(--cj-morado-claro);
+}
+    html { background:var(--cj-fondo); }
+    body { font-family:var(--font);color:var(--g-900);-webkit-font-smoothing:antialiased;min-height:100dvh;max-width:390px;margin:0 auto;display:flex;flex-direction:column; }
+
+    .navbar { position:sticky;top:0;z-index:50;background:var(--white);border-bottom:1px solid var(--g-200);height:56px;padding:0 var(--sp-16);display:flex;align-items:center;justify-content:space-between; }
+    .nav-back { display:flex;align-items:center;gap:var(--sp-8);text-decoration:none;color:var(--g-600);font-size:13px;font-weight:600;padding:var(--sp-8);border-radius:var(--r-8);transition:color 0.15s; }
+    .nav-back:hover { color:var(--g-900); }
+    .nav-back svg { width:16px;height:16px;stroke:currentColor; }
+    .nav-center { position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:var(--sp-8); }
+    .nav-logo { width:28px;height:28px;background:var(--cj-morado);border-radius:var(--r-8);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--white); }
+    .nav-title { font-size:14px;font-weight:700; }
+    .nav-step { font-size:11px;font-weight:600;color:var(--g-500);background:var(--g-100);border:1px solid var(--g-200);border-radius:var(--r-4);padding:3px var(--sp-8); }
+
+    .progress-bar { background:var(--white);border-bottom:1px solid var(--g-200);padding:var(--sp-12) var(--sp-16); }
+    .steps { display:flex;align-items:center; }
+    .step { display:flex;align-items:center;flex:1; }
+    .step-circle { width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;border:2px solid var(--g-200);color:var(--g-400);background:var(--white); }
+    .step-circle.active { background:var(--g-900);border-color:var(--g-900);color:var(--white); }
+    .step-circle.done { background:var(--g-500);border-color:var(--g-500);color:var(--white); }
+    .step-line { flex:1;height:2px;background:var(--g-200);margin:0 var(--sp-4); }
+    .step-line.done { background:var(--g-500); }
+    .step-labels { display:flex;margin-top:var(--sp-8); }
+    .step-label { flex:1;text-align:center;font-size:9px;font-weight:700;color:var(--g-400);text-transform:uppercase;letter-spacing:0.8px;line-height:1.3; }
+    .step-label.active { color:var(--g-800); }
+    .step-label.done { color:var(--g-500); }
+
+    main { flex:1;padding:var(--sp-16) var(--sp-16) var(--sp-48);display:flex;flex-direction:column;gap:var(--sp-12); }
+
+    /* Cuenta seleccionada (readonly) */
+    .cuenta-selected { background:var(--g-800);border-radius:var(--r-12);padding:var(--sp-12) var(--sp-16); }
+    .cuenta-sel-tag { font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-400);margin-bottom:var(--sp-8); }
+    .cuenta-sel-row { display:flex;align-items:center;gap:var(--sp-12); }
+    .cuenta-sel-logo { width:36px;height:36px;background:var(--g-600);border-radius:var(--r-8);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--white);flex-shrink:0; }
+    .cuenta-sel-info { flex:1; }
+    .cuenta-sel-banco { font-size:14px;font-weight:800;color:var(--white); }
+    .cuenta-sel-num { font-size:12px;color:var(--g-300);font-family:monospace;margin-top:2px; }
+    .cuenta-monto { text-align:right; }
+    .cuenta-monto-lbl { font-size:9px;color:var(--g-400);font-weight:700;text-transform:uppercase;letter-spacing:1px; }
+    .cuenta-monto-val { font-size:18px;font-weight:800;color:var(--white);font-variant-numeric:tabular-nums; }
+
+    /* Uploader — Componente: _components/comprobante-uploader.html */
+    .uploader-card { background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+
+    .uploader-header { background:var(--g-800);padding:var(--sp-16) var(--sp-16) var(--sp-12);text-align:center; }
+    .uploader-title { font-size:16px;font-weight:800;color:var(--white); }
+    .uploader-sub { font-size:12px;color:var(--g-300);margin-top:var(--sp-4); }
+
+    .uploader-body { padding:var(--sp-24) var(--sp-16);display:flex;flex-direction:column;gap:var(--sp-16); }
+
+    /* Estado: vacío — dropzone */
+    .dropzone {
+      border:2px dashed var(--g-300);border-radius:var(--r-12);
+      padding:var(--sp-32) var(--sp-16);
+      display:flex;flex-direction:column;align-items:center;gap:var(--sp-12);
+      cursor:pointer;transition:border-color 0.15s,background 0.15s;
+      text-align:center;
+    }
+    .dropzone:hover { border-color:var(--g-500);background:var(--g-50); }
+    .dropzone.is-dragover { border-color:var(--g-700);background:var(--g-100); }
+
+    .dropzone-icon { width:56px;height:56px;background:var(--g-100);border-radius:var(--r-12);display:flex;align-items:center;justify-content:center; }
+    .dropzone-icon svg { width:28px;height:28px;stroke:var(--g-400); }
+    .dropzone-title { font-size:15px;font-weight:700;color:var(--g-800); }
+    .dropzone-sub { font-size:12px;color:var(--g-500);line-height:1.5; }
+    .dropzone-formats { font-size:11px;color:var(--g-400);font-weight:600; }
+    .btn-select-file {
+      background:var(--g-900);color:var(--white);border:none;border-radius:var(--r-8);
+      padding:var(--sp-12) var(--sp-24);font-family:var(--font);font-size:13px;font-weight:700;
+      cursor:pointer;transition:background 0.15s;
+      display:flex;align-items:center;gap:var(--sp-8);
+    }
+    .btn-select-file:hover { background:var(--g-700); }
+    .btn-select-file svg { width:14px;height:14px;stroke:currentColor; }
+    input[type="file"] { display:none; }
+
+    /* Estado: archivo seleccionado */
+    .file-preview { display:none;flex-direction:column;gap:var(--sp-12); }
+    .file-preview.is-visible { display:flex; }
+
+    .file-card { background:var(--g-50);border:1.5px solid var(--g-200);border-radius:var(--r-12);padding:var(--sp-16);display:flex;align-items:center;gap:var(--sp-12); }
+    .file-thumb { width:56px;height:56px;background:var(--g-200);border-radius:var(--r-8);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden; }
+    .file-thumb img { width:100%;height:100%;object-fit:cover; }
+    .file-thumb svg { width:24px;height:24px;stroke:var(--g-500); }
+    .file-info { flex:1;min-width:0; }
+    .file-name { font-size:13px;font-weight:700;color:var(--g-900);overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+    .file-size { font-size:11px;color:var(--g-500);margin-top:2px; }
+    .file-remove { width:28px;height:28px;background:var(--g-200);border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.15s; }
+    .file-remove:hover { background:var(--g-300); }
+    .file-remove svg { width:14px;height:14px;stroke:var(--g-700); }
+
+    /* Estado: error de formato */
+    .error-formato { display:none;background:var(--g-100);border:1.5px solid var(--g-400);border-radius:var(--r-8);padding:var(--sp-12);font-size:12px;font-weight:600;color:var(--g-700); }
+    .error-formato.is-visible { display:block; }
+
+    /* Estado: subiendo */
+    .upload-progress { display:none;flex-direction:column;gap:var(--sp-8); }
+    .upload-progress.is-visible { display:flex; }
+    .progress-label { display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--g-700); }
+    .progress-track { height:6px;background:var(--g-200);border-radius:var(--r-4);overflow:hidden; }
+    .progress-fill { height:100%;background:var(--g-700);border-radius:var(--r-4);transition:width 0.3s;width:0%; }
+
+    /* Instrucciones */
+    .instrucciones { background:var(--g-50);border:1px solid var(--g-200);border-radius:var(--r-8);padding:var(--sp-12) var(--sp-16); }
+    .instrucciones-title { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g-600);margin-bottom:var(--sp-8); }
+    .instrucciones-list { display:flex;flex-direction:column;gap:var(--sp-8); }
+    .instruccion { display:flex;align-items:flex-start;gap:var(--sp-8); }
+    .instruccion-num { width:18px;height:18px;background:var(--g-700);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--white);flex-shrink:0;margin-top:1px; }
+    .instruccion-txt { font-size:12px;color:var(--g-600);line-height:1.5;font-weight:500; }
+    .instruccion-txt strong { color:var(--g-800);font-weight:700; }
+
+    /* CTA */
+    .cta-wrap { background:var(--white);border-top:1px solid var(--g-200);padding:var(--sp-16); }
+    .btn-enviar { width:100%;background:var(--g-900);color:var(--white);border:none;border-radius:var(--r-12);padding:var(--sp-16);font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;text-align:center;transition:background 0.15s,transform 0.1s;display:flex;align-items:center;justify-content:center;gap:var(--sp-8); }
+    .btn-enviar:hover { background:var(--g-700); }
+    .btn-enviar:active { transform:scale(0.98); }
+    .btn-enviar:disabled { background:var(--g-200);color:var(--g-400);cursor:not-allowed; }
+    .spinner { display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:var(--white);border-radius:50%;animation:spin 0.7s linear infinite; }
+    .btn-enviar.is-loading .spinner { display:block; }
+    .btn-enviar.is-loading .btn-txt { opacity:0.7; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .wf-note { display:inline-block;background:var(--g-200);border:1px dashed var(--g-400);border-radius:var(--r-4);padding:1px var(--sp-4);font-size:8px;font-weight:700;color:var(--g-600);font-family:monospace;vertical-align:middle;margin-left:var(--sp-4);cursor:help; }
+  
+    /* ── Sobrescrituras de marca Cambio J ─────────────────────────────────── */
+    .topbar,
+    .nav-logo,
+    .header-dark { background: var(--cj-morado) !important; }
+
+    /* Botones primarios */
+    .btn-primary,
+    button[class*="btn"]:not(.btn-ghost):not(.btn-outline),
+    a.btn:not(.btn-ghost) {
+      background: var(--cj-morado);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--cj-morado-medio); }
+
+    /* Fondo de secciones de marca */
+    .section-brand { background: var(--cj-morado-claro); }
+
+    /* Highlight numérico (montos, KPIs) */
+    .kpi-val.highlight,
+    .tx-monto.positive { color: var(--cj-turquesa) !important; }
+
+    /* Alert badge */
+    .acceso-badge.alert-badge { background: var(--cj-rosa) !important; }
+
+    /* Alerta icon */
+    .alerta-icon { background: rgba(236,72,153,0.15) !important; }
+    .alerta-icon svg { stroke: var(--cj-rosa) !important; }
+
+    /* Topbar: ajustar colores de texto secundario */
+    .topbar-role,
+    .topbar-date { color: var(--cj-morado-claro); }
+
+    .topbar-avatar {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    /* Bottom-nav active */
+    .nav-item.active .nav-icon svg { stroke: var(--cj-morado); }
+    .nav-item.active .nav-label { color: var(--cj-morado); }
+
+    /* Tabs activos */
+    .tab.active {
+      color: var(--cj-morado);
+      border-bottom-color: var(--cj-morado);
+    }
+
+    /* Status chips */
+    .chip-pending  { background: #FEF3C7; color: #92400E; }
+    .chip-approved { background: #D1FAE5; color: #065F46; }
+    .chip-rejected { background: #FEE2E2; color: #991B1B; }
+    .chip-paid     { background: var(--cj-morado-claro); color: var(--cj-morado); }
+
+    /* Inputs focus */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--cj-morado) !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    }
+
+    /* Links */
+    a.link-primary { color: var(--cj-morado); }
+
+    /* KPI cards con acento */
+    .kpi-block { border-left: 3px solid var(--cj-turquesa); }
+
+    /* Scroll indicator / progress bar */
+    .progress-bar { background: var(--cj-morado); }
+    /* ──────────────────────────────────────────────────────────────────────── */
+</style>
+</head>
+<body>
+
+  <nav class="navbar" role="navigation" aria-label="Navegación">
+    <a href="02_cuentas-bancarias.html" class="nav-back" aria-label="Volver">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Volver
+    </a>
+    <div class="nav-center">
+      <div class="nav-logo" aria-hidden="true">CJ</div>
+      <span class="nav-title">Comprobante</span>
+    </div>
+    <span class="nav-step">Paso 4/5</span>
+  </nav>
+
+  <div class="progress-bar">
+    <div class="steps">
+      <div class="step"><div class="step-circle done">✓</div><div class="step-line done"></div></div>
+      <div class="step"><div class="step-circle done">✓</div><div class="step-line done"></div></div>
+      <div class="step"><div class="step-circle done">✓</div><div class="step-line done"></div></div>
+      <div class="step"><div class="step-circle active">4</div><div class="step-line"></div></div>
+      <div class="step"><div class="step-circle">5</div></div>
+    </div>
+    <div class="step-labels">
+      <span class="step-label done">Cotización</span>
+      <span class="step-label done">Cuenta</span>
+      <span class="step-label done">Vendedor</span>
+      <span class="step-label active">Comprobante</span>
+      <span class="step-label">Listo</span>
+    </div>
+  </div>
+
+  <main role="main">
+
+    <!-- Cuenta seleccionada (readonly) -->
+    <div class="cuenta-selected" aria-label="Cuenta de depósito seleccionada">
+      <div class="cuenta-sel-tag">Deposita en esta cuenta</div>
+      <div class="cuenta-sel-row">
+        <div class="cuenta-sel-logo" id="cs-logo">BCP</div>
+        <div class="cuenta-sel-info">
+          <div class="cuenta-sel-banco" id="cs-banco">BCP</div>
+          <div class="cuenta-sel-num" id="cs-num">191-12345678-0-12</div>
+        </div>
+        <div class="cuenta-monto">
+          <div class="cuenta-monto-lbl">Monto exacto</div>
+          <div class="cuenta-monto-val" id="cs-monto">S/ 500.00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Uploader -->
+    <!-- Componente: _components/comprobante-uploader.html -->
+    <div class="uploader-card">
+
+      <div class="uploader-header">
+        <h1 class="uploader-title">Sube tu comprobante</h1>
+        <p class="uploader-sub">Foto o captura de tu depósito bancario</p>
+      </div>
+
+      <div class="uploader-body">
+
+        <!-- Estado: vacío / dropzone -->
+        <div class="dropzone" id="dropzone" role="button" tabindex="0"
+          aria-label="Área para subir comprobante. Haz clic para seleccionar archivo"
+          onclick="document.getElementById('file-input').click()"
+          onkeydown="if(event.key==='Enter'||event.key===' ')document.getElementById('file-input').click()"
+          ondragover="dragover(event)" ondragleave="dragleave(event)" ondrop="drop(event)"
+        >
+          <div class="dropzone-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <div class="dropzone-title">Toca para subir</div>
+          <p class="dropzone-sub">
+            Sube la foto o captura de tu depósito.<br>
+            También puedes arrastrar el archivo aquí.
+          </p>
+          <p class="dropzone-formats">
+            JPG, PNG o PDF · Máximo 10 MB
+            <span class="wf-note" title="Formatos aceptados por el backend. Validar en cliente y servidor.">fmt</span>
+          </p>
+          <button class="btn-select-file" type="button" aria-label="Seleccionar archivo desde dispositivo">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            Seleccionar archivo
+          </button>
+        </div>
+
+        <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.pdf" onchange="archivoSeleccionado(event)">
+
+        <!-- Estado: error de formato -->
+        <div class="error-formato" id="error-formato" role="alert" aria-live="polite">
+          ⚠ Formato no válido. Solo se aceptan JPG, PNG o PDF de máximo 10 MB.
+        </div>
+
+        <!-- Estado: archivo seleccionado — preview -->
+        <div class="file-preview" id="file-preview">
+          <div class="file-card" aria-label="Archivo seleccionado">
+            <div class="file-thumb" id="file-thumb">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+            </div>
+            <div class="file-info">
+              <div class="file-name" id="file-name">comprobante.jpg</div>
+              <div class="file-size" id="file-size">2.4 MB</div>
+            </div>
+            <button class="file-remove" onclick="removerArchivo()" aria-label="Remover archivo seleccionado">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Estado: subiendo — barra de progreso -->
+          <div class="upload-progress" id="upload-progress" aria-label="Progreso de subida">
+            <div class="progress-label">
+              <span>Subiendo comprobante...</span>
+              <span id="progress-pct">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Instrucciones -->
+        <div class="instrucciones" role="note" aria-label="Instrucciones para el comprobante">
+          <div class="instrucciones-title">¿Qué debe mostrar el comprobante?</div>
+          <div class="instrucciones-list">
+            <div class="instruccion">
+              <div class="instruccion-num">1</div>
+              <p class="instruccion-txt"><strong>Monto</strong> depositado — debe coincidir exactamente con el de tu cotización.</p>
+            </div>
+            <div class="instruccion">
+              <div class="instruccion-num">2</div>
+              <p class="instruccion-txt"><strong>Número de cuenta</strong> destino visible en el comprobante.</p>
+            </div>
+            <div class="instruccion">
+              <div class="instruccion-num">3</div>
+              <p class="instruccion-txt"><strong>Fecha y hora</strong> del depósito claramente legibles.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <div class="cta-wrap">
+    <button class="btn-enviar" id="btn-enviar" onclick="enviarSolicitud()" disabled aria-label="Enviar solicitud">
+      <div class="spinner" aria-hidden="true"></div>
+      <span class="btn-txt">Enviar solicitud →</span>
+    </button>
+  </div>
+
+  <script>
+    let archivoActual = null;
+
+    function cargarDatos() {
+      const raw = sessionStorage.getItem('pendingTransaction');
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      const fmt = n => new Intl.NumberFormat('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(parseFloat(n));
+      if (d.cuenta_banco) {
+        document.getElementById('cs-logo').textContent  = d.cuenta_banco;
+        document.getElementById('cs-banco').textContent = d.cuenta_banco;
+      }
+      if (d.cuenta_numero) document.getElementById('cs-num').textContent  = d.cuenta_numero;
+      if (d.amount_origen) document.getElementById('cs-monto').textContent = `S/ ${fmt(d.amount_origen)}`;
+    }
+
+    function archivoSeleccionado(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      procesarArchivo(file);
+    }
+
+    function procesarArchivo(file) {
+      const FORMATOS = ['image/jpeg','image/png','application/pdf'];
+      const MAX_MB   = 10;
+      document.getElementById('error-formato').classList.remove('is-visible');
+
+      if (!FORMATOS.includes(file.type) || file.size > MAX_MB * 1024 * 1024) {
+        document.getElementById('error-formato').classList.add('is-visible');
+        return;
+      }
+
+      archivoActual = file;
+      document.getElementById('dropzone').style.display = 'none';
+      document.getElementById('file-name').textContent  = file.name;
+      document.getElementById('file-size').textContent  = `${(file.size / (1024*1024)).toFixed(1)} MB`;
+
+      // Preview imagen
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const thumb = document.getElementById('file-thumb');
+          thumb.innerHTML = `<img src="${e.target.result}" alt="Vista previa del comprobante">`;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      document.getElementById('file-preview').classList.add('is-visible');
+      document.getElementById('btn-enviar').disabled = false;
+    }
+
+    function removerArchivo() {
+      archivoActual = null;
+      document.getElementById('file-input').value       = '';
+      document.getElementById('file-preview').classList.remove('is-visible');
+      document.getElementById('upload-progress').classList.remove('is-visible');
+      document.getElementById('dropzone').style.display = '';
+      document.getElementById('file-thumb').innerHTML   = `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+      document.getElementById('btn-enviar').disabled    = true;
+      document.getElementById('progress-fill').style.width = '0%';
+      document.getElementById('progress-pct').textContent = '0%';
+    }
+
+    function dragover(e) { e.preventDefault(); document.getElementById('dropzone').classList.add('is-dragover'); }
+    function dragleave()  { document.getElementById('dropzone').classList.remove('is-dragover'); }
+    function drop(e)      { e.preventDefault(); document.getElementById('dropzone').classList.remove('is-dragover'); const f = e.dataTransfer.files[0]; if(f) procesarArchivo(f); }
+
+    function enviarSolicitud() {
+      if (!archivoActual) return;
+      const btn = document.getElementById('btn-enviar');
+      btn.classList.add('is-loading'); btn.disabled = true;
+      document.getElementById('upload-progress').classList.add('is-visible');
+
+      // Simula progreso de upload
+      let pct = 0;
+      const iv = setInterval(() => {
+        pct = Math.min(pct + Math.random() * 20, 100);
+        document.getElementById('progress-fill').style.width = `${pct}%`;
+        document.getElementById('progress-pct').textContent  = `${Math.round(pct)}%`;
+        if (pct >= 100) {
+          clearInterval(iv);
+          setTimeout(() => { window.location.href = '04_confirmacion-envio.html'; }, 400);
+        }
+      }, 300);
+    }
+
+    if (!sessionStorage.getItem('pendingTransaction')) {
+      sessionStorage.setItem('pendingTransaction', JSON.stringify({
+        amount_origen:'500.00',amount_ves:'7100.00',from_currency:'PEN',
+        pair_id:1,ves_rate:14.20,exchange_rate_id:1,
+        vendedor_codigo:'VND-001',vendedor_nombre:'María González',
+        cuenta_id:1,cuenta_banco:'BCP',cuenta_numero:'191-12345678-0-12'
+      }));
+    }
+    cargarDatos();
+  </script>
+</body>
+</html>
+
+<!-- ============================================================
+     UX NOTES — Subir Comprobante
+     Rol: Cliente autenticado
+     Módulo: screens/02_envio/03_subir-comprobante.html
+     ============================================================
+     Decisiones:
+     - Dropzone con tap + drag & drop → mobile-first: tap es el caso
+       principal; drag & drop para desktop sin rediseñar.
+     - Preview del archivo antes de enviar → feedback inmediato: el
+       usuario confirma que subió el archivo correcto antes de enviar.
+     - Barra de progreso durante upload → visibilidad del sistema
+       (Nielsen #1): el usuario sabe que algo está pasando.
+     - Instrucciones de qué debe mostrar el comprobante → error
+       prevention (Nielsen #5): reduce rechazos por comprobante ilegible.
+     - Cuenta destino siempre visible (readonly) → ancla: el usuario
+       puede verificar que depositó en la cuenta correcta.
+     - Botón "Remover" → escape hatch; permite cambiar el archivo.
+     - Validación de formato y tamaño en cliente → error prevention.
+
+     Estados cubiertos:
+     - [x] Vacío — dropzone visible, CTA deshabilitado
+     - [x] Dragover — feedback visual de drag
+     - [x] Archivo seleccionado — preview + info del archivo, CTA habilitado
+     - [x] Imagen — thumbnail preview
+     - [x] PDF — ícono genérico
+     - [x] Error de formato/tamaño — banner inline
+     - [x] Subiendo — barra de progreso animada
+     - [x] Archivo removido — regresa al estado vacío
+
+     Componente: comprobante-uploader → _components/comprobante-uploader.html
+     Flujo: ← 02_cuentas-bancarias | → 04_confirmacion-envio
+     ============================================================ -->

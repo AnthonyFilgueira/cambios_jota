@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>[WF] 02_cuentas-bancarias — Cambio J</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --g-900:#111827;--g-800:#1F2937;--g-700:#374151;--g-600:#4B5563;
+      --g-500:#6B7280;--g-400:#9CA3AF;--g-300:#D1D5DB;--g-200:#E5E7EB;
+      --g-100:#F3F4F6;--g-50:#F9FAFB;--white:#FFFFFF;
+      --font:'Figtree',system-ui,sans-serif;
+      --r-4:4px;--r-8:8px;--r-12:12px;--r-16:16px;--r-24:24px;
+      --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-24:24px;--sp-32:32px;--sp-48:48px;
+    
+      /* ── Paleta de marca Cambio J ── */
+      --cj-morado:        #7C3AED;
+      --cj-morado-medio:  #A78BFA;
+      --cj-morado-claro:  #DDD6FE;
+      --cj-turquesa:      #06B6D4;
+      --cj-turquesa-claro:#67E8F9;
+      --cj-rosa:          #EC4899;
+      --cj-fondo:         #F8FAFC;
+      --cj-texto:         #1E293B;
+      --cj-texto-claro:   #64748B;
+
+      /* Semánticos de marca */
+      --brand-primary:    var(--cj-morado);
+      --brand-secondary:  var(--cj-turquesa);
+      --brand-accent:     var(--cj-rosa);
+      --brand-surface:    var(--cj-morado-claro);
+}
+    html { background:var(--cj-fondo); }
+    body { font-family:var(--font);color:var(--g-900);-webkit-font-smoothing:antialiased;min-height:100dvh;max-width:390px;margin:0 auto;display:flex;flex-direction:column; }
+
+    /* Navbar */
+    .navbar { position:sticky;top:0;z-index:50;background:var(--white);border-bottom:1px solid var(--g-200);height:56px;padding:0 var(--sp-16);display:flex;align-items:center;justify-content:space-between; }
+    .nav-back { display:flex;align-items:center;gap:var(--sp-8);text-decoration:none;color:var(--g-600);font-size:13px;font-weight:600;padding:var(--sp-8);border-radius:var(--r-8);transition:color 0.15s; }
+    .nav-back:hover { color:var(--g-900); }
+    .nav-back svg { width:16px;height:16px;stroke:currentColor; }
+    .nav-center { position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:var(--sp-8); }
+    .nav-logo { width:28px;height:28px;background:var(--cj-morado);border-radius:var(--r-8);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--white); }
+    .nav-title { font-size:14px;font-weight:700; }
+    .nav-step { font-size:11px;font-weight:600;color:var(--g-500);background:var(--g-100);border:1px solid var(--g-200);border-radius:var(--r-4);padding:3px var(--sp-8); }
+
+    /* Progress */
+    .progress-bar { background:var(--white);border-bottom:1px solid var(--g-200);padding:var(--sp-12) var(--sp-16); }
+    .steps { display:flex;align-items:center; }
+    .step { display:flex;align-items:center;flex:1; }
+    .step-circle { width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;border:2px solid var(--g-200);color:var(--g-400);background:var(--white); }
+    .step-circle.active { background:var(--g-900);border-color:var(--g-900);color:var(--white); }
+    .step-circle.done   { background:var(--g-500);border-color:var(--g-500);color:var(--white); }
+    .step-line { flex:1;height:2px;background:var(--g-200);margin:0 var(--sp-4); }
+    .step-line.done { background:var(--g-500); }
+    .step-labels { display:flex;margin-top:var(--sp-8); }
+    .step-label { flex:1;text-align:center;font-size:9px;font-weight:700;color:var(--g-400);text-transform:uppercase;letter-spacing:0.8px;line-height:1.3; }
+    .step-label.active { color:var(--g-800); }
+    .step-label.done   { color:var(--g-500); }
+
+    main { flex:1;padding:var(--sp-16) var(--sp-16) var(--sp-48);display:flex;flex-direction:column;gap:var(--sp-12); }
+
+    /* Resumen mini */
+    .resumen-mini { background:var(--g-800);border-radius:var(--r-12);padding:var(--sp-12) var(--sp-16);display:flex;align-items:center;justify-content:space-between; }
+    .res-grupo { display:flex;flex-direction:column;gap:2px; }
+    .res-tag { font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-400); }
+    .res-val { font-size:18px;font-weight:800;color:var(--white);font-variant-numeric:tabular-nums; }
+    .res-sub { font-size:10px;color:var(--g-400); }
+    .res-div { width:1px;height:36px;background:var(--g-600); }
+
+    /* Vendedor badge */
+    .vendedor-mini { background:var(--g-700);border-radius:var(--r-8);padding:var(--sp-8) var(--sp-12);display:flex;align-items:center;gap:var(--sp-8); }
+    .vend-avatar { width:28px;height:28px;background:var(--g-500);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--white);flex-shrink:0; }
+    .vend-info { flex:1; }
+    .vend-nombre { font-size:12px;font-weight:700;color:var(--white); }
+    .vend-codigo { font-size:10px;color:var(--g-400);font-family:monospace; }
+    .vend-check svg { width:16px;height:16px;stroke:var(--g-300); }
+
+    /* Section title */
+    .section-title { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-600);padding:0 var(--sp-4); }
+
+    /* Cuentas list */
+    .cuentas-list { display:flex;flex-direction:column;gap:var(--sp-8); }
+
+    .cuenta-card {
+      background:var(--white);border:2px solid var(--g-200);border-radius:var(--r-12);
+      padding:var(--sp-16);cursor:pointer;
+      transition:border-color 0.15s,background 0.15s;
+      display:flex;align-items:center;gap:var(--sp-16);
+    }
+    .cuenta-card:hover { border-color:var(--g-400); }
+    .cuenta-card.is-selected { border-color:var(--g-800);background:var(--g-50); }
+
+    .cuenta-radio {
+      width:20px;height:20px;border:2px solid var(--g-300);border-radius:50%;
+      flex-shrink:0;display:flex;align-items:center;justify-content:center;
+      transition:border-color 0.15s;
+    }
+    .cuenta-card.is-selected .cuenta-radio { border-color:var(--g-800); }
+    .cuenta-radio-dot {
+      width:10px;height:10px;background:var(--g-800);border-radius:50%;
+      display:none;
+    }
+    .cuenta-card.is-selected .cuenta-radio-dot { display:block; }
+
+    .cuenta-banco-logo {
+      width:40px;height:40px;background:var(--g-100);border-radius:var(--r-8);
+      border:1px solid var(--g-200);
+      display:flex;align-items:center;justify-content:center;
+      font-size:10px;font-weight:800;color:var(--g-600);
+      flex-shrink:0;text-align:center;line-height:1.2;
+    }
+
+    .cuenta-info { flex:1;min-width:0; }
+    .cuenta-banco { font-size:14px;font-weight:800;color:var(--g-900); }
+    .cuenta-titular { font-size:12px;color:var(--g-600);font-weight:500;margin-top:2px; }
+    .cuenta-numero { font-size:13px;color:var(--g-700);font-weight:700;font-family:monospace;margin-top:var(--sp-4);letter-spacing:0.5px; }
+    .cuenta-tipo { display:inline-block;background:var(--g-100);border:1px solid var(--g-200);border-radius:var(--r-4);padding:2px var(--sp-8);font-size:10px;font-weight:700;color:var(--g-600);margin-top:var(--sp-4); }
+
+    /* Estado vacío */
+    .estado-vacio {
+      background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);
+      padding:var(--sp-48) var(--sp-24);text-align:center;
+    }
+    .vacio-icon { width:56px;height:56px;background:var(--g-100);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto var(--sp-16); }
+    .vacio-icon svg { width:24px;height:24px;stroke:var(--g-400); }
+    .vacio-title { font-size:15px;font-weight:700;color:var(--g-900);margin-bottom:var(--sp-8); }
+    .vacio-sub { font-size:12px;color:var(--g-500);line-height:1.6; }
+
+    /* Info copiar */
+    .copy-hint { display:flex;align-items:center;gap:var(--sp-8);background:var(--g-50);border:1px solid var(--g-200);border-radius:var(--r-8);padding:var(--sp-12);font-size:12px;color:var(--g-600); }
+    .copy-hint svg { width:14px;height:14px;stroke:var(--g-400);flex-shrink:0; }
+
+    /* CTA */
+    .cta-wrap { background:var(--white);border-top:1px solid var(--g-200);padding:var(--sp-16); }
+    .btn-continuar { width:100%;background:var(--g-900);color:var(--white);border:none;border-radius:var(--r-12);padding:var(--sp-16);font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;text-align:center;transition:background 0.15s,transform 0.1s; }
+    .btn-continuar:hover { background:var(--g-700); }
+    .btn-continuar:active { transform:scale(0.98); }
+    .btn-continuar:disabled { background:var(--g-200);color:var(--g-400);cursor:not-allowed; }
+
+    .wf-note { display:inline-block;background:var(--g-200);border:1px dashed var(--g-400);border-radius:var(--r-4);padding:1px var(--sp-4);font-size:8px;font-weight:700;color:var(--g-600);font-family:monospace;vertical-align:middle;margin-left:var(--sp-4);cursor:help; }
+  
+    /* ── Sobrescrituras de marca Cambio J ─────────────────────────────────── */
+    .topbar,
+    .nav-logo,
+    .header-dark { background: var(--cj-morado) !important; }
+
+    /* Botones primarios */
+    .btn-primary,
+    button[class*="btn"]:not(.btn-ghost):not(.btn-outline),
+    a.btn:not(.btn-ghost) {
+      background: var(--cj-morado);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--cj-morado-medio); }
+
+    /* Fondo de secciones de marca */
+    .section-brand { background: var(--cj-morado-claro); }
+
+    /* Highlight numérico (montos, KPIs) */
+    .kpi-val.highlight,
+    .tx-monto.positive { color: var(--cj-turquesa) !important; }
+
+    /* Alert badge */
+    .acceso-badge.alert-badge { background: var(--cj-rosa) !important; }
+
+    /* Alerta icon */
+    .alerta-icon { background: rgba(236,72,153,0.15) !important; }
+    .alerta-icon svg { stroke: var(--cj-rosa) !important; }
+
+    /* Topbar: ajustar colores de texto secundario */
+    .topbar-role,
+    .topbar-date { color: var(--cj-morado-claro); }
+
+    .topbar-avatar {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    /* Bottom-nav active */
+    .nav-item.active .nav-icon svg { stroke: var(--cj-morado); }
+    .nav-item.active .nav-label { color: var(--cj-morado); }
+
+    /* Tabs activos */
+    .tab.active {
+      color: var(--cj-morado);
+      border-bottom-color: var(--cj-morado);
+    }
+
+    /* Status chips */
+    .chip-pending  { background: #FEF3C7; color: #92400E; }
+    .chip-approved { background: #D1FAE5; color: #065F46; }
+    .chip-rejected { background: #FEE2E2; color: #991B1B; }
+    .chip-paid     { background: var(--cj-morado-claro); color: var(--cj-morado); }
+
+    /* Inputs focus */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--cj-morado) !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    }
+
+    /* Links */
+    a.link-primary { color: var(--cj-morado); }
+
+    /* KPI cards con acento */
+    .kpi-block { border-left: 3px solid var(--cj-turquesa); }
+
+    /* Scroll indicator / progress bar */
+    .progress-bar { background: var(--cj-morado); }
+    /* ──────────────────────────────────────────────────────────────────────── */
+</style>
+</head>
+<body>
+
+  <nav class="navbar" role="navigation" aria-label="Navegación">
+    <a href="01_ingresar-codigo-vendedor.html" class="nav-back" aria-label="Volver">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Volver
+    </a>
+    <div class="nav-center">
+      <div class="nav-logo" aria-hidden="true">CJ</div>
+      <span class="nav-title">Depósito</span>
+    </div>
+    <span class="nav-step">Paso 4/5</span>
+  </nav>
+
+  <div class="progress-bar">
+    <div class="steps">
+      <div class="step"><div class="step-circle done">✓</div><div class="step-line done"></div></div>
+      <div class="step"><div class="step-circle done">✓</div><div class="step-line done"></div></div>
+      <div class="step"><div class="step-circle done">✓</div><div class="step-line done"></div></div>
+      <div class="step"><div class="step-circle active">4</div><div class="step-line"></div></div>
+      <div class="step"><div class="step-circle">5</div></div>
+    </div>
+    <div class="step-labels">
+      <span class="step-label done">Cotización</span>
+      <span class="step-label done">Cuenta</span>
+      <span class="step-label done">Vendedor</span>
+      <span class="step-label active">Depósito</span>
+      <span class="step-label">Listo</span>
+    </div>
+  </div>
+
+  <main role="main">
+
+    <!-- Resumen mini -->
+    <div class="resumen-mini" aria-label="Resumen del envío">
+      <div class="res-grupo">
+        <div class="res-tag">Tú envías</div>
+        <div class="res-val" id="res-envia">S/ 500.00</div>
+        <div class="res-sub">Soles</div>
+      </div>
+      <div class="res-div" aria-hidden="true"></div>
+      <div class="res-grupo" style="text-align:right">
+        <div class="res-tag">Recibe</div>
+        <div class="res-val" id="res-recibe">Bs. 7,100.00</div>
+        <div class="res-sub">Bolívares 🇻🇪</div>
+      </div>
+    </div>
+
+    <!-- Vendedor asignado -->
+    <div class="vendedor-mini" aria-label="Vendedor asignado">
+      <div class="vend-avatar" id="vend-avatar">MG</div>
+      <div class="vend-info">
+        <div class="vend-nombre" id="vend-nombre">María González</div>
+        <div class="vend-codigo" id="vend-codigo">VND-001</div>
+      </div>
+      <div class="vend-check" aria-label="Verificado" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+    </div>
+
+    <!-- Lista de cuentas -->
+    <p class="section-title">
+      Selecciona la cuenta para depositar
+      <span class="wf-note" title="Cuentas habilitadas por el dueño para este vendedor. El cliente solo ve las asignadas.">admin</span>
+    </p>
+
+    <!-- Estado: con cuentas -->
+    <div class="cuentas-list" id="cuentas-list" role="radiogroup" aria-label="Cuentas bancarias disponibles">
+      <!-- Generado por JS -->
+    </div>
+
+    <!-- Estado: sin cuentas activas -->
+    <div class="estado-vacio" id="estado-vacio" style="display:none" role="alert">
+      <div class="vacio-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      </div>
+      <h2 class="vacio-title">Sin cuentas disponibles</h2>
+      <p class="vacio-sub">Tu vendedor no tiene cuentas activas en este momento. Contáctalo para obtener más información.</p>
+    </div>
+
+    <!-- Hint: cómo depositar -->
+    <div class="copy-hint" role="note">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+      <span>Deposita el monto exacto en la cuenta seleccionada, luego sube tu comprobante en el siguiente paso.</span>
+    </div>
+
+  </main>
+
+  <!-- CTA fijo -->
+  <div class="cta-wrap">
+    <button class="btn-continuar" id="btn-continuar" onclick="continuar()" disabled aria-label="Continuar a subir comprobante">
+      Subir comprobante →
+    </button>
+  </div>
+
+  <script>
+    const CUENTAS_MOCK = [
+      { id:1, banco:'BCP', titular:'Cambio J SAC', numero:'191-12345678-0-12', tipo:'Cuenta Corriente', activa:true },
+      { id:2, banco:'Interbank', titular:'Cambio J SAC', numero:'200-3009876543', tipo:'Cuenta Ahorros', activa:true },
+      { id:3, banco:'BBVA', titular:'Cambio J SAC', numero:'0011-0389-01-00123456', tipo:'Cuenta Corriente', activa:true },
+    ];
+
+    let cuentaSeleccionada = null;
+
+    function cargarDatos() {
+      const raw = sessionStorage.getItem('pendingTransaction');
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      const fmt = n => new Intl.NumberFormat('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(parseFloat(n));
+      document.getElementById('res-envia').textContent = `S/ ${fmt(d.amount_origen)}`;
+      document.getElementById('res-recibe').textContent = `Bs. ${fmt(d.amount_ves)}`;
+      if (d.vendedor_nombre) {
+        const ini = d.vendedor_nombre.split(' ').map(p=>p[0]).join('').slice(0,2);
+        document.getElementById('vend-avatar').textContent = ini;
+        document.getElementById('vend-nombre').textContent = d.vendedor_nombre;
+        document.getElementById('vend-codigo').textContent = d.vendedor_codigo || '';
+      }
+    }
+
+    function renderCuentas() {
+      const list = document.getElementById('cuentas-list');
+      const activas = CUENTAS_MOCK.filter(c => c.activa);
+      if (activas.length === 0) {
+        document.getElementById('estado-vacio').style.display = 'block';
+        list.style.display = 'none';
+        return;
+      }
+      activas.forEach(c => {
+        const card = document.createElement('div');
+        card.className = 'cuenta-card';
+        card.setAttribute('role','radio');
+        card.setAttribute('aria-checked','false');
+        card.setAttribute('tabindex','0');
+        card.setAttribute('aria-label', `${c.banco} - ${c.numero}`);
+        card.innerHTML = `
+          <div class="cuenta-radio"><div class="cuenta-radio-dot"></div></div>
+          <div class="cuenta-banco-logo">${c.banco}</div>
+          <div class="cuenta-info">
+            <div class="cuenta-banco">${c.banco}</div>
+            <div class="cuenta-titular">${c.titular}</div>
+            <div class="cuenta-numero">${c.numero}</div>
+            <span class="cuenta-tipo">${c.tipo}</span>
+          </div>
+        `;
+        card.onclick = () => seleccionar(card, c);
+        card.onkeydown = e => { if(e.key==='Enter'||e.key===' ') seleccionar(card, c); };
+        list.appendChild(card);
+      });
+    }
+
+    function seleccionar(card, cuenta) {
+      document.querySelectorAll('.cuenta-card').forEach(c => {
+        c.classList.remove('is-selected');
+        c.setAttribute('aria-checked','false');
+      });
+      card.classList.add('is-selected');
+      card.setAttribute('aria-checked','true');
+      cuentaSeleccionada = cuenta;
+      document.getElementById('btn-continuar').disabled = false;
+      const raw = JSON.parse(sessionStorage.getItem('pendingTransaction')||'{}');
+      raw.cuenta_id    = cuenta.id;
+      raw.cuenta_banco = cuenta.banco;
+      raw.cuenta_numero = cuenta.numero;
+      sessionStorage.setItem('pendingTransaction', JSON.stringify(raw));
+    }
+
+    function continuar() {
+      if (!cuentaSeleccionada) return;
+      window.location.href = '03_subir-comprobante.html';
+    }
+
+    if (!sessionStorage.getItem('pendingTransaction')) {
+      sessionStorage.setItem('pendingTransaction', JSON.stringify({
+        amount_origen:'500.00',amount_ves:'7100.00',from_currency:'PEN',
+        pair_id:1,ves_rate:14.20,usd_bcv_rate:36.50,eur_bcv_rate:40.20,
+        exchange_rate_id:1,vendedor_codigo:'VND-001',vendedor_nombre:'María González'
+      }));
+    }
+    cargarDatos();
+    renderCuentas();
+  </script>
+</body>
+</html>
+
+<!-- ============================================================
+     UX NOTES — Cuentas Bancarias
+     Rol: Cliente autenticado
+     Módulo: screens/02_envio/02_cuentas-bancarias.html
+     ============================================================
+     Decisiones:
+     - Radio cards en lugar de select → mobile-first: tap target grande,
+       toda la info del banco visible sin abrir un dropdown.
+     - Logo del banco como bloque de texto → wireframe neutral;
+       en Figma se reemplaza por logos reales con color de marca.
+     - CTA bloqueado hasta selección → error prevention (Nielsen #5).
+     - Resumen mini siempre visible → ancla motivacional del flujo.
+     - Estado vacío explícito → el dueño puede quitar todas las cuentas;
+       el cliente necesita un mensaje claro y una salida.
+     - Cuenta seleccionada persiste en sessionStorage → si el usuario
+       navega atrás y regresa, la selección se puede restaurar.
+
+     Estados cubiertos:
+     - [x] Con cuentas → lista de radio cards
+     - [x] Cuenta seleccionada → borde oscuro, radio dot visible, CTA habilitado
+     - [x] Sin cuentas activas → estado vacío con mensaje
+     - [ ] Cargando cuentas → skeleton (iteración 2)
+
+     Componentes: transaction-card → _components/transaction-card.html
+     Flujo: ← 01_ingresar-codigo-vendedor | → 03_subir-comprobante
+     ============================================================ -->

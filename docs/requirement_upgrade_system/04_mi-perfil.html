@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>[WF] 04_mi-perfil — Cambio J</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --g-900:#111827;--g-800:#1F2937;--g-700:#374151;--g-600:#4B5563;
+      --g-500:#6B7280;--g-400:#9CA3AF;--g-300:#D1D5DB;--g-200:#E5E7EB;
+      --g-100:#F3F4F6;--g-50:#F9FAFB;--white:#FFFFFF;
+      --font:'Figtree',system-ui,sans-serif;
+      --r-4:4px;--r-8:8px;--r-12:12px;--r-16:16px;--r-24:24px;--r-f:999px;
+      --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-24:24px;--sp-32:32px;--sp-48:48px;
+      --nav-h:64px;
+    
+      /* ── Paleta de marca Cambio J ── */
+      --cj-morado:        #7C3AED;
+      --cj-morado-medio:  #A78BFA;
+      --cj-morado-claro:  #DDD6FE;
+      --cj-turquesa:      #06B6D4;
+      --cj-turquesa-claro:#67E8F9;
+      --cj-rosa:          #EC4899;
+      --cj-fondo:         #F8FAFC;
+      --cj-texto:         #1E293B;
+      --cj-texto-claro:   #64748B;
+
+      /* Semánticos de marca */
+      --brand-primary:    var(--cj-morado);
+      --brand-secondary:  var(--cj-turquesa);
+      --brand-accent:     var(--cj-rosa);
+      --brand-surface:    var(--cj-morado-claro);
+}
+    html { background:var(--cj-fondo); }
+    body { font-family:var(--font);color:var(--g-900);-webkit-font-smoothing:antialiased;min-height:100dvh;max-width:390px;margin:0 auto;display:flex;flex-direction:column; }
+
+    /* TOPBAR */
+    .topbar { background:var(--white);border-bottom:1px solid var(--g-200);padding:var(--sp-16);display:flex;align-items:center;justify-content:space-between; }
+    .topbar-title { font-size:20px;font-weight:800;color:var(--g-900); }
+    .btn-editar { display:flex;align-items:center;gap:var(--sp-4);background:var(--g-100);border:1.5px solid var(--g-200);border-radius:var(--r-8);padding:var(--sp-8) var(--sp-12);font-family:var(--font);font-size:13px;font-weight:700;color:var(--g-700);cursor:pointer;transition:all 0.15s; }
+    .btn-editar:hover { border-color:var(--g-400); }
+    .btn-editar.is-editing { background:var(--g-900);color:var(--white);border-color:var(--g-900); }
+    .btn-editar svg { width:14px;height:14px;stroke:currentColor; }
+
+    main { flex:1;padding:var(--sp-16) var(--sp-16) calc(var(--nav-h) + var(--sp-32));display:flex;flex-direction:column;gap:var(--sp-12); }
+
+    /* ── AVATAR HERO ── */
+    .avatar-hero { background:var(--g-800);border-radius:var(--r-16);padding:var(--sp-24);display:flex;align-items:center;gap:var(--sp-16); }
+    .avatar-circle { width:64px;height:64px;background:var(--g-600);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:var(--white);flex-shrink:0;position:relative; }
+    .avatar-edit-btn { position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;background:var(--white);border-radius:50%;display:none;align-items:center;justify-content:center;cursor:pointer; }
+    .avatar-edit-btn svg { width:12px;height:12px;stroke:var(--g-700); }
+    .avatar-info { flex:1; }
+    .avatar-name { font-size:18px;font-weight:800;color:var(--white); }
+    .avatar-email { font-size:12px;color:var(--g-400);margin-top:var(--sp-4); }
+    .avatar-badge { display:inline-flex;align-items:center;gap:var(--sp-4);background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:var(--r-f);padding:4px var(--sp-8);font-size:10px;font-weight:700;color:var(--g-300);margin-top:var(--sp-8); }
+    .avatar-badge svg { width:10px;height:10px;stroke:currentColor; }
+
+    /* ── SECCIÓN DE CAMPOS ── */
+    .section-label { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-500);padding:0 var(--sp-4); }
+
+    .fields-card { background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.04); }
+
+    /* Fila de campo */
+    .field-row { display:flex;align-items:center;padding:var(--sp-16);border-bottom:1px solid var(--g-200);gap:var(--sp-12); }
+    .field-row:last-child { border-bottom:none; }
+
+    .field-icon-wrap { width:36px;height:36px;background:var(--g-100);border-radius:var(--r-8);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .field-icon-wrap svg { width:16px;height:16px;stroke:var(--g-500); }
+
+    .field-content { flex:1;min-width:0; }
+    .field-lbl { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--g-400);margin-bottom:var(--sp-4); }
+
+    /* Estado: lectura */
+    .field-val { font-size:15px;font-weight:600;color:var(--g-900); }
+    .field-val.placeholder { color:var(--g-300);font-weight:400; }
+
+    /* Estado: edición */
+    .field-input {
+      width:100%;border:none;outline:none;background:transparent;
+      font-family:var(--font);font-size:15px;font-weight:600;color:var(--g-900);
+      padding:0;display:none;
+      border-bottom:2px solid var(--g-800);
+      caret-color:var(--g-700);
+    }
+    .field-input.is-active { display:block; }
+    .field-val.is-hidden { display:none; }
+
+    /* Campo no editable */
+    .field-readonly .field-val { color:var(--g-400); }
+
+    /* Indicador de cambio pendiente */
+    .field-changed::after { content:'•';color:var(--g-600);font-size:18px;margin-left:var(--sp-4);line-height:1; }
+
+    /* ── SECCIÓN SEGURIDAD ── */
+    .security-row { display:flex;align-items:center;padding:var(--sp-16);border-bottom:1px solid var(--g-200);gap:var(--sp-12);cursor:pointer;transition:background 0.15s;text-decoration:none;color:inherit; }
+    .security-row:hover { background:var(--g-50); }
+    .security-row:last-child { border-bottom:none; }
+    .sec-icon-wrap { width:36px;height:36px;background:var(--g-100);border-radius:var(--r-8);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .sec-icon-wrap svg { width:16px;height:16px;stroke:var(--g-600); }
+    .sec-info { flex:1; }
+    .sec-title { font-size:14px;font-weight:700;color:var(--g-900); }
+    .sec-sub { font-size:12px;color:var(--g-500);margin-top:2px; }
+    .sec-arrow svg { width:16px;height:16px;stroke:var(--g-300); }
+
+    /* ── GUARDAR ── */
+    .guardar-wrap { display:none;flex-direction:column;gap:var(--sp-8); }
+    .guardar-wrap.is-visible { display:flex; }
+
+    .btn-guardar { width:100%;background:var(--g-900);color:var(--white);border:none;border-radius:var(--r-12);padding:var(--sp-16);font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;text-align:center;transition:background 0.15s,transform 0.1s;display:flex;align-items:center;justify-content:center;gap:var(--sp-8); }
+    .btn-guardar:hover { background:var(--g-700); }
+    .btn-guardar:active { transform:scale(0.98); }
+    .spinner { display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:var(--white);border-radius:50%;animation:spin 0.7s linear infinite; }
+    .btn-guardar.is-loading .spinner { display:block; }
+    .btn-guardar.is-loading .btn-txt { opacity:0.7; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .btn-cancelar { width:100%;background:transparent;color:var(--g-500);border:1.5px solid var(--g-200);border-radius:var(--r-12);padding:var(--sp-12);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:border-color 0.15s; }
+    .btn-cancelar:hover { border-color:var(--g-400); }
+
+    /* Feedback éxito */
+    .feedback-ok { display:none;background:var(--g-100);border:1.5px solid var(--g-300);border-radius:var(--r-8);padding:var(--sp-12) var(--sp-16);font-size:13px;font-weight:600;color:var(--g-700);align-items:center;gap:var(--sp-8); }
+    .feedback-ok.is-visible { display:flex; }
+    .feedback-ok svg { width:16px;height:16px;stroke:var(--g-600); }
+
+    /* ── CERRAR SESIÓN ── */
+    .logout-btn { width:100%;background:transparent;color:var(--g-600);border:1.5px solid var(--g-200);border-radius:var(--r-12);padding:var(--sp-12);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:var(--sp-8);transition:border-color 0.15s,color 0.15s; }
+    .logout-btn:hover { border-color:var(--g-400);color:var(--g-900); }
+    .logout-btn svg { width:16px;height:16px;stroke:currentColor; }
+
+    /* Bottom nav */
+    .bottom-nav { position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:var(--white);border-top:1px solid var(--g-200);height:var(--nav-h);display:flex;align-items:center;justify-content:space-around;padding:0 var(--sp-8);z-index:50; }
+    .nav-item { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:var(--sp-8) 0;cursor:pointer;text-decoration:none;border:none;background:none;font-family:var(--font);transition:color 0.15s;color:var(--g-400); }
+    .nav-item.active { color:var(--g-900); }
+    .nav-item svg { width:22px;height:22px;stroke:currentColor; }
+    .nav-item span { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px; }
+
+    .wf-note { display:inline-block;background:var(--g-200);border:1px dashed var(--g-400);border-radius:var(--r-4);padding:1px var(--sp-4);font-size:8px;font-weight:700;color:var(--g-600);font-family:monospace;vertical-align:middle;margin-left:var(--sp-4);cursor:help; }
+  
+    /* ── Sobrescrituras de marca Cambio J ─────────────────────────────────── */
+    .topbar,
+    .nav-logo,
+    .header-dark { background: var(--cj-morado) !important; }
+
+    /* Botones primarios */
+    .btn-primary,
+    button[class*="btn"]:not(.btn-ghost):not(.btn-outline),
+    a.btn:not(.btn-ghost) {
+      background: var(--cj-morado);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--cj-morado-medio); }
+
+    /* Fondo de secciones de marca */
+    .section-brand { background: var(--cj-morado-claro); }
+
+    /* Highlight numérico (montos, KPIs) */
+    .kpi-val.highlight,
+    .tx-monto.positive { color: var(--cj-turquesa) !important; }
+
+    /* Alert badge */
+    .acceso-badge.alert-badge { background: var(--cj-rosa) !important; }
+
+    /* Alerta icon */
+    .alerta-icon { background: rgba(236,72,153,0.15) !important; }
+    .alerta-icon svg { stroke: var(--cj-rosa) !important; }
+
+    /* Topbar: ajustar colores de texto secundario */
+    .topbar-role,
+    .topbar-date { color: var(--cj-morado-claro); }
+
+    .topbar-avatar {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    /* Bottom-nav active */
+    .nav-item.active .nav-icon svg { stroke: var(--cj-morado); }
+    .nav-item.active .nav-label { color: var(--cj-morado); }
+
+    /* Tabs activos */
+    .tab.active {
+      color: var(--cj-morado);
+      border-bottom-color: var(--cj-morado);
+    }
+
+    /* Status chips */
+    .chip-pending  { background: #FEF3C7; color: #92400E; }
+    .chip-approved { background: #D1FAE5; color: #065F46; }
+    .chip-rejected { background: #FEE2E2; color: #991B1B; }
+    .chip-paid     { background: var(--cj-morado-claro); color: var(--cj-morado); }
+
+    /* Inputs focus */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--cj-morado) !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    }
+
+    /* Links */
+    a.link-primary { color: var(--cj-morado); }
+
+    /* KPI cards con acento */
+    .kpi-block { border-left: 3px solid var(--cj-turquesa); }
+
+    /* Scroll indicator / progress bar */
+    .progress-bar { background: var(--cj-morado); }
+    /* ──────────────────────────────────────────────────────────────────────── */
+</style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <h1 class="topbar-title">Mi perfil</h1>
+    <button class="btn-editar" id="btn-editar" onclick="toggleEdicion()" aria-label="Editar perfil">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+      <span id="btn-editar-txt">Editar</span>
+    </button>
+  </header>
+
+  <main role="main" aria-label="Mi perfil">
+
+    <!-- Avatar hero -->
+    <div class="avatar-hero" aria-label="Información de tu cuenta">
+      <div class="avatar-circle" id="avatar-circle">
+        JP
+        <div class="avatar-edit-btn" id="avatar-edit-btn" aria-label="Cambiar foto" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+      </div>
+      <div class="avatar-info">
+        <div class="avatar-name" id="av-nombre">Juan Pérez</div>
+        <div class="avatar-email" id="av-email">juan@ejemplo.com</div>
+        <div class="avatar-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Cliente verificado
+        </div>
+      </div>
+    </div>
+
+    <!-- Datos personales -->
+    <p class="section-label">Datos personales</p>
+    <div class="fields-card">
+
+      <!-- Nombre -->
+      <div class="field-row" id="row-nombre">
+        <div class="field-icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="field-content">
+          <div class="field-lbl">Nombre completo</div>
+          <div class="field-val" id="val-nombre">Juan Pérez</div>
+          <input class="field-input" id="inp-nombre" type="text" value="Juan Pérez" oninput="marcarCambio('nombre')" aria-label="Nombre completo">
+        </div>
+      </div>
+
+      <!-- Email — no editable (es el login) -->
+      <div class="field-row field-readonly">
+        <div class="field-icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <div class="field-content">
+          <div class="field-lbl">
+            Correo electrónico
+            <span class="wf-note" title="No editable — es el identificador de la cuenta">readonly</span>
+          </div>
+          <div class="field-val">juan@ejemplo.com</div>
+        </div>
+      </div>
+
+      <!-- Teléfono -->
+      <div class="field-row" id="row-telefono">
+        <div class="field-icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.53 2 2 0 0 1 3.59 1.37h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.1a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+        <div class="field-content">
+          <div class="field-lbl">Teléfono</div>
+          <div class="field-val" id="val-telefono">+51 999 000 000</div>
+          <input class="field-input" id="inp-telefono" type="tel" value="+51 999 000 000" oninput="marcarCambio('telefono')" aria-label="Teléfono">
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Seguridad -->
+    <p class="section-label">Seguridad</p>
+    <div class="fields-card">
+
+      <a href="#" class="security-row" aria-label="Cambiar contraseña">
+        <div class="sec-icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div class="sec-info">
+          <div class="sec-title">Cambiar contraseña</div>
+          <div class="sec-sub">Última actualización: nunca</div>
+        </div>
+        <div class="sec-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </a>
+
+      <div class="security-row" aria-label="Notificaciones">
+        <div class="sec-icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div class="sec-info">
+          <div class="sec-title">Notificaciones</div>
+          <div class="sec-sub">Alertas de estado de envíos</div>
+        </div>
+        <div class="sec-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Feedback éxito -->
+    <div class="feedback-ok" id="feedback-ok" role="status" aria-live="polite">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      Cambios guardados correctamente.
+    </div>
+
+    <!-- Botones guardar / cancelar -->
+    <div class="guardar-wrap" id="guardar-wrap">
+      <button class="btn-guardar" id="btn-guardar" onclick="guardar()">
+        <div class="spinner" aria-hidden="true"></div>
+        <span class="btn-txt">Guardar cambios</span>
+      </button>
+      <button class="btn-cancelar" onclick="cancelarEdicion()">Cancelar</button>
+    </div>
+
+    <!-- Cerrar sesión -->
+    <button class="logout-btn" onclick="cerrarSesion()" aria-label="Cerrar sesión">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Cerrar sesión
+    </button>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav" role="navigation" aria-label="Navegación principal">
+    <a href="01_historial-envios.html" class="nav-item" aria-label="Mis envíos">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span>Envíos</span>
+    </a>
+    <a href="../00_simulador/01_cotizador.html" class="nav-item" aria-label="Nuevo envío">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <span>Enviar</span>
+    </a>
+    <a href="04_mi-perfil.html" class="nav-item active" aria-label="Mi perfil" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Perfil</span>
+    </a>
+  </nav>
+
+  <script>
+    let modoEdicion = false;
+    const camposCambiados = new Set();
+
+    function toggleEdicion() {
+      modoEdicion = !modoEdicion;
+      const btn = document.getElementById('btn-editar');
+      const txt = document.getElementById('btn-editar-txt');
+      btn.classList.toggle('is-editing', modoEdicion);
+      txt.textContent = modoEdicion ? 'Editando' : 'Editar';
+
+      // Mostrar/ocultar inputs
+      ['nombre','telefono'].forEach(campo => {
+        document.getElementById(`val-${campo}`).classList.toggle('is-hidden', modoEdicion);
+        document.getElementById(`inp-${campo}`).classList.toggle('is-active', modoEdicion);
+      });
+
+      // Avatar edit btn
+      const avatarBtn = document.getElementById('avatar-edit-btn');
+      avatarBtn.style.display = modoEdicion ? 'flex' : 'none';
+
+      // Guardar wrap
+      document.getElementById('guardar-wrap').classList.toggle('is-visible', modoEdicion);
+      document.getElementById('feedback-ok').classList.remove('is-visible');
+    }
+
+    function marcarCambio(campo) {
+      camposCambiados.add(campo);
+    }
+
+    function guardar() {
+      const btn = document.getElementById('btn-guardar');
+      btn.classList.add('is-loading'); btn.disabled = true;
+
+      setTimeout(() => {
+        btn.classList.remove('is-loading'); btn.disabled = false;
+
+        // Actualizar valores en lectura
+        ['nombre','telefono'].forEach(c => {
+          const inp = document.getElementById(`inp-${c}`);
+          document.getElementById(`val-${c}`).textContent = inp.value;
+        });
+
+        // Actualizar avatar hero
+        const nombre = document.getElementById('inp-nombre').value;
+        document.getElementById('av-nombre').textContent = nombre;
+        document.getElementById('avatar-circle').childNodes[0].textContent =
+          nombre.split(' ').map(p=>p[0]).join('').slice(0,2);
+
+        camposCambiados.clear();
+        cancelarEdicion();
+        document.getElementById('feedback-ok').classList.add('is-visible');
+        setTimeout(() => document.getElementById('feedback-ok').classList.remove('is-visible'), 3500);
+      }, 1200);
+    }
+
+    function cancelarEdicion() {
+      modoEdicion = false;
+      document.getElementById('btn-editar').classList.remove('is-editing');
+      document.getElementById('btn-editar-txt').textContent = 'Editar';
+      ['nombre','telefono'].forEach(campo => {
+        document.getElementById(`val-${campo}`).classList.remove('is-hidden');
+        document.getElementById(`inp-${campo}`).classList.remove('is-active');
+      });
+      document.getElementById('avatar-edit-btn').style.display = 'none';
+      document.getElementById('guardar-wrap').classList.remove('is-visible');
+    }
+
+    function cerrarSesion() {
+      sessionStorage.clear();
+      alert('[WIREFRAME] Sesión cerrada.\n\n→ Redirect: screens/01_auth/02_login.html');
+    }
+  </script>
+
+</body>
+</html>
+
+<!-- ============================================================
+     UX NOTES — Mi Perfil
+     Rol: Cliente autenticado
+     Módulo: screens/03_cliente/04_mi-perfil.html
+     ============================================================
+     Decisiones:
+     - Inline editing (mismo campo, no pantalla separada) → reduce
+       fricción: el usuario ve el dato, hace clic en Editar, edita
+       en el mismo lugar, guarda. Sin navegación extra.
+     - Email no editable → es el identificador de la cuenta; cambiarlo
+       requiere flujo de verificación separado (fuera del scope).
+     - Botones Guardar / Cancelar aparecen solo en modo edición →
+       Progressive disclosure: la UI se simplifica cuando no hay
+       acción disponible.
+     - Feedback de éxito inline (no toast flotante) → el banner está
+       en el flujo, el usuario no lo pierde por scroll.
+     - Sección Seguridad separada → cambio de contraseña es una acción
+       de mayor riesgo; separarla visualmente ayuda a no confundirla
+       con edición de datos personales.
+     - Cerrar sesión al final → destructive actions al final del scroll,
+       difíciles de tocar accidentalmente (Fitts's Law aplicado).
+     - Avatar con ícono de edición en modo edición → microinteracción
+       que sugiere que la foto es también editable.
+
+     Estados cubiertos:
+     - [x] Lectura — datos en texto, sin inputs visibles
+     - [x] Editando — inputs activos, botones guardar/cancelar
+     - [x] Guardando — spinner en botón, deshabilitado
+     - [x] Guardado — feedback de éxito, regresa a lectura
+     - [x] Avatar actualizado tras guardar
+
+     Componentes reutilizados:
+     - bottom-nav-cliente → _components/bottom-nav-cliente.html
+     - .field-row (editable) → _components/profile-field.html
+
+     Flujo:
+     - Cerrar sesión → 01_auth/02_login.html
+     - Cambiar contraseña → pendiente (fuera de scope actual)
+     ============================================================ -->

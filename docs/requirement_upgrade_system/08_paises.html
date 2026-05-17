@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>[WF] 05/08_paises — Cambio J Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --g-900:#111827;--g-800:#1F2937;--g-700:#374151;--g-600:#4B5563;
+      --g-500:#6B7280;--g-400:#9CA3AF;--g-300:#D1D5DB;--g-200:#E5E7EB;
+      --g-100:#F3F4F6;--g-50:#F9FAFB;--white:#FFFFFF;
+      --font:'Figtree',system-ui,sans-serif;
+      --r-4:4px;--r-8:8px;--r-12:12px;--r-16:16px;--r-f:999px;
+      --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-24:24px;--sp-32:32px;
+      --nav-h:64px;
+    }
+    html { background:var(--cj-fondo)}
+    body{font-family:var(--font);color:var(--g-900);-webkit-font-smoothing:antialiased;min-height:100dvh;max-width:390px;margin:0 auto;display:flex;flex-direction:column}
+
+    .topbar{background:var(--cj-morado);padding:var(--sp-16);display:flex;align-items:center;justify-content:space-between}
+    .topbar-title{font-size:20px;font-weight:800;color:var(--white)}
+    .btn-nuevo{display:flex;align-items:center;gap:var(--sp-4);background:var(--white);color:var(--g-900);border:none;border-radius:var(--r-8);padding:var(--sp-8) var(--sp-12);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer}
+    .btn-nuevo svg{width:14px;height:14px;stroke:currentColor}
+
+    main{flex:1;padding:var(--sp-16) var(--sp-16) calc(var(--nav-h)+var(--sp-32));display:flex;flex-direction:column;gap:var(--sp-12)}
+
+    .section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-500)}
+
+    /* PAIS CARD */
+    .pais-card{background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+    .pais-header{padding:var(--sp-16);display:flex;align-items:center;gap:var(--sp-12);cursor:pointer}
+    .pais-bandera{font-size:28px;line-height:1;flex-shrink:0}
+    .pais-info{flex:1;min-width:0}
+    .pais-nombre{font-size:15px;font-weight:800;color:var(--g-900)}
+    .pais-meta{font-size:12px;color:var(--g-500);margin-top:2px;display:flex;align-items:center;gap:var(--sp-8)}
+    .pais-iso{font-family:monospace;font-size:11px;font-weight:700;background:var(--g-100);border-radius:var(--r-4);padding:1px 6px;color:var(--g-600)}
+    .pais-rol{font-size:10px;font-weight:700;border-radius:var(--r-f);padding:2px 8px}
+    .rol-ambos{background:#f0fdf4;color:#16a34a}
+    .rol-destino{background:#eff6ff;color:#2563eb}
+    .rol-origen{background:#faf5ff;color:#7c3aed}
+    .pais-toggle{flex-shrink:0}
+    .toggle{position:relative;width:44px;height:24px}
+    .toggle input{opacity:0;width:0;height:0;position:absolute}
+    .toggle-track{position:absolute;inset:0;background:var(--g-200);border-radius:var(--r-f);transition:background 0.2s;cursor:pointer}
+    .toggle input:checked+.toggle-track{background:var(--g-700)}
+    .toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;background:var(--white);border-radius:50%;transition:transform 0.2s;pointer-events:none}
+    .toggle input:checked~.toggle-thumb{transform:translateX(20px)}
+
+    .pais-stats{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--g-200)}
+    .pais-stat{padding:var(--sp-12) var(--sp-8);text-align:center;border-right:1px solid var(--g-200)}
+    .pais-stat:last-child{border-right:none}
+    .stat-val{font-size:18px;font-weight:800;color:var(--g-900)}
+    .stat-lbl{font-size:10px;color:var(--g-500);font-weight:600;margin-top:2px}
+
+    .pais-action{border-top:1px solid var(--g-200);display:flex}
+    .pais-btn{flex:1;padding:var(--sp-12);font-family:var(--font);font-size:12px;font-weight:700;color:var(--g-600);background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:var(--sp-4);transition:background 0.15s;text-decoration:none}
+    .pais-btn:hover{background:var(--g-50)}
+    .pais-btn svg{width:14px;height:14px;stroke:currentColor}
+
+    /* INACTIVO */
+    .pais-card.inactivo{opacity:0.5}
+
+    /* MODAL NUEVO PAÍS */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(3px);z-index:200;display:none;align-items:flex-end;justify-content:center}
+    .modal-overlay.open{display:flex}
+    .modal-sheet{width:100%;max-width:390px;background:var(--white);border-radius:24px 24px 0 0;padding:0 0 var(--sp-32);max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
+    .modal-handle{width:40px;height:4px;background:var(--g-200);border-radius:var(--r-f);margin:var(--sp-12) auto;flex-shrink:0}
+    .modal-title{font-size:16px;font-weight:800;padding:0 var(--sp-16) var(--sp-16);border-bottom:1px solid var(--g-200);flex-shrink:0}
+    .modal-body{padding:var(--sp-24) var(--sp-16);display:flex;flex-direction:column;gap:var(--sp-16);overflow-y:auto}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field-label{font-size:12px;font-weight:700;color:var(--g-700)}
+    .field-hint{font-size:11px;color:var(--g-400)}
+    .field-input{width:100%;padding:12px 14px;border:1.5px solid var(--g-200);border-radius:var(--r-8);font-family:var(--font);font-size:14px;font-weight:600;color:var(--g-900);outline:none;transition:border-color 0.15s}
+    .field-input:focus{border-color:var(--g-600)}
+    .field-select{width:100%;padding:12px 14px;border:1.5px solid var(--g-200);border-radius:var(--r-8);font-family:var(--font);font-size:14px;font-weight:600;color:var(--g-900);outline:none;-webkit-appearance:none;appearance:none;background:var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 14px center;padding-right:36px}
+    .field-select:focus{border-color:var(--g-600)}
+    .modal-footer{padding:0 var(--sp-16);display:flex;flex-direction:column;gap:var(--sp-8);flex-shrink:0}
+    .btn-primary{width:100%;background:var(--cj-morado);color:var(--white);border:none;border-radius:var(--r-12);padding:var(--sp-16);font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer}
+    .btn-secondary{width:100%;background:transparent;color:var(--g-500);border:1.5px solid var(--g-200);border-radius:var(--r-12);padding:var(--sp-12);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer}
+
+    /* BOTTOM NAV */
+    .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:var(--white);border-top:1px solid var(--g-200);display:flex;height:var(--nav-h);z-index:100}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--g-400);font-size:10px;font-weight:700;text-decoration:none;cursor:pointer;background:none;border:none;font-family:var(--font)}
+    .nav-item.active{color:var(--g-900)}
+    .nav-item svg{width:20px;height:20px;stroke:currentColor
+      /* ── Paleta de marca Cambio J ── */
+      --cj-morado:        #7C3AED;
+      --cj-morado-medio:  #A78BFA;
+      --cj-morado-claro:  #DDD6FE;
+      --cj-turquesa:      #06B6D4;
+      --cj-turquesa-claro:#67E8F9;
+      --cj-rosa:          #EC4899;
+      --cj-fondo:         #F8FAFC;
+      --cj-texto:         #1E293B;
+      --cj-texto-claro:   #64748B;
+
+      /* Semánticos de marca */
+      --brand-primary:    var(--cj-morado);
+      --brand-secondary:  var(--cj-turquesa);
+      --brand-accent:     var(--cj-rosa);
+      --brand-surface:    var(--cj-morado-claro);
+}
+  
+    /* ── Sobrescrituras de marca Cambio J ─────────────────────────────────── */
+    .topbar,
+    .nav-logo,
+    .header-dark { background: var(--cj-morado) !important; }
+
+    /* Botones primarios */
+    .btn-primary,
+    button[class*="btn"]:not(.btn-ghost):not(.btn-outline),
+    a.btn:not(.btn-ghost) {
+      background: var(--cj-morado);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--cj-morado-medio); }
+
+    /* Fondo de secciones de marca */
+    .section-brand { background: var(--cj-morado-claro); }
+
+    /* Highlight numérico (montos, KPIs) */
+    .kpi-val.highlight,
+    .tx-monto.positive { color: var(--cj-turquesa) !important; }
+
+    /* Alert badge */
+    .acceso-badge.alert-badge { background: var(--cj-rosa) !important; }
+
+    /* Alerta icon */
+    .alerta-icon { background: rgba(236,72,153,0.15) !important; }
+    .alerta-icon svg { stroke: var(--cj-rosa) !important; }
+
+    /* Topbar: ajustar colores de texto secundario */
+    .topbar-role,
+    .topbar-date { color: var(--cj-morado-claro); }
+
+    .topbar-avatar {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    /* Bottom-nav active */
+    .nav-item.active .nav-icon svg { stroke: var(--cj-morado); }
+    .nav-item.active .nav-label { color: var(--cj-morado); }
+
+    /* Tabs activos */
+    .tab.active {
+      color: var(--cj-morado);
+      border-bottom-color: var(--cj-morado);
+    }
+
+    /* Status chips */
+    .chip-pending  { background: #FEF3C7; color: #92400E; }
+    .chip-approved { background: #D1FAE5; color: #065F46; }
+    .chip-rejected { background: #FEE2E2; color: #991B1B; }
+    .chip-paid     { background: var(--cj-morado-claro); color: var(--cj-morado); }
+
+    /* Inputs focus */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--cj-morado) !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    }
+
+    /* Links */
+    a.link-primary { color: var(--cj-morado); }
+
+    /* KPI cards con acento */
+    .kpi-block { border-left: 3px solid var(--cj-turquesa); }
+
+    /* Scroll indicator / progress bar */
+    .progress-bar { background: var(--cj-morado); }
+    /* ──────────────────────────────────────────────────────────────────────── */
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-title">Países operativos</div>
+    <button class="btn-nuevo" onclick="abrirModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuevo país
+    </button>
+  </header>
+
+  <main>
+
+    <div class="section-label">3 países activos · 1 inactivo</div>
+
+    <!-- Perú -->
+    <div class="pais-card">
+      <div class="pais-header" onclick="irDetalle('PE')">
+        <div class="pais-bandera">🇵🇪</div>
+        <div class="pais-info">
+          <div class="pais-nombre">Perú</div>
+          <div class="pais-meta">
+            <span class="pais-iso">PEN</span>
+            <span class="pais-rol rol-origen">Origen</span>
+          </div>
+        </div>
+        <div class="pais-toggle" onclick="event.stopPropagation()">
+          <label class="toggle">
+            <input type="checkbox" checked onchange="togglePais(this,'PE')">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+      </div>
+      <div class="pais-stats">
+        <div class="pais-stat">
+          <div class="stat-val">8</div>
+          <div class="stat-lbl">Bancos</div>
+        </div>
+        <div class="pais-stat">
+          <div class="stat-val">12</div>
+          <div class="stat-lbl">Cuentas</div>
+        </div>
+        <div class="pais-stat">
+          <div class="stat-val">347</div>
+          <div class="stat-lbl">Operaciones</div>
+        </div>
+      </div>
+      <div class="pais-action">
+        <button class="pais-btn" onclick="irDetalle('PE')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Ver bancos y cuentas
+        </button>
+      </div>
+    </div>
+
+    <!-- Venezuela -->
+    <div class="pais-card">
+      <div class="pais-header" onclick="irDetalle('VE')">
+        <div class="pais-bandera">🇻🇪</div>
+        <div class="pais-info">
+          <div class="pais-nombre">Venezuela</div>
+          <div class="pais-meta">
+            <span class="pais-iso">VES</span>
+            <span class="pais-rol rol-destino">Destino</span>
+          </div>
+        </div>
+        <div class="pais-toggle" onclick="event.stopPropagation()">
+          <label class="toggle">
+            <input type="checkbox" checked onchange="togglePais(this,'VE')">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+      </div>
+      <div class="pais-stats">
+        <div class="pais-stat">
+          <div class="stat-val">14</div>
+          <div class="stat-lbl">Bancos</div>
+        </div>
+        <div class="pais-stat">
+          <div class="stat-val">9</div>
+          <div class="stat-lbl">Cuentas</div>
+        </div>
+        <div class="pais-stat">
+          <div class="stat-val">347</div>
+          <div class="stat-lbl">Operaciones</div>
+        </div>
+      </div>
+      <div class="pais-action">
+        <button class="pais-btn" onclick="irDetalle('VE')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Ver bancos y cuentas
+        </button>
+      </div>
+    </div>
+
+    <!-- Colombia -->
+    <div class="pais-card">
+      <div class="pais-header" onclick="irDetalle('CO')">
+        <div class="pais-bandera">🇨🇴</div>
+        <div class="pais-info">
+          <div class="pais-nombre">Colombia</div>
+          <div class="pais-meta">
+            <span class="pais-iso">COP</span>
+            <span class="pais-rol rol-ambos">Origen y destino</span>
+          </div>
+        </div>
+        <div class="pais-toggle" onclick="event.stopPropagation()">
+          <label class="toggle">
+            <input type="checkbox" checked onchange="togglePais(this,'CO')">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+      </div>
+      <div class="pais-stats">
+        <div class="pais-stat">
+          <div class="stat-val">5</div>
+          <div class="stat-lbl">Bancos</div>
+        </div>
+        <div class="pais-stat">
+          <div class="stat-val">3</div>
+          <div class="stat-lbl">Cuentas</div>
+        </div>
+        <div class="pais-stat">
+          <div class="stat-val">41</div>
+          <div class="stat-lbl">Operaciones</div>
+        </div>
+      </div>
+      <div class="pais-action">
+        <button class="pais-btn" onclick="irDetalle('CO')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Ver bancos y cuentas
+        </button>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:4px">Inactivos</div>
+
+    <!-- Ecuador (inactivo) -->
+    <div class="pais-card inactivo">
+      <div class="pais-header">
+        <div class="pais-bandera">🇪🇨</div>
+        <div class="pais-info">
+          <div class="pais-nombre">Ecuador</div>
+          <div class="pais-meta">
+            <span class="pais-iso">USD</span>
+            <span class="pais-rol rol-destino">Destino</span>
+          </div>
+        </div>
+        <div class="pais-toggle">
+          <label class="toggle">
+            <input type="checkbox" onchange="togglePais(this,'EC')">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Modal nuevo país -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Registrar nuevo país</div>
+      <div class="modal-body">
+        <div class="field">
+          <div class="field-label">Nombre del país <span style="color:var(--g-400)">*</span></div>
+          <input class="field-input" type="text" placeholder="Ej. Argentina">
+        </div>
+        <div class="field">
+          <div class="field-label">Código ISO <span style="color:var(--g-400)">*</span></div>
+          <input class="field-input" type="text" placeholder="Ej. AR" maxlength="2" style="text-transform:uppercase">
+          <div class="field-hint">2 letras según el estándar ISO 3166-1 alpha-2</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Bandera / emoji <span style="color:var(--g-400)">*</span></div>
+          <input class="field-input" type="text" placeholder="🇦🇷">
+          <div class="field-hint">Pega el emoji de la bandera del país</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Moneda principal <span style="color:var(--g-400)">*</span></div>
+          <input class="field-input" type="text" placeholder="Ej. ARS — Peso argentino">
+          <div class="field-hint">Se puede vincular a monedas ya registradas en el sistema</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Rol operativo <span style="color:var(--g-400)">*</span></div>
+          <select class="field-select">
+            <option value="">Seleccionar rol</option>
+            <option>Origen — de donde envían los clientes</option>
+            <option>Destino — a donde llega el dinero</option>
+            <option>Origen y destino — ambos</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="guardarPais()">Registrar país</button>
+        <button class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom nav admin -->
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="window.location.href='01_dashboard.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" onclick="window.location.href='07_transacciones.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+      Transacciones
+    </button>
+    <button class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      Países
+    </button>
+    <button class="nav-item" onclick="window.location.href='11_configuracion.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Config
+    </button>
+  </nav>
+
+  <script>
+    function abrirModal(){ document.getElementById('modal').classList.add('open') }
+    function cerrarModal(){ document.getElementById('modal').classList.remove('open') }
+    function guardarPais(){ cerrarModal(); /* [WF] POST /admin/paises */ }
+    function irDetalle(iso){ window.location.href = '09_pais-detalle.html?pais='+iso }
+    function togglePais(el, iso){ /* [WF] PATCH /admin/paises/iso { activo: el.checked } */ }
+    document.getElementById('modal').addEventListener('click', function(e){ if(e.target===this)cerrarModal() });
+  </script>
+
+</body>
+</html>
+
+<!-- ============================================================
+     UX NOTES — Gestor de países operativos
+     Rol: Admin / Dueño
+     Módulo: screens/05_admin/08_paises.html
+     ============================================================
+
+     Decisiones de diseño:
+     - Card por país con stats → el dueño ve bancos/cuentas/operaciones sin entrar al detalle
+     - Toggle directo en la card → activar/desactivar sin modales intermedios
+     - Inactivos colapsados con opacity → presentes pero no distraen
+     - Rol con badge de color → diferencia visual inmediata Origen/Destino/Ambos
+     - Modal bottom-sheet para agregar → patrón consistente con el resto del sistema
+
+     Estados cubiertos:
+     - [x] Lista con países activos e inactivos
+     - [x] Toggle activo/inactivo con borrado lógico
+     - [x] Modal de creación de país
+     - [ ] Estado vacío (primer uso, sin países) → pendiente
+
+     Pendiente para siguiente iteración:
+     - Búsqueda/filtro por nombre
+     - Confirmación antes de desactivar (si tiene operaciones activas)
+     ============================================================ -->

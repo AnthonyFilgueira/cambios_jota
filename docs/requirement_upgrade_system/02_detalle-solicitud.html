@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>[WF] 04/02_detalle-solicitud — Cambio J Vendedor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --g-900:#111827;--g-800:#1F2937;--g-700:#374151;--g-600:#4B5563;
+      --g-500:#6B7280;--g-400:#9CA3AF;--g-300:#D1D5DB;--g-200:#E5E7EB;
+      --g-100:#F3F4F6;--g-50:#F9FAFB;--white:#FFFFFF;
+      --font:'Figtree',system-ui,sans-serif;
+      --r-4:4px;--r-8:8px;--r-12:12px;--r-16:16px;--r-24:24px;--r-f:999px;
+      --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-24:24px;--sp-32:32px;--sp-48:48px;
+      --nav-h:64px;
+    
+      /* ── Paleta de marca Cambio J ── */
+      --cj-morado:        #7C3AED;
+      --cj-morado-medio:  #A78BFA;
+      --cj-morado-claro:  #DDD6FE;
+      --cj-turquesa:      #06B6D4;
+      --cj-turquesa-claro:#67E8F9;
+      --cj-rosa:          #EC4899;
+      --cj-fondo:         #F8FAFC;
+      --cj-texto:         #1E293B;
+      --cj-texto-claro:   #64748B;
+
+      /* Semánticos de marca */
+      --brand-primary:    var(--cj-morado);
+      --brand-secondary:  var(--cj-turquesa);
+      --brand-accent:     var(--cj-rosa);
+      --brand-surface:    var(--cj-morado-claro);
+}
+    html { background:var(--cj-fondo); }
+    body { font-family:var(--font);color:var(--g-900);-webkit-font-smoothing:antialiased;min-height:100dvh;max-width:390px;margin:0 auto;display:flex;flex-direction:column; }
+
+    .navbar { position:sticky;top:0;z-index:50;background:var(--white);border-bottom:1px solid var(--g-200);height:56px;padding:0 var(--sp-16);display:flex;align-items:center;justify-content:space-between; }
+    .nav-back { display:flex;align-items:center;gap:var(--sp-8);text-decoration:none;color:var(--g-600);font-size:13px;font-weight:600;padding:var(--sp-8);border-radius:var(--r-8);transition:color 0.15s; }
+    .nav-back:hover { color:var(--g-900); }
+    .nav-back svg { width:16px;height:16px;stroke:currentColor; }
+    .nav-center { position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:var(--sp-8); }
+    .nav-logo { width:28px;height:28px;background:var(--cj-morado);border-radius:var(--r-8);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--white); }
+    .nav-title { font-size:14px;font-weight:700; }
+
+    /* Demo bar */
+    .wf-demo-bar { background:var(--g-900);padding:var(--sp-8) var(--sp-16);display:flex;align-items:center;gap:var(--sp-8);overflow-x:auto;scrollbar-width:none; }
+    .wf-demo-bar::-webkit-scrollbar { display:none; }
+    .wf-demo-label { font-size:10px;font-weight:700;color:var(--g-400);white-space:nowrap;text-transform:uppercase;letter-spacing:1px; }
+    .wf-demo-btn { padding:4px 12px;border:1px solid var(--g-600);border-radius:var(--r-f);font-size:11px;font-weight:700;color:var(--g-400);background:none;cursor:pointer;white-space:nowrap;transition:all 0.15s;font-family:var(--font); }
+    .wf-demo-btn.on, .wf-demo-btn:hover { border-color:var(--g-300);color:var(--white); }
+
+    main { flex:1;padding:var(--sp-16) var(--sp-16) calc(var(--nav-h) + var(--sp-32));display:flex;flex-direction:column;gap:var(--sp-12); }
+
+    /* Cliente info */
+    .cliente-card { background:var(--g-800);border-radius:var(--r-16);padding:var(--sp-16);display:flex;align-items:center;gap:var(--sp-16); }
+    .cli-avatar { width:52px;height:52px;background:var(--g-600);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:var(--white);flex-shrink:0; }
+    .cli-info { flex:1; }
+    .cli-name { font-size:17px;font-weight:800;color:var(--white); }
+    .cli-tel  { font-size:12px;color:var(--g-400);margin-top:var(--sp-4); }
+    .cli-fecha{ font-size:11px;color:var(--g-500);margin-top:2px; }
+    .cli-id   { font-family:monospace;font-size:11px;color:var(--g-500);margin-top:var(--sp-4); }
+
+    /* Montos */
+    .card { background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05); }
+    .montos-dark { background:var(--g-800);padding:var(--sp-16); }
+    .montos-grid { display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:var(--sp-12); }
+    .m-grupo { display:flex;flex-direction:column;gap:var(--sp-4); }
+    .m-tag { font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g-400); }
+    .m-val { font-size:26px;font-weight:800;color:var(--white);font-variant-numeric:tabular-nums;line-height:1; }
+    .m-sub { font-size:11px;color:var(--g-500); }
+    .m-arrow { width:28px;height:28px;background:var(--g-600);border-radius:50%;display:flex;align-items:center;justify-content:center; }
+    .m-arrow svg { width:12px;height:12px;stroke:var(--white); }
+    .det-list { display:flex;flex-direction:column; }
+    .det-row { display:flex;align-items:center;justify-content:space-between;padding:var(--sp-12) var(--sp-16);border-bottom:1px solid var(--g-200); }
+    .det-row:last-child { border-bottom:none; }
+    .det-key { font-size:13px;color:var(--g-500);font-weight:500;display:flex;align-items:center;gap:var(--sp-8); }
+    .det-key svg { width:14px;height:14px;stroke:var(--g-400); }
+    .det-val { font-size:13px;font-weight:700;color:var(--g-900); }
+
+    /* Visor comprobante del cliente */
+    .comp-card { background:var(--white);border:1px solid var(--g-200);border-radius:var(--r-16);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05); }
+    .comp-header { background:var(--g-50);padding:var(--sp-12) var(--sp-16);border-bottom:1px solid var(--g-200);display:flex;align-items:center;justify-content:space-between; }
+    .comp-title { font-size:13px;font-weight:700;color:var(--g-900); }
+    .comp-fecha { font-size:11px;color:var(--g-500); }
+    .comp-img-area { background:repeating-linear-gradient(45deg,var(--g-50),var(--g-50) 10px,var(--g-100) 10px,var(--g-100) 20px);min-height:220px;display:flex;align-items:center;justify-content:center; }
+    .comp-ph { display:flex;flex-direction:column;align-items:center;gap:var(--sp-8);text-align:center;padding:var(--sp-24); }
+    .comp-ph-icon { width:56px;height:56px;background:var(--g-200);border-radius:var(--r-12);display:flex;align-items:center;justify-content:center; }
+    .comp-ph-icon svg { width:28px;height:28px;stroke:var(--g-500); }
+    .comp-ph-label { font-size:13px;font-weight:700;color:var(--g-500); }
+    .comp-ph-sub { font-size:11px;color:var(--g-400);line-height:1.5; }
+    .comp-footer { padding:var(--sp-12) var(--sp-16);border-top:1px solid var(--g-200);display:flex;gap:var(--sp-8); }
+    .btn-zoom { flex:1;background:var(--g-100);border:1.5px solid var(--g-200);border-radius:var(--r-8);padding:var(--sp-8) var(--sp-12);font-family:var(--font);font-size:12px;font-weight:700;color:var(--g-700);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:var(--sp-4);transition:background 0.15s; }
+    .btn-zoom:hover { background:var(--g-200); }
+    .btn-zoom svg { width:14px;height:14px;stroke:currentColor; }
+
+    /* Banner observado (cuando ya fue observado) */
+    .banner-obs { background:var(--g-100);border:1.5px solid var(--g-300);border-radius:var(--r-12);padding:var(--sp-16);display:none; }
+    .banner-obs.is-visible { display:flex;align-items:flex-start;gap:var(--sp-12); }
+    .bobs-icon { width:32px;height:32px;background:var(--g-300);border-radius:var(--r-8);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .bobs-icon svg { width:16px;height:16px;stroke:var(--g-700); }
+    .bobs-txt { font-size:12px;color:var(--g-700);line-height:1.6; }
+    .bobs-txt strong { font-weight:700;color:var(--g-900); }
+
+    /* CTAs de acción */
+    .ctas-accion { display:none;flex-direction:column;gap:var(--sp-8); }
+    .ctas-accion.is-visible { display:flex; }
+    .btn-aprobar { width:100%;background:var(--g-900);color:var(--white);border:none;border-radius:var(--r-12);padding:var(--sp-16);font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;text-align:center;transition:background 0.15s,transform 0.1s;display:flex;align-items:center;justify-content:center;gap:var(--sp-8);text-decoration:none; }
+    .btn-aprobar:hover { background:var(--g-700); }
+    .btn-aprobar svg { width:16px;height:16px;stroke:currentColor; }
+    .btn-observar { width:100%;background:transparent;color:var(--g-700);border:1.5px solid var(--g-300);border-radius:var(--r-12);padding:var(--sp-12);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;text-align:center;transition:border-color 0.15s,color 0.15s;display:flex;align-items:center;justify-content:center;gap:var(--sp-8);text-decoration:none; }
+    .btn-observar:hover { border-color:var(--g-500);color:var(--g-900); }
+    .btn-observar svg { width:14px;height:14px;stroke:currentColor; }
+
+    /* Bottom nav */
+    .bottom-nav { position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:var(--white);border-top:1px solid var(--g-200);height:var(--nav-h);display:flex;align-items:center;justify-content:space-around;padding:0 var(--sp-8);z-index:50; }
+    .nav-item { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:var(--sp-8) 0;cursor:pointer;text-decoration:none;border:none;background:none;font-family:var(--font);transition:color 0.15s;color:var(--g-400); }
+    .nav-item.active { color:var(--g-900); }
+    .nav-item svg { width:22px;height:22px;stroke:currentColor; }
+    .nav-item span { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px; }
+
+    .wf-note { display:inline-block;background:var(--g-200);border:1px dashed var(--g-400);border-radius:var(--r-4);padding:1px var(--sp-4);font-size:8px;font-weight:700;color:var(--g-600);font-family:monospace;vertical-align:middle;margin-left:var(--sp-4);cursor:help; }
+  
+    /* ── Sobrescrituras de marca Cambio J ─────────────────────────────────── */
+    .topbar,
+    .nav-logo,
+    .header-dark { background: var(--cj-morado) !important; }
+
+    /* Botones primarios */
+    .btn-primary,
+    button[class*="btn"]:not(.btn-ghost):not(.btn-outline),
+    a.btn:not(.btn-ghost) {
+      background: var(--cj-morado);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--cj-morado-medio); }
+
+    /* Fondo de secciones de marca */
+    .section-brand { background: var(--cj-morado-claro); }
+
+    /* Highlight numérico (montos, KPIs) */
+    .kpi-val.highlight,
+    .tx-monto.positive { color: var(--cj-turquesa) !important; }
+
+    /* Alert badge */
+    .acceso-badge.alert-badge { background: var(--cj-rosa) !important; }
+
+    /* Alerta icon */
+    .alerta-icon { background: rgba(236,72,153,0.15) !important; }
+    .alerta-icon svg { stroke: var(--cj-rosa) !important; }
+
+    /* Topbar: ajustar colores de texto secundario */
+    .topbar-role,
+    .topbar-date { color: var(--cj-morado-claro); }
+
+    .topbar-avatar {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    /* Bottom-nav active */
+    .nav-item.active .nav-icon svg { stroke: var(--cj-morado); }
+    .nav-item.active .nav-label { color: var(--cj-morado); }
+
+    /* Tabs activos */
+    .tab.active {
+      color: var(--cj-morado);
+      border-bottom-color: var(--cj-morado);
+    }
+
+    /* Status chips */
+    .chip-pending  { background: #FEF3C7; color: #92400E; }
+    .chip-approved { background: #D1FAE5; color: #065F46; }
+    .chip-rejected { background: #FEE2E2; color: #991B1B; }
+    .chip-paid     { background: var(--cj-morado-claro); color: var(--cj-morado); }
+
+    /* Inputs focus */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--cj-morado) !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    }
+
+    /* Links */
+    a.link-primary { color: var(--cj-morado); }
+
+    /* KPI cards con acento */
+    .kpi-block { border-left: 3px solid var(--cj-turquesa); }
+
+    /* Scroll indicator / progress bar */
+    .progress-bar { background: var(--cj-morado); }
+    /* ──────────────────────────────────────────────────────────────────────── */
+</style>
+</head>
+<body>
+
+  <div class="wf-demo-bar" aria-hidden="true">
+    <span class="wf-demo-label">Estado:</span>
+    <button class="wf-demo-btn on" onclick="setEstado('Pendiente')">Pendiente</button>
+    <button class="wf-demo-btn" onclick="setEstado('Observado')">Observado</button>
+    <button class="wf-demo-btn" onclick="setEstado('Aprobado')">Aprobado</button>
+  </div>
+
+  <nav class="navbar" role="navigation" aria-label="Navegación">
+    <a href="01_dashboard.html" class="nav-back" aria-label="Volver a bandeja">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Bandeja
+    </a>
+    <div class="nav-center">
+      <div class="nav-logo" aria-hidden="true">CJ</div>
+      <span class="nav-title">Solicitud</span>
+    </div>
+    <div style="width:64px"></div>
+  </nav>
+
+  <main role="main" aria-label="Detalle de solicitud">
+
+    <!-- Cliente -->
+    <div class="cliente-card" aria-label="Información del cliente">
+      <div class="cli-avatar" aria-hidden="true">JP</div>
+      <div class="cli-info">
+        <div class="cli-name">Juan Pérez</div>
+        <div class="cli-tel">+51 999 000 000</div>
+        <div class="cli-fecha">Hace 10 minutos</div>
+        <div class="cli-id">TRX-2026-00847</div>
+      </div>
+    </div>
+
+    <!-- Montos y detalles -->
+    <div class="card" aria-label="Montos del envío">
+      <div class="montos-dark">
+        <div class="montos-grid">
+          <div class="m-grupo">
+            <div class="m-tag">Envía</div>
+            <div class="m-val">S/ 500.00</div>
+            <div class="m-sub">Soles</div>
+          </div>
+          <div class="m-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+          <div class="m-grupo" style="text-align:right">
+            <div class="m-tag">Recibirá</div>
+            <div class="m-val">Bs. 7,100.00</div>
+            <div class="m-sub">Bolívares 🇻🇪</div>
+          </div>
+        </div>
+      </div>
+      <div class="det-list">
+        <div class="det-row">
+          <span class="det-key"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Cuenta de depósito</span>
+          <span class="det-val">BCP · 191-12345678-0-12</span>
+        </div>
+        <div class="det-row">
+          <span class="det-key"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Tasa aplicada</span>
+          <span class="det-val">1 PEN = 14.20 VES</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comprobante del cliente -->
+    <div class="comp-card" aria-label="Comprobante subido por el cliente">
+      <div class="comp-header">
+        <span class="comp-title">
+          Comprobante del cliente
+          <span class="wf-note" title="Subido por el cliente en 03_subir-comprobante.html">client</span>
+        </span>
+        <span class="comp-fecha">Hace 10 min</span>
+      </div>
+      <div class="comp-img-area">
+        <div class="comp-ph" aria-label="Imagen del comprobante">
+          <div class="comp-ph-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="comp-ph-label">Imagen del depósito</div>
+          <div class="comp-ph-sub">En producción: foto/PDF subida por el cliente</div>
+        </div>
+      </div>
+      <div class="comp-footer">
+        <button class="btn-zoom" aria-label="Ver comprobante en pantalla completa">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+          Ver completo
+        </button>
+        <button class="btn-zoom" aria-label="Descargar comprobante">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Descargar
+        </button>
+      </div>
+    </div>
+
+    <!-- Banner: ya observado — mensaje enviado -->
+    <div class="banner-obs" id="banner-obs" role="note" aria-live="polite">
+      <div class="bobs-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+      </div>
+      <p class="bobs-txt">
+        <strong>Observación enviada</strong><br>
+        "El comprobante no es legible. Por favor sube una foto más clara del depósito."<br>
+        <span style="font-size:10px;color:var(--g-500)">Esperando nueva respuesta del cliente.</span>
+      </p>
+    </div>
+
+    <!-- CTAs: Aprobar / Observar -->
+    <div class="ctas-accion" id="ctas-accion" aria-label="Acciones disponibles">
+      <a href="03_aprobar-solicitud.html" class="btn-aprobar" id="btn-aprobar">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        Aprobar solicitud
+      </a>
+      <a href="04_observar-solicitud.html" class="btn-observar" id="btn-observar">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        Observar / pedir corrección
+      </a>
+    </div>
+
+  </main>
+
+  <nav class="bottom-nav" role="navigation" aria-label="Navegación vendedor">
+    <a href="01_dashboard.html" class="nav-item active" aria-label="Bandeja">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Bandeja</span>
+    </a>
+    <a href="#" class="nav-item" aria-label="Historial">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>Historial</span>
+    </a>
+    <a href="05_mi-codigo.html" class="nav-item" aria-label="Mi código">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span>Mi código</span>
+    </a>
+  </nav>
+
+  <script>
+    function setEstado(estado) {
+      document.querySelectorAll('.wf-demo-btn').forEach(b => b.classList.remove('on'));
+      event.currentTarget.classList.add('on');
+      const ctas   = document.getElementById('ctas-accion');
+      const banner = document.getElementById('banner-obs');
+      if (estado === 'Pendiente') {
+        ctas.classList.add('is-visible');
+        banner.classList.remove('is-visible');
+        document.getElementById('btn-aprobar').href  = '03_aprobar-solicitud.html';
+        document.getElementById('btn-observar').href = '04_observar-solicitud.html';
+      } else if (estado === 'Observado') {
+        ctas.classList.remove('is-visible');
+        banner.classList.add('is-visible');
+      } else if (estado === 'Aprobado') {
+        ctas.classList.remove('is-visible');
+        banner.classList.remove('is-visible');
+      }
+    }
+    setEstado('Pendiente');
+  </script>
+</body>
+</html>
+<!-- ============================================================
+     UX NOTES — Detalle de Solicitud (Vendedor)
+     Módulo: screens/04_vendedor/02_detalle-solicitud.html
+     ============================================================
+     Decisiones:
+     - Cliente en hero card oscuro → el vendedor ve inmediatamente
+       a quién pertenece la solicitud; nombre + teléfono disponible
+       por si necesita contactarlo.
+     - Comprobante del cliente con "Ver completo" + "Descargar" →
+       el vendedor necesita examinar el comprobante con detalle antes
+       de aprobar; el zoom y descarga facilitan la verificación.
+     - CTAs Aprobar / Observar con jerarquía clara → Aprobar es primario
+       (negro, prominente); Observar es secundario (borde, menor peso
+       visual) — reduce la probabilidad de observar por error.
+     - Banner de observación enviada → si ya fue observado, el vendedor
+       ve qué mensaje envió; no puede volver a observar hasta que el
+       cliente resubmit.
+     - Estado Aprobado: sin CTAs → read-only; el vendedor no puede
+       revertir una aprobación (acción confirmada).
+     - Barra de demo → cubre 3 estados sin duplicar archivos.
+
+     Estados cubiertos:
+     - [x] Pendiente — CTAs visibles, comprobante disponible
+     - [x] Observado — banner con mensaje, sin CTAs
+     - [x] Aprobado — solo lectura, sin CTAs
+
+     Flujo:
+     - Aprobar → 03_aprobar-solicitud.html
+     - Observar → 04_observar-solicitud.html
+     ============================================================ -->

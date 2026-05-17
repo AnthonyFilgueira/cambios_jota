@@ -18,6 +18,9 @@ use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\CorridorController;
 use App\Http\Controllers\CurrencyPairController;
 use App\Http\Controllers\CorridorMatrixController;
+use App\Http\Controllers\CountryController;
+use App\Http\Controllers\BankController;
+use App\Http\Controllers\BusinessAccountController;
 
 Route::resource('sellers', SellerController::class);
 Route::resource('liquidations', LiquidationController::class);
@@ -36,6 +39,38 @@ Route::post('corridor-matrix/toggle', [CorridorMatrixController::class, 'toggle'
 Route::get('/sellers-api', function () {
     return Seller::all();
 });
+
+// API para buscar vendedor por código (retorna cuentas del catálogo centralizado)
+Route::get('/api/sellers/search/{code}', function ($code) {
+    $seller = Seller::with(['businessAccounts.bank.country'])->where('code', strtoupper($code))->first();
+
+    if (!$seller) {
+        return response()->json(['error' => 'Código de vendedor no encontrado'], 404);
+    }
+
+    $accounts = $seller->businessAccounts->where('active', true)->map(function ($account) {
+        return [
+            'id'             => $account->id,
+            'alias'          => $account->alias ?: $account->bank->name,
+            'bank_name'      => $account->bank->name,
+            'account_number' => $account->account_number,
+            'account_type'   => $account->account_type_label,
+            'account_holder' => $account->account_holder,
+            'dni_ruc'        => $account->dni_ruc,
+            'country'        => $account->bank->country->name ?? null,
+        ];
+    })->values();
+
+    return response()->json([
+        'success'  => true,
+        'seller'   => [
+            'id'   => $seller->id,
+            'code' => $seller->code,
+            'name' => $seller->name,
+        ],
+        'accounts' => $accounts,
+    ]);
+})->name('api.sellers.search');
 
 Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
 Route::resource('sales', SaleController::class);
@@ -132,5 +167,22 @@ Route::middleware('auth')->group(function () {
     Route::get('/export/dashboard/csv', [ExportController::class, 'ownerDashboardCSV'])->name('export.dashboard.csv');
     Route::get('/export/dashboard/pdf', [ExportController::class, 'ownerDashboardPDF'])->name('export.dashboard.pdf');
 });
+
+// REQ 11: Gestor de países, bancos y cuentas del negocio
+Route::get('countries', [CountryController::class, 'index'])->name('countries.index');
+Route::post('countries', [CountryController::class, 'store'])->name('countries.store');
+Route::get('countries/{country}', [CountryController::class, 'show'])->name('countries.show');
+Route::put('countries/{country}', [CountryController::class, 'update'])->name('countries.update');
+Route::patch('countries/{country}/toggle-active', [CountryController::class, 'toggleActive'])->name('countries.toggleActive');
+
+Route::post('countries/{country}/banks', [BankController::class, 'store'])->name('banks.store');
+Route::put('countries/{country}/banks/{bank}', [BankController::class, 'update'])->name('banks.update');
+Route::patch('countries/{country}/banks/{bank}/toggle-active', [BankController::class, 'toggleActive'])->name('banks.toggleActive');
+
+Route::post('countries/{country}/accounts', [BusinessAccountController::class, 'store'])->name('business-accounts.store');
+Route::put('countries/{country}/accounts/{businessAccount}', [BusinessAccountController::class, 'update'])->name('business-accounts.update');
+Route::patch('countries/{country}/accounts/{businessAccount}/toggle-active', [BusinessAccountController::class, 'toggleActive'])->name('business-accounts.toggleActive');
+Route::post('business-accounts/{businessAccount}/assign', [BusinessAccountController::class, 'assign'])->name('business-accounts.assign');
+Route::delete('business-accounts/{businessAccount}/unassign/{seller}', [BusinessAccountController::class, 'unassign'])->name('business-accounts.unassign');
 
 require __DIR__.'/auth.php';
