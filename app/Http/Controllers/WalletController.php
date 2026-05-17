@@ -7,24 +7,17 @@ use Illuminate\Support\Facades\Auth;
 
 class WalletController extends Controller
 {
-    /**
-     * Mostrar monedero del vendedor autenticado
-     */
     public function index(Request $request)
     {
-        $user = Auth::user();
-
-        // Por ahora asumimos que el user_id = seller_id
-        // TODO: Actualizar cuando se implemente relación User -> Seller
-        $seller = \App\Models\Seller::find($user->id);
+        $user   = Auth::user();
+        $seller = $user->seller;
 
         if (!$seller) {
-            abort(404, 'Vendedor no encontrado');
+            abort(403, 'No tienes un perfil de vendedor asociado.');
         }
 
-        // Filtros opcionales
-        $type = $request->input('type'); // commission, liquidation, adjustment
-        $days = $request->input('days', 30); // Últimos 30 días por defecto
+        $type = $request->input('type');
+        $days = $request->input('days', 30);
 
         $query = $seller->walletTransactions();
 
@@ -33,12 +26,33 @@ class WalletController extends Controller
         }
 
         if ($days !== 'all') {
-            $query->recent($days);
+            $query->where('created_at', '>=', now()->subDays((int) $days));
         }
 
         $transactions = $query->paginate(20);
-        $balance = $seller->walletBalance();
+        $balance      = $seller->walletBalance();
 
-        return view('wallet.index', compact('seller', 'transactions', 'balance', 'type', 'days'));
+        // KPIs
+        $totalEarned      = $seller->walletTransactions()->where('amount', '>', 0)->sum('amount');
+        $totalLiquidated  = abs($seller->walletTransactions()->where('type', 'liquidation')->sum('amount'));
+        $totalCommissions = $seller->walletTransactions()->where('type', 'commission')->sum('amount');
+
+        // Datos para gráfico semanal (últimas 8 semanas)
+        $weeklyData = collect(range(7, 0))->map(function ($weeksAgo) use ($seller) {
+            $start = now()->startOfWeek()->subWeeks($weeksAgo);
+            $end   = $start->copy()->endOfWeek();
+            return [
+                'label'  => $start->format('d M'),
+                'amount' => (float) $seller->walletTransactions()
+                    ->where('type', 'commission')
+                    ->whereBetween('created_at', [$start, $end])
+                    ->sum('amount'),
+            ];
+        });
+
+        return view('wallet.index', compact(
+            'seller', 'transactions', 'balance', 'type', 'days',
+            'totalEarned', 'totalLiquidated', 'totalCommissions', 'weeklyData'
+        ));
     }
 }

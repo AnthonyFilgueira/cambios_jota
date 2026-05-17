@@ -24,6 +24,7 @@ use App\Http\Controllers\BusinessAccountController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\IncentiveController;
+use App\Http\Controllers\SettingController;
 
 // ─── RUTAS PÚBLICAS ───────────────────────────────────────────────────────────
 
@@ -214,6 +215,10 @@ Route::middleware('auth')->group(function () {
 
     // Auditoría
     Route::get('admin/audit-logs',                          [AuditController::class, 'index'])->name('admin.audit-logs');
+
+    // Configuración global
+    Route::get('admin/settings',                            [SettingController::class, 'index'])->name('admin.settings');
+    Route::post('admin/settings',                           [SettingController::class, 'update'])->name('admin.settings.update');
 
     // Incentivos (REQ 9)
     Route::get('admin/incentives',                          [IncentiveController::class, 'index'])->name('admin.incentives.index');

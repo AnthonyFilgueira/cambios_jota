@@ -1,4 +1,32 @@
 <x-guest-layout>
+    <!-- Banner cotización guardada (si viene del simulador) -->
+    <div x-data="{
+            cotizacion: null,
+            init() {
+                try {
+                    const raw = sessionStorage.getItem('pendingTransaction');
+                    if (raw) this.cotizacion = JSON.parse(raw);
+                } catch(e) {}
+            }
+         }"
+         x-init="init()"
+         x-show="cotizacion"
+         class="mb-5 bg-gradient-to-r from-cj-turquesa to-teal-500 text-white rounded-2xl px-4 py-3 flex items-center gap-3 shadow-lg shadow-teal-400/20">
+        <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div class="min-w-0">
+            <p class="text-xs font-bold opacity-80 uppercase tracking-wider">Cotización guardada</p>
+            <p class="font-bold text-sm">
+                S/ <span x-text="cotizacion?.amount_pen"></span>
+                → Bs. <span x-text="cotizacion ? Number(cotizacion.amount_ves).toLocaleString('es-VE', {maximumFractionDigits:0}) : ''"></span>
+            </p>
+        </div>
+        <p class="text-xs opacity-80 ml-auto text-right leading-tight hidden sm:block">Regístrate y tu envío<br>se iniciará automáticamente</p>
+    </div>
+
     <div class="mb-6 text-center">
         <div class="flex justify-center mb-4">
             <div class="w-16 h-16 bg-gradient-to-br from-cj-turquesa to-cj-morado-medio rounded-2xl flex items-center justify-center shadow-lg">

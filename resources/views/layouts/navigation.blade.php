@@ -86,6 +86,7 @@
                         <a href="{{ route('admin.roles.index') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-cj-morado-profundo font-medium">🔑 Roles y permisos</a>
                         <a href="{{ route('admin.incentives.index') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-cj-morado-profundo font-medium">⭐ Incentivos</a>
                         <a href="{{ route('admin.audit-logs') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-cj-morado-profundo font-medium">🔍 Auditoría</a>
+                        <a href="{{ route('admin.settings') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-cj-morado-profundo font-medium">⚙️ Configuración</a>
                     </div>
                 </div>
             </div>
