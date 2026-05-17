@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaction;
+use App\Models\TransactionLog;
 use Illuminate\Http\Request;
 
 class TransactionController extends Controller
@@ -168,7 +169,7 @@ class TransactionController extends Controller
             $seller->user->notify(new \App\Notifications\NewTransactionForSeller($transaction));
         }
 
-        return redirect()->route('transactions.index')
+        return redirect()->route('transactions.confirmacion', $transaction)
             ->with('success', '¡Solicitud enviada! El vendedor ' . $seller->name . ' revisará tu comprobante.');
     }
 
@@ -202,6 +203,67 @@ class TransactionController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Pantalla de confirmación post-envío para el cliente
+     */
+    public function confirmacion(Transaction $transaction)
+    {
+        if ($transaction->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $transaction->load(['seller', 'exchangeRate']);
+
+        return view('transactions.confirmacion', compact('transaction'));
+    }
+
+    /**
+     * Admin sube comprobante final y cierra el ciclo
+     */
+    public function uploadFinalVoucher(Request $request, Transaction $transaction)
+    {
+        $user = auth()->user();
+        if (!$user->hasRole('super-admin') && !$user->hasRole('admin') && !$user->hasRole('contador')) {
+            abort(403, 'No autorizado');
+        }
+
+        if ($transaction->status !== 'processing') {
+            return redirect()->back()->withErrors(['error' => 'Solo se puede completar una transacción en estado "en proceso".']);
+        }
+
+        $request->validate([
+            'final_voucher' => 'required|file|mimes:jpg,jpeg,png,pdf|max:10240',
+        ]);
+
+        $path = $request->file('final_voucher')->store('final_vouchers', 'public');
+
+        $oldStatus = $transaction->status;
+        $transaction->final_voucher = $path;
+        $transaction->save();
+        $transaction->complete();
+
+        TransactionLog::create([
+            'transaction_id' => $transaction->id,
+            'user_id'        => auth()->id(),
+            'action'         => 'completed',
+            'old_status'     => $oldStatus,
+            'new_status'     => 'completed',
+            'comment'        => 'Completada por ' . $user->name . '. Comprobante final subido.',
+        ]);
+
+        // Notificar cliente
+        $transaction->user->notify(new \App\Notifications\TransactionStatusChanged($transaction, 'completed'));
+
+        // Notificar vendedor si tiene cuenta
+        if ($transaction->seller && $transaction->seller->user) {
+            $transaction->seller->user->notify(
+                new \App\Notifications\TransactionStatusChanged($transaction, 'completed')
+            );
+        }
+
+        return redirect()->back()->with('success', '¡Transacción #' . $transaction->id . ' completada! El cliente y el vendedor han sido notificados.');
     }
 
     /**

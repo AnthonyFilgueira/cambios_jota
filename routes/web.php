@@ -130,8 +130,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions/manage',                    [TransactionController::class, 'manage'])->name('transactions.manage');
     Route::post('/transactions/{transaction}/observe',    [TransactionController::class, 'observe'])->name('transactions.observe');
     Route::post('/transactions/{transaction}/process',    [TransactionController::class, 'process'])->name('transactions.process');
-    Route::post('/transactions/{transaction}/complete',   [TransactionController::class, 'completeTransaction'])->name('transactions.complete');
-    Route::post('/transactions/{transaction}/cancel',     [TransactionController::class, 'cancel'])->name('transactions.cancel');
+    Route::post('/transactions/{transaction}/complete',              [TransactionController::class, 'completeTransaction'])->name('transactions.complete');
+    Route::post('/transactions/{transaction}/upload-final-voucher', [TransactionController::class, 'uploadFinalVoucher'])->name('transactions.uploadFinalVoucher');
+    Route::get('/transactions/{transaction}/confirmacion',          [TransactionController::class, 'confirmacion'])->name('transactions.confirmacion');
+    Route::post('/transactions/{transaction}/cancel',               [TransactionController::class, 'cancel'])->name('transactions.cancel');
 
     // Ventas (vendedor registra, admin aprueba)
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');

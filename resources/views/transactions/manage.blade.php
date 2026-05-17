@@ -46,9 +46,22 @@
                      expandedId: null,
                      observeModal: false,
                      cancelModal: false,
+                     completeModal: false,
                      selectedTransaction: null,
                      observation: '',
-                     cancelReason: ''
+                     cancelReason: '',
+                     finalVoucherPreview: null,
+                     handleFinalVoucher(e) {
+                         const file = e.target.files[0];
+                         if (!file) return;
+                         if (file.type.startsWith('image/')) {
+                             const reader = new FileReader();
+                             reader.onload = ev => this.finalVoucherPreview = ev.target.result;
+                             reader.readAsDataURL(file);
+                         } else {
+                             this.finalVoucherPreview = 'pdf';
+                         }
+                     }
                  }">
                 <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-cj-morado-profundo/5 to-cj-turquesa/5">
                     <h3 class="text-lg font-bold text-cj-morado-profundo">Transacciones</h3>
@@ -115,12 +128,10 @@
                                 @endif
 
                                 @if($transaction->status === 'processing')
-                                <form method="POST" action="{{ route('transactions.complete', $transaction) }}" class="inline">
-                                    @csrf
-                                    <button type="submit" class="px-3 py-1 bg-teal-100 hover:bg-teal-200 text-teal-800 rounded-lg text-xs font-semibold transition-all">
-                                        ✓ Completar
-                                    </button>
-                                </form>
+                                <button @click="completeModal = true; selectedTransaction = {{ $transaction->id }}; finalVoucherPreview = null"
+                                        class="px-3 py-1 bg-teal-100 hover:bg-teal-200 text-teal-800 rounded-lg text-xs font-semibold transition-all">
+                                    ✓ Completar + Comprobante
+                                </button>
                                 @endif
 
                                 @if($transaction->canBeCancelled())
@@ -237,6 +248,71 @@
                                 <button type="submit"
                                         class="flex-1 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition-all">
                                     Guardar observación
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Modal: Completar con comprobante final -->
+                <div x-show="completeModal"
+                     x-cloak
+                     class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                     @click.self="completeModal = false">
+                    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+                        <div class="flex items-center gap-3 mb-5">
+                            <div class="w-10 h-10 bg-gradient-to-br from-cj-turquesa to-teal-400 rounded-xl flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-cj-texto">Completar transacción</h3>
+                        </div>
+
+                        <form :action="'/transactions/' + selectedTransaction + '/upload-final-voucher'"
+                              method="POST"
+                              enctype="multipart/form-data">
+                            @csrf
+
+                            <p class="text-sm text-cj-texto-claro mb-4">
+                                Sube el comprobante de transferencia que confirma que el dinero fue enviado a Venezuela. Al completar, el cliente y el vendedor serán notificados.
+                            </p>
+
+                            <!-- Drop zone -->
+                            <div class="mb-5">
+                                <label class="block text-sm font-semibold text-cj-texto mb-2">Comprobante de envío final</label>
+                                <label class="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-cj-turquesa/40 rounded-xl cursor-pointer bg-cj-turquesa/5 hover:bg-cj-turquesa/10 transition-all"
+                                       :class="finalVoucherPreview ? 'border-cj-turquesa' : ''">
+                                    <div x-show="!finalVoucherPreview" class="flex flex-col items-center justify-center gap-2 p-4">
+                                        <svg class="w-8 h-8 text-cj-turquesa" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                        </svg>
+                                        <p class="text-sm text-cj-turquesa font-semibold">Seleccionar comprobante</p>
+                                        <p class="text-xs text-cj-texto-claro">JPG, PNG o PDF — máx. 10 MB</p>
+                                    </div>
+                                    <div x-show="finalVoucherPreview === 'pdf'" class="flex flex-col items-center gap-2 p-4">
+                                        <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                        <p class="text-sm font-semibold text-cj-texto">PDF cargado ✓</p>
+                                    </div>
+                                    <img x-show="finalVoucherPreview && finalVoucherPreview !== 'pdf'"
+                                         :src="finalVoucherPreview"
+                                         class="h-32 w-full object-contain rounded-lg p-1">
+                                    <input type="file" name="final_voucher" accept="image/*,.pdf"
+                                           class="hidden" required
+                                           @change="handleFinalVoucher($event)">
+                                </label>
+                            </div>
+
+                            <div class="flex gap-3">
+                                <button type="button" @click="completeModal = false"
+                                        class="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-all">
+                                    Cancelar
+                                </button>
+                                <button type="submit"
+                                        class="flex-1 px-4 py-3 bg-gradient-to-r from-cj-turquesa to-teal-500 hover:opacity-90 text-white rounded-xl font-semibold transition-all shadow-lg shadow-teal-400/30">
+                                    Completar transacción
                                 </button>
                             </div>
                         </form>
