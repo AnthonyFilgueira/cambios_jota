@@ -84,6 +84,8 @@
                         <p class="px-4 py-1 mt-1 text-xs font-bold uppercase tracking-widest text-gray-400">Operativa</p>
                         <a href="{{ route('countries.index') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-cj-morado-profundo font-medium">🌍 Países y cuentas</a>
                         <a href="{{ route('admin.roles.index') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-cj-morado-profundo font-medium">🔑 Roles y permisos</a>
+                        <a href="{{ route('admin.incentives.index') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-cj-morado-profundo font-medium">⭐ Incentivos</a>
+                        <a href="{{ route('admin.audit-logs') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-cj-morado-profundo font-medium">🔍 Auditoría</a>
                     </div>
                 </div>
             </div>

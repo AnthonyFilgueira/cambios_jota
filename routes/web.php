@@ -22,6 +22,8 @@ use App\Http\Controllers\CountryController;
 use App\Http\Controllers\BankController;
 use App\Http\Controllers\BusinessAccountController;
 use App\Http\Controllers\RolePermissionController;
+use App\Http\Controllers\AuditController;
+use App\Http\Controllers\IncentiveController;
 
 // ─── RUTAS PÚBLICAS ───────────────────────────────────────────────────────────
 
@@ -209,6 +211,15 @@ Route::middleware('auth')->group(function () {
     Route::get('admin/roles/{role}/permissions',            [RolePermissionController::class, 'show'])->name('admin.roles.show');
     Route::post('admin/roles/{role}/toggle-permission',     [RolePermissionController::class, 'togglePermission'])->name('admin.roles.togglePermission');
     Route::post('admin/assign-role',                        [RolePermissionController::class, 'assignRoleToUser'])->name('admin.assignRole');
+
+    // Auditoría
+    Route::get('admin/audit-logs',                          [AuditController::class, 'index'])->name('admin.audit-logs');
+
+    // Incentivos (REQ 9)
+    Route::get('admin/incentives',                          [IncentiveController::class, 'index'])->name('admin.incentives.index');
+    Route::post('admin/incentives',                         [IncentiveController::class, 'store'])->name('admin.incentives.store');
+    Route::patch('admin/incentives/{incentive}/toggle',     [IncentiveController::class, 'toggleActive'])->name('admin.incentives.toggle');
+    Route::delete('admin/incentives/{incentive}',           [IncentiveController::class, 'destroy'])->name('admin.incentives.destroy');
 });
 
 require __DIR__.'/auth.php';
