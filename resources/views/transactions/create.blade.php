@@ -65,107 +65,80 @@
                             <input type="hidden" name="eur_bcv_rate" x-model="eurBcvRate">
                         </div>
 
-                        <!-- Código de Vendedor -->
+                        <!-- Vendedor asignado (readonly — viene del registro) -->
+                        @if($seller)
                         <div class="mb-6">
-                            <label for="seller_code" class="block text-sm font-medium text-cj-texto mb-2">
-                                Código de Vendedor <span class="text-red-500">*</span>
-                            </label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-cj-texto-claro font-medium">#</span>
-                                <input
-                                    type="text"
-                                    name="seller_code"
-                                    id="seller_code"
-                                    value="{{ old('seller_code') }}"
-                                    required
-                                    x-model="sellerCode"
-                                    @input.debounce.500ms="searchSeller()"
-                                    class="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all uppercase"
-                                    placeholder="VEN-XXXXXX">
+                            <label class="block text-sm font-semibold text-cj-texto mb-2">Tu vendedor asignado</label>
+                            <div class="bg-gradient-to-r from-cj-morado-profundo to-cj-morado-medio rounded-xl p-4 flex items-center gap-4">
+                                <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                                    {{ strtoupper(substr($seller->name, 0, 2)) }}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-white font-bold">{{ $seller->name }}</p>
+                                    <p class="text-white/70 text-sm font-mono">{{ $seller->code }}</p>
+                                </div>
+                                <div class="flex items-center gap-1 bg-green-400/20 border border-green-400/40 rounded-full px-3 py-1">
+                                    <svg class="w-4 h-4 text-green-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    <span class="text-green-300 text-xs font-semibold">Verificado</span>
+                                </div>
                             </div>
-
-                            <!-- Estado de búsqueda -->
-                            <div class="mt-2">
-                                <p x-show="sellerSearching" class="text-sm text-blue-600 flex items-center gap-2">
-                                    <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Verificando código...
-                                </p>
-                                <p x-show="sellerError" class="text-sm text-red-600" x-text="sellerError"></p>
-                                <p x-show="sellerFound" class="text-sm text-green-600 flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                    Vendedor encontrado: <span x-text="sellerData?.name" class="font-semibold"></span>
-                                </p>
-                            </div>
-
-                            @error('seller_code')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <p class="text-xs text-cj-texto-claro mt-2">Tu vendedor fue asignado al registrarte y es permanente.</p>
                         </div>
 
-                        <!-- Cuentas bancarias asignadas al vendedor (catálogo centralizado) -->
-                        <div x-show="sellerFound && sellerAccounts.length > 0" x-cloak class="mb-6 bg-green-50 border-2 border-green-300 rounded-xl p-5">
+                        <!-- Cuentas del vendedor para depositar -->
+                        @if($sellerAccounts->isNotEmpty())
+                        <div class="mb-6 bg-green-50 border-2 border-green-300 rounded-xl p-5">
                             <h5 class="text-sm font-bold text-green-800 mb-3 flex items-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                                 </svg>
-                                Cuenta(s) para realizar tu transferencia
+                                Cuentas habilitadas para tu depósito
                             </h5>
-
-                            <template x-for="(account, index) in sellerAccounts" :key="account.id">
-                                <div class="bg-white rounded-xl p-4 mb-3 border border-green-200">
-                                    <p class="text-xs uppercase tracking-wider text-green-700 font-bold mb-2"
-                                       x-text="index === 0 ? 'Cuenta Principal' : 'Cuenta Alternativa ' + index"></p>
-                                    <div class="grid grid-cols-2 gap-3 text-sm">
-                                        <div>
-                                            <span class="text-gray-400 text-xs">Banco</span>
-                                            <p class="font-bold text-gray-900" x-text="account.bank_name"></p>
-                                        </div>
-                                        <div>
-                                            <span class="text-gray-400 text-xs">Tipo</span>
-                                            <p class="font-semibold text-gray-900" x-text="account.account_type"></p>
-                                        </div>
-                                        <div class="col-span-2">
-                                            <span class="text-gray-400 text-xs">Nº de Cuenta</span>
-                                            <p class="font-mono font-bold text-lg text-green-700" x-text="account.account_number"></p>
-                                        </div>
-                                        <div>
-                                            <span class="text-gray-400 text-xs">Titular</span>
-                                            <p class="font-semibold text-gray-900" x-text="account.account_holder"></p>
-                                        </div>
-                                        <div x-show="account.dni_ruc">
-                                            <span class="text-gray-400 text-xs">DNI / RUC</span>
-                                            <p class="font-mono text-gray-900" x-text="account.dni_ruc"></p>
-                                        </div>
+                            @foreach($sellerAccounts as $i => $account)
+                            <div class="bg-white rounded-xl p-4 mb-3 border border-green-200">
+                                <p class="text-xs uppercase tracking-wider text-green-700 font-bold mb-2">
+                                    {{ $i === 0 ? 'Cuenta Principal' : 'Cuenta Alternativa ' . $i }}
+                                </p>
+                                <div class="grid grid-cols-2 gap-3 text-sm">
+                                    <div>
+                                        <span class="text-gray-400 text-xs">Banco</span>
+                                        <p class="font-bold text-gray-900">{{ $account->bank->name ?? '—' }}</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400 text-xs">Tipo</span>
+                                        <p class="font-semibold text-gray-900">{{ ucfirst($account->account_type ?? '—') }}</p>
+                                    </div>
+                                    <div class="col-span-2">
+                                        <span class="text-gray-400 text-xs">Nº de Cuenta</span>
+                                        <p class="font-mono font-bold text-lg text-green-700">{{ $account->account_number }}</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400 text-xs">Titular</span>
+                                        <p class="font-semibold text-gray-900">{{ $account->account_holder }}</p>
                                     </div>
                                 </div>
-                            </template>
-
-                            <!-- Sin cuentas asignadas -->
-                            <div x-show="sellerFound && sellerAccounts.length === 0" x-cloak
-                                 class="bg-yellow-50 border border-yellow-300 rounded-xl p-4 text-sm text-yellow-800">
-                                ⚠️ Este vendedor aún no tiene cuentas asignadas. Contacta con tu vendedor.
                             </div>
-
-                            <div class="mt-3 bg-yellow-50 border border-yellow-300 rounded-lg p-3">
+                            @endforeach
+                            <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-3">
                                 <p class="text-xs text-yellow-800">
-                                    <strong>⚠️ Importante:</strong> Realiza la transferencia a una de estas cuentas y adjunta el comprobante más abajo.
+                                    <strong>Importante:</strong> Deposita el monto exacto a una de estas cuentas y sube el comprobante más abajo.
                                 </p>
                             </div>
                         </div>
-
-                        <!-- Vendedor encontrado sin cuentas -->
-                        <div x-show="sellerFound && sellerAccounts.length === 0" x-cloak
-                             class="mb-6 bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4">
+                        @else
+                        <div class="mb-6 bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4">
                             <p class="text-sm text-yellow-800 font-medium">
-                                ⚠️ El vendedor <span x-text="sellerData?.name" class="font-bold"></span> no tiene cuentas bancarias asignadas todavía.
-                                Comunícate con tu vendedor para obtener los datos de transferencia.
+                                ⚠️ Tu vendedor aún no tiene cuentas asignadas. Contáctalo directamente.
                             </p>
                         </div>
+                        @endif
+                        @else
+                        <div class="mb-6 bg-red-50 border-2 border-red-300 rounded-xl p-4">
+                            <p class="text-sm text-red-700 font-medium">
+                                No tienes un vendedor asignado. Por favor contacta con soporte para resolver esto.
+                            </p>
+                        </div>
+                        @endif
 
                         <!-- Sección de cotización -->
                         <div class="bg-cj-morado-claro/20 rounded-xl p-5 mb-6">
@@ -261,153 +234,238 @@
                         </div>
                     </div>
 
-                    <!-- SECCIÓN 2: DATOS BANCARIOS EN VENEZUELA -->
-                    <div class="bg-gradient-to-r from-cj-rosa/5 to-cj-morado-medio/5 rounded-xl p-6 border border-pink-200">
+                    <!-- SECCIÓN 2: RECEPTOR EN VENEZUELA -->
+                    <div class="bg-gradient-to-r from-cj-rosa/5 to-cj-morado-medio/5 rounded-xl p-6 border border-pink-200"
+                         x-data="{ opType: '{{ old('operation_type', 'transferencia') }}' }">
                         <h4 class="text-lg font-bold text-cj-morado-profundo mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                             </svg>
-                            Datos Bancarios del Receptor (Venezuela)
+                            🇻🇪 Receptor en Venezuela
                         </h4>
 
+                        <!-- Tipo de operación -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-semibold text-cj-texto mb-3">Tipo de operación *</label>
+                            <input type="hidden" name="operation_type" :value="opType">
+                            <div class="grid grid-cols-2 gap-3">
+                                <button type="button"
+                                        @click="opType = 'transferencia'"
+                                        :class="opType === 'transferencia'
+                                            ? 'border-cj-morado-profundo bg-cj-morado-profundo text-white shadow-lg'
+                                            : 'border-gray-200 bg-white text-cj-texto hover:border-cj-morado-profundo'"
+                                        class="flex flex-col items-center gap-2 p-4 border-2 rounded-xl transition-all">
+                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                    </svg>
+                                    <span class="text-sm font-semibold">Transferencia Bancaria</span>
+                                </button>
+                                <button type="button"
+                                        @click="opType = 'pago_movil'"
+                                        :class="opType === 'pago_movil'
+                                            ? 'border-cj-turquesa bg-cj-turquesa text-white shadow-lg'
+                                            : 'border-gray-200 bg-white text-cj-texto hover:border-cj-turquesa'"
+                                        class="flex flex-col items-center gap-2 p-4 border-2 rounded-xl transition-all">
+                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                    </svg>
+                                    <span class="text-sm font-semibold">Pago Móvil</span>
+                                </button>
+                            </div>
+                            <p x-show="opType === 'pago_movil'" class="mt-2 text-xs text-cj-turquesa font-medium">
+                                Solo necesitas cédula, banco y teléfono — sin número de cuenta.
+                            </p>
+                        </div>
+
                         <div class="grid md:grid-cols-2 gap-6">
-                            <!-- Banco receptor -->
+                            <!-- Cédula del titular -->
                             <div>
-                                <label for="recipient_bank" class="block text-sm font-medium text-cj-texto mb-2">
-                                    Banco Receptor *
-                                </label>
-                                <input
-                                    type="text"
-                                    name="recipient_bank"
-                                    id="recipient_bank"
-                                    value="{{ old('recipient_bank') }}"
-                                    required
-                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
-                                    placeholder="Ej: Banco de Venezuela">
-                                @error('recipient_bank')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <!-- Número de cuenta -->
-                            <div>
-                                <label for="recipient_account_number" class="block text-sm font-medium text-cj-texto mb-2">
-                                    Número de Cuenta *
-                                </label>
-                                <input
-                                    type="text"
-                                    name="recipient_account_number"
-                                    id="recipient_account_number"
-                                    value="{{ old('recipient_account_number') }}"
-                                    required
-                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
-                                    placeholder="0000-0000-00-0000000000">
-                                @error('recipient_account_number')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <!-- DNI/Cédula -->
-                            <div>
-                                <label for="recipient_dni" class="block text-sm font-medium text-cj-texto mb-2">
-                                    Cédula de Identidad *
-                                </label>
-                                <input
-                                    type="text"
-                                    name="recipient_dni"
-                                    id="recipient_dni"
-                                    value="{{ old('recipient_dni') }}"
-                                    required
+                                <label for="recipient_dni" class="block text-sm font-medium text-cj-texto mb-2">Cédula del titular *</label>
+                                <input type="text" name="recipient_dni" id="recipient_dni"
+                                    value="{{ old('recipient_dni') }}" required
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
                                     placeholder="V-12345678">
-                                @error('recipient_dni')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                                @error('recipient_dni')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
-                            <!-- Tipo de cuenta -->
+                            <!-- Banco receptor -->
                             <div>
-                                <label for="recipient_account_type" class="block text-sm font-medium text-cj-texto mb-2">
-                                    Tipo de Cuenta *
-                                </label>
-                                <select
-                                    name="recipient_account_type"
-                                    id="recipient_account_type"
-                                    required
+                                <label for="recipient_bank" class="block text-sm font-medium text-cj-texto mb-2">Banco receptor *</label>
+                                <select name="recipient_bank" id="recipient_bank" required
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
-                                    <option value="">Seleccione</option>
-                                    <option value="ahorro" {{ old('recipient_account_type') == 'ahorro' ? 'selected' : '' }}>Ahorro</option>
-                                    <option value="corriente" {{ old('recipient_account_type') == 'corriente' ? 'selected' : '' }}>Corriente</option>
+                                    <option value="">Selecciona banco</option>
+                                    @foreach(['Banco de Venezuela','Banesco','Banco Mercantil','BBVA Provincial','Banco Nacional de Crédito (BNC)','Banco Bicentenario','Banco del Tesoro','Banco Exterior','Corp Banca','Banco Caroni','Sofitasa','Bangente','Bancrecer'] as $b)
+                                        <option value="{{ $b }}" {{ old('recipient_bank') == $b ? 'selected' : '' }}>{{ $b }}</option>
+                                    @endforeach
                                 </select>
-                                @error('recipient_account_type')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                                @error('recipient_bank')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Teléfono del titular -->
+                            <div>
+                                <label for="recipient_phone" class="block text-sm font-medium text-cj-texto mb-2">Teléfono del titular *</label>
+                                <input type="tel" name="recipient_phone" id="recipient_phone"
+                                    value="{{ old('recipient_phone') }}" required
+                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                    placeholder="0412-1234567">
+                                @error('recipient_phone')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Número de cuenta (solo Transferencia) -->
+                            <div x-show="opType === 'transferencia'" x-cloak>
+                                <label for="recipient_account_number" class="block text-sm font-medium text-cj-texto mb-2">
+                                    Número de cuenta *
+                                </label>
+                                <input type="text" name="recipient_account_number" id="recipient_account_number"
+                                    value="{{ old('recipient_account_number') }}"
+                                    :required="opType === 'transferencia'"
+                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                    placeholder="0102-0000-00-0000123456">
+                                @error('recipient_account_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Tipo de cuenta (solo Transferencia) -->
+                            <div x-show="opType === 'transferencia'" x-cloak>
+                                <label for="recipient_account_type" class="block text-sm font-medium text-cj-texto mb-2">
+                                    Tipo de cuenta *
+                                </label>
+                                <div class="flex gap-3 mt-1">
+                                    <label class="flex-1 flex items-center gap-2 border-2 rounded-xl p-3 cursor-pointer transition-all"
+                                           :class="$refs.actype?.value === 'ahorro' ? 'border-cj-turquesa bg-cj-turquesa/5' : 'border-gray-200'">
+                                        <input type="radio" name="recipient_account_type" value="ahorro" x-ref="actype"
+                                               {{ old('recipient_account_type', 'ahorro') === 'ahorro' ? 'checked' : '' }}
+                                               class="text-cj-turquesa">
+                                        <span class="text-sm font-medium">Ahorro</span>
+                                    </label>
+                                    <label class="flex-1 flex items-center gap-2 border-2 rounded-xl p-3 cursor-pointer transition-all"
+                                           :class="$refs.actype?.value === 'corriente' ? 'border-cj-turquesa bg-cj-turquesa/5' : 'border-gray-200'">
+                                        <input type="radio" name="recipient_account_type" value="corriente"
+                                               {{ old('recipient_account_type') === 'corriente' ? 'checked' : '' }}
+                                               class="text-cj-turquesa">
+                                        <span class="text-sm font-medium">Corriente</span>
+                                    </label>
+                                </div>
+                                @error('recipient_account_type')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
                         </div>
                     </div>
 
-                    <!-- SECCIÓN 3: DATOS DE TRANSFERENCIA (PERÚ) -->
+                    <!-- SECCIÓN 3: TU TRANSFERENCIA DESDE PERÚ -->
                     <div class="bg-gradient-to-r from-cj-turquesa/5 to-cj-morado-profundo/5 rounded-xl p-6 border border-teal-200">
                         <h4 class="text-lg font-bold text-cj-morado-profundo mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                             </svg>
-                            Datos de Transferencia desde Perú
+                            🇵🇪 Tu transferencia desde Perú
                         </h4>
 
                         <div class="grid md:grid-cols-2 gap-6">
-                            <!-- Banco origen -->
+                            <!-- DNI del titular que transfiere -->
                             <div>
-                                <label for="sender_bank" class="block text-sm font-medium text-cj-texto mb-2">
-                                    Banco desde donde Transfiere *
-                                </label>
-                                <input
-                                    type="text"
-                                    name="sender_bank"
-                                    id="sender_bank"
-                                    value="{{ old('sender_bank') }}"
-                                    required
+                                <label for="sender_dni" class="block text-sm font-medium text-cj-texto mb-2">DNI del titular que transfiere *</label>
+                                <input type="text" name="sender_dni" id="sender_dni"
+                                    value="{{ old('sender_dni') }}" required
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
-                                    placeholder="Ej: BCP, Interbank, BBVA">
-                                @error('sender_bank')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                                    placeholder="12345678">
+                                @error('sender_dni')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
-                            <!-- Cuenta origen -->
+                            <!-- Banco origen (Perú) -->
+                            <div>
+                                <label for="sender_bank" class="block text-sm font-medium text-cj-texto mb-2">Banco desde donde transferiste *</label>
+                                <select name="sender_bank" id="sender_bank" required
+                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
+                                    <option value="">Selecciona banco</option>
+                                    @foreach(['BCP — Banco de Crédito del Perú','Interbank','BBVA Perú','Scotiabank Perú','Banco de la Nación','BanBif','Mibanco','Banco Pichincha','Banco GNB','Banco Falabella Perú','Banco Ripley','Caja Metropolitana'] as $b)
+                                        <option value="{{ $b }}" {{ old('sender_bank') == $b ? 'selected' : '' }}>{{ $b }}</option>
+                                    @endforeach
+                                </select>
+                                @error('sender_bank')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Nº cuenta origen (opcional) -->
                             <div>
                                 <label for="sender_account_number" class="block text-sm font-medium text-cj-texto mb-2">
-                                    Número de Cuenta Origen *
+                                    Nº de cuenta origen <span class="text-cj-texto-claro font-normal">(opcional)</span>
                                 </label>
-                                <input
-                                    type="text"
-                                    name="sender_account_number"
-                                    id="sender_account_number"
+                                <input type="text" name="sender_account_number" id="sender_account_number"
                                     value="{{ old('sender_account_number') }}"
-                                    required
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
                                     placeholder="000-000000-0-00">
-                                @error('sender_account_number')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                                @error('sender_account_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
-                            <!-- Comprobante -->
-                            <div class="md:col-span-2">
-                                <label for="voucher" class="block text-sm font-medium text-cj-texto mb-2">
-                                    Comprobante de Transferencia *
+                            <!-- Comprobante con preview -->
+                            <div x-data="{ preview: null, fileName: '' }" class="md:col-span-2">
+                                <label class="block text-sm font-medium text-cj-texto mb-2">Comprobante de depósito *</label>
+
+                                <!-- Dropzone -->
+                                <label for="voucher"
+                                       class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-cj-turquesa hover:bg-cj-turquesa/5 transition-all"
+                                       :class="preview ? 'border-green-400 bg-green-50' : ''"
+                                       @dragover.prevent @drop.prevent="
+                                           const f = $event.dataTransfer.files[0];
+                                           if (f) {
+                                               fileName = f.name;
+                                               if (f.type.startsWith('image/')) {
+                                                   const r = new FileReader();
+                                                   r.onload = e => preview = e.target.result;
+                                                   r.readAsDataURL(f);
+                                               } else { preview = 'pdf'; }
+                                               const dt = new DataTransfer();
+                                               dt.items.add(f);
+                                               $refs.voucherInput.files = dt.files;
+                                           }">
+                                    <template x-if="!preview">
+                                        <div class="text-center px-4">
+                                            <svg class="mx-auto h-10 w-10 text-cj-texto-claro mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                            </svg>
+                                            <p class="text-sm font-medium text-cj-texto">Arrastra tu comprobante aquí</p>
+                                            <p class="text-xs text-cj-texto-claro mt-1">o haz clic para seleccionar</p>
+                                            <p class="text-xs text-cj-texto-claro mt-1">JPG, PNG, PDF — máx. 10 MB</p>
+                                        </div>
+                                    </template>
+                                    <template x-if="preview && preview !== 'pdf'">
+                                        <div class="relative w-full h-full flex items-center justify-center">
+                                            <img :src="preview" class="max-h-36 max-w-full object-contain rounded-lg">
+                                            <span class="absolute top-2 right-2 bg-green-500 text-white text-xs rounded-full px-2 py-0.5">✓ Listo</span>
+                                        </div>
+                                    </template>
+                                    <template x-if="preview === 'pdf'">
+                                        <div class="text-center">
+                                            <svg class="mx-auto h-10 w-10 text-red-400 mb-1" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/><path d="M14 2v6h6"/></svg>
+                                            <p class="text-sm font-medium text-cj-texto" x-text="fileName"></p>
+                                            <span class="text-xs text-green-600 font-medium">✓ PDF seleccionado</span>
+                                        </div>
+                                    </template>
                                 </label>
-                                <input
-                                    type="file"
-                                    name="voucher"
-                                    id="voucher"
-                                    accept="image/*,.pdf"
-                                    required
-                                    class="w-full p-3 border-2 border-dashed border-gray-300 rounded-xl hover:border-cj-turquesa transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-cj-morado-profundo file:text-white hover:file:bg-cj-morado-medio cursor-pointer">
-                                <p class="text-xs text-cj-texto-claro mt-2">Formatos aceptados: JPG, PNG, PDF (máx. 2MB)</p>
-                                @error('voucher')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+
+                                <input type="file" name="voucher" id="voucher" x-ref="voucherInput"
+                                    accept="image/*,.pdf" required class="hidden"
+                                    @change="
+                                        const f = $event.target.files[0];
+                                        if (f) {
+                                            fileName = f.name;
+                                            if (f.type.startsWith('image/')) {
+                                                const r = new FileReader();
+                                                r.onload = e => preview = e.target.result;
+                                                r.readAsDataURL(f);
+                                            } else { preview = 'pdf'; }
+                                        }">
+
+                                <!-- Instrucciones -->
+                                <div class="mt-3 bg-blue-50 border border-blue-200 rounded-xl p-3">
+                                    <p class="text-xs font-semibold text-blue-700 mb-1">¿Qué debe mostrar el comprobante?</p>
+                                    <ul class="text-xs text-blue-600 space-y-0.5 list-disc list-inside">
+                                        <li>El monto exacto transferido</li>
+                                        <li>Número de cuenta destino y banco</li>
+                                        <li>Fecha y hora de la operación</li>
+                                    </ul>
+                                </div>
+
+                                @error('voucher')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
                         </div>
                     </div>

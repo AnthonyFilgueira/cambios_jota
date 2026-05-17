@@ -85,13 +85,16 @@ class TransactionController extends Controller
      */
     public function create()
     {
-        // Obtener tasas activas
-        $rates = \App\Models\ExchangeRate::where('is_active', true)->first();
+        $user   = auth()->user()->load('assignedSeller.businessAccounts.bank');
+        $seller = $user->assignedSeller;
+        $pairs  = $this->getCurrencyPairs();
 
-        // Obtener pares de divisas disponibles
-        $pairs = $this->getCurrencyPairs();
+        // Pre-cargar cuentas del vendedor asignado
+        $sellerAccounts = $seller
+            ? $seller->businessAccounts->where('active', true)->values()
+            : collect();
 
-        return view('transactions.create', compact('rates', 'pairs'));
+        return view('transactions.create', compact('pairs', 'seller', 'sellerAccounts'));
     }
 
     /**
@@ -99,70 +102,74 @@ class TransactionController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'amount_pen' => 'required|numeric|min:1',
-            'amount_ves' => 'required|numeric|min:1',
-            'exchange_rate_id' => 'required|exists:exchange_rates,id',
-            'notes' => 'nullable|string|max:500',
+        $operationType = $request->input('operation_type', 'transferencia');
 
-            // Código de vendedor (OBLIGATORIO)
-            'seller_code' => 'required|string|max:20',
+        $validated = $request->validate([
+            'amount_pen'       => 'required|numeric|min:1',
+            'amount_ves'       => 'required|numeric|min:1',
+            'exchange_rate_id' => 'required|exists:exchange_rates,id',
+            'operation_type'   => 'required|in:transferencia,pago_movil',
+            'notes'            => 'nullable|string|max:500',
 
             // Tasas BCV (snapshot)
             'usd_bcv_rate' => 'nullable|numeric',
             'eur_bcv_rate' => 'nullable|numeric',
 
-            // Datos bancarios del receptor (Venezuela)
+            // Datos bancarios del receptor (Venezuela) — comunes
             'recipient_bank' => 'required|string|max:255',
-            'recipient_account_number' => 'required|string|max:255',
-            'recipient_dni' => 'required|string|max:255',
-            'recipient_account_type' => 'required|in:ahorro,corriente',
+            'recipient_dni'  => 'required|string|max:30',
+            'recipient_phone' => 'required|string|max:30',
+
+            // Solo transferencia
+            'recipient_account_number' => 'required_if:operation_type,transferencia|nullable|string|max:255',
+            'recipient_account_type'   => 'required_if:operation_type,transferencia|nullable|in:ahorro,corriente',
 
             // Datos de transferencia desde Perú
-            'sender_bank' => 'required|string|max:255',
-            'sender_account_number' => 'required|string|max:255',
+            'sender_bank'           => 'required|string|max:255',
+            'sender_account_number' => 'nullable|string|max:255',
+            'sender_dni'            => 'required|string|max:30',
 
             // Comprobante
-            'voucher' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'voucher' => 'required|file|mimes:jpg,jpeg,png,pdf|max:10240',
         ]);
 
-        // Buscar vendedor por código (OBLIGATORIO)
-        $seller = \App\Models\Seller::where('code', strtoupper($request->seller_code))->first();
+        // Usar el vendedor asignado del usuario autenticado
+        $user   = auth()->user()->load('assignedSeller');
+        $seller = $user->assignedSeller;
 
         if (!$seller) {
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['seller_code' => 'El código de vendedor no existe.']);
+                ->withErrors(['general' => 'No tienes un vendedor asignado. Contacta con soporte.']);
         }
 
         $validated['seller_id'] = $seller->id;
+        $validated['user_id']   = $user->id;
+        $validated['status']    = 'pending';
 
-        // Si no vienen las tasas BCV, obtenerlas del exchange rate
-        if (!$request->has('usd_bcv_rate') || !$request->has('eur_bcv_rate')) {
-            $rate = \App\Models\ExchangeRate::findOrFail($validated['exchange_rate_id']);
-            $validated['usd_bcv_rate'] = $rate->usd_rate;
-            $validated['eur_bcv_rate'] = $rate->eur_rate;
+        // Snapshot de tasas BCV desde el exchange rate
+        $rate = \App\Models\ExchangeRate::findOrFail($validated['exchange_rate_id']);
+        $validated['usd_bcv_rate'] = $rate->usd_rate ?? 0;
+        $validated['eur_bcv_rate'] = $rate->eur_rate ?? 0;
+
+        // Subida de comprobante
+        $validated['voucher'] = $request->file('voucher')->store('vouchers', 'public');
+
+        // Limpiar campos condicionales si es pago móvil
+        if ($operationType === 'pago_movil') {
+            $validated['recipient_account_number'] = null;
+            $validated['recipient_account_type']   = null;
         }
 
-        // Manejar subida del comprobante
-        if ($request->hasFile('voucher')) {
-            $path = $request->file('voucher')->store('vouchers', 'public');
-            $validated['voucher'] = $path;
-        }
-
-        $validated['user_id'] = auth()->id();
-        $validated['status'] = 'pending';
-
-        // Crear transacción
         $transaction = Transaction::create($validated);
 
-        // Enviar notificación al vendedor si fue asignado
-        if ($seller) {
+        // Notificar al vendedor
+        if ($seller->user) {
             $seller->user->notify(new \App\Notifications\NewTransactionForSeller($transaction));
         }
 
         return redirect()->route('transactions.index')
-            ->with('success', '¡Solicitud de envío creada exitosamente! ' . ($seller ? 'El vendedor ' . $seller->name . ' ha sido notificado.' : 'Un vendedor se pondrá en contacto contigo.'));
+            ->with('success', '¡Solicitud enviada! El vendedor ' . $seller->name . ' revisará tu comprobante.');
     }
 
     /**

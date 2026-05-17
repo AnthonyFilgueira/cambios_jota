@@ -14,6 +14,7 @@ class Transaction extends Model
         'amount_pen',
         'amount_ves',
         'exchange_rate_id',
+        'operation_type',
         'status',
         'notes',
         'observation',
@@ -24,12 +25,14 @@ class Transaction extends Model
         // Datos bancarios del receptor (Venezuela)
         'recipient_bank',
         'recipient_account_number',
-        'recipient_dni',
         'recipient_account_type',
+        'recipient_dni',
+        'recipient_phone',
 
         // Datos de transferencia desde Perú
         'sender_bank',
         'sender_account_number',
+        'sender_dni',
 
         // Tasas BCV (snapshot para historicidad)
         'usd_bcv_rate',
