@@ -213,6 +213,28 @@ class Seller extends Model
             ->sum(fn($sale) => $sale->bossCommissionAmount());
     }
 
+    // Métodos de conveniencia sin rango de fechas (todos los tiempos)
+    public function totalSales(): float
+    {
+        return (float) $this->sales()->sum('amount');
+    }
+
+    public function salesCount(): int
+    {
+        return $this->sales()->count();
+    }
+
+    public function totalCommissionsEarned(): float
+    {
+        return $this->totalHistoricSellerCommissions();
+    }
+
+    public function averageTicket(): float
+    {
+        $count = $this->sales()->count();
+        return $count > 0 ? (float) $this->sales()->sum('amount') / $count : 0.0;
+    }
+
     /**
      * Verificar si las comisiones pueden ser modificadas
      * (solo si no tiene ventas registradas)

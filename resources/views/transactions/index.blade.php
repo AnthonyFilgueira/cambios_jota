@@ -1,245 +1,262 @@
 <x-app-layout>
-    <!-- Fondo gradiente animado -->
     <div class="fixed inset-0 -z-20 bg-gradient-to-br from-purple-600 via-pink-500 to-teal-400 animate-gradient-shift"></div>
     <div class="fixed inset-0 -z-10 bg-white/40 backdrop-blur-sm"></div>
 
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-cj-texto leading-tight">
-            💰 Mis Transacciones
-        </h2>
+        <h2 class="font-semibold text-xl text-cj-texto leading-tight">Mis envíos</h2>
     </x-slot>
 
     <div class="py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 space-y-5">
 
-            <!-- Widget de consumo acumulado -->
-            <div class="mb-6">
-                <div class="bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio rounded-2xl shadow-2xl p-6 text-white border border-white/20">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs uppercase tracking-wider opacity-90 mb-1">Total enviado</p>
-                            <p class="text-4xl font-bold">S/ {{ number_format($totalSpent, 2) }}</p>
-                            <p class="text-sm opacity-75 mt-1">Soles peruanos</p>
-                        </div>
-                        <div class="bg-white/20 backdrop-blur-lg rounded-full p-4 shadow-lg">
-                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                    </div>
+            <x-notifications />
+
+            <!-- Widget total enviado -->
+            <div class="bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio rounded-2xl shadow-2xl p-5 text-white flex items-center justify-between">
+                <div>
+                    <p class="text-xs uppercase tracking-widest opacity-75 mb-1">Total enviado</p>
+                    <p class="text-3xl font-bold font-mono">S/ {{ number_format($totalSpent, 2) }}</p>
+                    <p class="text-xs opacity-60 mt-1">Soles peruanos</p>
+                </div>
+                <a href="{{ route('transactions.create') }}"
+                   class="flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur border border-white/30 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Nuevo envío
+                </a>
+            </div>
+
+            <!-- Filtros chips -->
+            @php
+                $filtros = [
+                    'all'        => ['label' => 'Todos',        'color' => 'gray'],
+                    'pending'    => ['label' => 'Pendiente',    'color' => 'yellow'],
+                    'observed'   => ['label' => 'Observado',    'color' => 'orange'],
+                    'processing' => ['label' => 'En proceso',   'color' => 'blue'],
+                    'completed'  => ['label' => 'Completado',   'color' => 'green'],
+                    'cancelled'  => ['label' => 'Cancelado',    'color' => 'red'],
+                ];
+                $chipBase = [
+                    'gray'   => 'bg-gray-100 text-gray-700 border-gray-200',
+                    'yellow' => 'bg-yellow-50 text-yellow-800 border-yellow-200',
+                    'orange' => 'bg-orange-50 text-orange-800 border-orange-200',
+                    'blue'   => 'bg-blue-50 text-blue-800 border-blue-200',
+                    'green'  => 'bg-green-50 text-green-800 border-green-200',
+                    'red'    => 'bg-red-50 text-red-800 border-red-200',
+                ];
+                $chipActive = [
+                    'gray'   => 'bg-gray-600 text-white border-gray-600',
+                    'yellow' => 'bg-yellow-500 text-white border-yellow-500',
+                    'orange' => 'bg-orange-500 text-white border-orange-500',
+                    'blue'   => 'bg-blue-600 text-white border-blue-600',
+                    'green'  => 'bg-green-600 text-white border-green-600',
+                    'red'    => 'bg-red-500 text-white border-red-500',
+                ];
+            @endphp
+
+            <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow border border-white/50 p-4">
+                <div class="flex gap-2 flex-wrap">
+                    @foreach($filtros as $key => $f)
+                    <a href="{{ route('transactions.index', ['status' => $key]) }}"
+                       class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all
+                              {{ $statusFilter === $key ? $chipActive[$f['color']] : $chipBase[$f['color']] }}">
+                        {{ $f['label'] }}
+                        @if(isset($counts[$key]) && $counts[$key] > 0)
+                        <span class="rounded-full px-1.5 py-0.5 text-xs font-bold
+                                     {{ $statusFilter === $key ? 'bg-white/25' : 'bg-black/10' }}">
+                            {{ $counts[$key] }}
+                        </span>
+                        @endif
+                    </a>
+                    @endforeach
                 </div>
             </div>
 
-            <!-- Historial de transacciones -->
-            <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/50 overflow-hidden" x-data="{ expandedId: null }">
-                <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-cj-morado-profundo/5 to-cj-turquesa/5">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="text-lg font-bold text-cj-morado-profundo">Historial de envíos</h3>
-                            <p class="text-sm text-cj-texto-claro mt-1">{{ $transactions->count() }} transacciones registradas</p>
-                        </div>
-                        <a href="{{ route('transactions.create') }}" class="px-4 py-2 bg-gradient-to-r from-cj-morado-profundo to-cj-morado-medio text-white rounded-xl text-sm font-semibold shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all">
-                            + Nuevo Envío
-                        </a>
-                    </div>
-                </div>
+            <!-- Lista de transacciones -->
+            @if($transactions->isEmpty())
+            <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow border border-white/50 p-12 text-center">
+                <div class="text-5xl mb-4">📭</div>
+                <p class="font-semibold text-cj-texto">No hay transacciones en esta categoría</p>
+                <p class="text-sm text-cj-texto-claro mt-1">Prueba otro filtro o crea un nuevo envío.</p>
+            </div>
+            @else
+            <div class="space-y-3" x-data="{ openId: null }">
+                @foreach($transactions as $tx)
+                @php
+                    $statusStyles = [
+                        'pending'    => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'dot' => 'bg-yellow-400', 'label' => 'Pendiente'],
+                        'observed'   => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'dot' => 'bg-orange-400', 'label' => 'Con observaciones'],
+                        'processing' => ['bg' => 'bg-blue-100',   'text' => 'text-blue-800',   'dot' => 'bg-blue-400',   'label' => 'En proceso'],
+                        'completed'  => ['bg' => 'bg-green-100',  'text' => 'text-green-800',  'dot' => 'bg-green-400',  'label' => 'Completado'],
+                        'cancelled'  => ['bg' => 'bg-red-100',    'text' => 'text-red-800',    'dot' => 'bg-red-400',    'label' => 'Cancelado'],
+                    ];
+                    $s = $statusStyles[$tx->status] ?? $statusStyles['pending'];
+                @endphp
 
-                @if($transactions->isEmpty())
-                    <div class="p-12 text-center">
-                        <div class="bg-gradient-to-br from-cj-morado-claro/30 to-cj-turquesa/20 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center">
-                            <svg class="w-12 h-12 text-cj-morado-medio" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
+                <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow border border-white/50 overflow-hidden">
+                    <!-- Fila resumen — clic para expandir -->
+                    <button type="button"
+                            @click="openId = openId === {{ $tx->id }} ? null : {{ $tx->id }}"
+                            class="w-full text-left p-5 hover:bg-gray-50/50 transition-all">
+                        <div class="flex items-center justify-between gap-3">
+                            <!-- Fecha + montos -->
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-11 h-11 bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                    #{{ $tx->id }}
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="font-bold text-cj-texto">S/ {{ number_format($tx->amount_pen, 2) }}
+                                        <span class="text-cj-texto-claro font-normal text-sm">→ Bs. {{ number_format($tx->amount_ves, 0) }}</span>
+                                    </p>
+                                    <p class="text-xs text-cj-texto-claro">{{ $tx->created_at->format('d M Y, H:i') }}</p>
+                                </div>
+                            </div>
+                            <!-- Estado + flecha -->
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <span class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold {{ $s['bg'] }} {{ $s['text'] }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $s['dot'] }}"></span>
+                                    {{ $s['label'] }}
+                                </span>
+                                <svg class="w-4 h-4 text-gray-400 transition-transform"
+                                     :class="openId === {{ $tx->id }} ? 'rotate-90' : ''"
+                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </div>
                         </div>
-                        <p class="text-cj-texto text-lg font-bold">No tienes transacciones aún</p>
-                        <p class="text-cj-texto-claro text-sm mt-2 mb-4">Inicia tu primer envío ahora</p>
-                        <a href="{{ route('transactions.create') }}" class="inline-block px-6 py-3 bg-gradient-to-r from-cj-morado-profundo to-cj-morado-medio text-white rounded-xl font-semibold shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all">
-                            Crear Envío
-                        </a>
-                    </div>
-                @else
-                    <!-- Tarjetas de transacciones -->
-                    <div class="divide-y divide-gray-100">
-                        @foreach($transactions as $transaction)
-                        <div class="p-4 hover:bg-gradient-to-r hover:from-cj-morado-profundo/5 hover:to-cj-turquesa/5 transition-all">
-                            <!-- Resumen -->
-                            <div class="cursor-pointer" @click="expandedId = expandedId === {{ $transaction->id }} ? null : {{ $transaction->id }}">
-                                <div class="flex items-center justify-between mb-3">
-                                    <div class="flex items-center gap-4">
-                                        <div class="bg-gradient-to-br from-cj-morado-profundo to-cj-turquesa rounded-xl p-3 shadow-lg">
-                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                                            </svg>
+
+                        <!-- Alerta observación visible sin expandir -->
+                        @if($tx->status === 'observed' && $tx->observation)
+                        <div class="mt-3 bg-orange-50 border border-orange-200 rounded-xl px-4 py-2 text-xs text-orange-700 text-left">
+                            <span class="font-semibold">Observación:</span> {{ Str::limit($tx->observation, 100) }}
+                        </div>
+                        @endif
+                    </button>
+
+                    <!-- Detalle expandible -->
+                    <div x-show="openId === {{ $tx->id }}" x-collapse>
+                        <div class="border-t border-gray-100 p-5 space-y-5 bg-gray-50/30">
+
+                            <!-- Timeline de estados -->
+                            @php
+                                $timelineSteps = [
+                                    ['key' => 'pending',    'label' => 'Solicitud recibida',      'icon' => '📤'],
+                                    ['key' => 'processing', 'label' => 'Aprobada por el vendedor', 'icon' => '✅'],
+                                    ['key' => 'completed',  'label' => 'Dinero enviado',           'icon' => '💸'],
+                                ];
+                                $statusOrder = ['pending' => 0, 'observed' => 0, 'processing' => 1, 'completed' => 2, 'cancelled' => -1];
+                                $currentStep = $statusOrder[$tx->status] ?? 0;
+                            @endphp
+
+                            @if($tx->status !== 'cancelled')
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-widest text-cj-texto-claro mb-3">Progreso</p>
+                                <div class="flex items-center gap-0">
+                                    @foreach($timelineSteps as $i => $step)
+                                    <div class="flex items-center {{ $i < count($timelineSteps) - 1 ? 'flex-1' : '' }}">
+                                        <div class="flex flex-col items-center">
+                                            <div class="w-9 h-9 rounded-full flex items-center justify-center text-base
+                                                         {{ $i <= $currentStep ? 'bg-cj-turquesa shadow-md shadow-teal-400/30' : 'bg-gray-200' }}">
+                                                {{ $step['icon'] }}
+                                            </div>
+                                            <p class="text-xs text-center mt-1 w-20
+                                                       {{ $i <= $currentStep ? 'font-semibold text-cj-texto' : 'text-cj-texto-claro' }}">
+                                                {{ $step['label'] }}
+                                            </p>
                                         </div>
-                                        <div>
-                                            <p class="text-xs text-cj-texto-claro">{{ $transaction->created_at->format('d/m/Y H:i') }}</p>
-                                            <p class="text-xl font-bold text-cj-morado-profundo">S/ {{ number_format($transaction->amount_pen, 2) }}</p>
-                                            <p class="text-sm text-cj-turquesa font-semibold">→ Bs. {{ number_format($transaction->amount_ves, 2) }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="text-right">
-                                        @php
-                                            $statusConfig = [
-                                                'pending' => ['label' => 'Pendiente', 'class' => 'bg-cj-rosa/10 text-cj-rosa border border-cj-rosa/20'],
-                                                'observed' => ['label' => '⚠ Con observaciones', 'class' => 'bg-orange-100 text-orange-800 border border-orange-300'],
-                                                'processing' => ['label' => 'En proceso', 'class' => 'bg-yellow-100 text-yellow-800 border border-yellow-200'],
-                                                'completed' => ['label' => '✓ Completado', 'class' => 'bg-cj-turquesa/10 text-cj-turquesa border border-cj-turquesa/20'],
-                                                'cancelled' => ['label' => 'Cancelado', 'class' => 'bg-gray-100 text-gray-600 border border-gray-200'],
-                                            ];
-                                            $config = $statusConfig[$transaction->status] ?? ['label' => $transaction->status, 'class' => 'bg-gray-100 text-gray-600'];
-                                        @endphp
-                                        <span class="inline-block px-4 py-2 rounded-xl text-xs font-bold {{ $config['class'] }} mb-2">
-                                            {{ $config['label'] }}
-                                        </span>
-                                        @if($transaction->status === 'observed')
-                                        <p class="text-xs text-orange-600 font-semibold">Requiere atención</p>
+                                        @if($i < count($timelineSteps) - 1)
+                                        <div class="flex-1 h-0.5 mb-6 {{ $i < $currentStep ? 'bg-cj-turquesa' : 'bg-gray-200' }}"></div>
                                         @endif
-                                        <p class="text-xs text-cj-texto-claro">
-                                            <span x-show="expandedId !== {{ $transaction->id }}">Ver detalles ▼</span>
-                                            <span x-show="expandedId === {{ $transaction->id }}">Ocultar ▲</span>
-                                        </p>
                                     </div>
+                                    @endforeach
                                 </div>
                             </div>
+                            @else
+                            <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 font-semibold">
+                                Esta solicitud fue cancelada/denegada.
+                            </div>
+                            @endif
 
-                            <!-- Detalles expandibles -->
-                            <div x-show="expandedId === {{ $transaction->id }}" x-collapse class="mt-4">
-                                <div class="grid md:grid-cols-2 gap-4 p-4 bg-gray-50/50 rounded-xl">
-                                    <!-- Datos del envío -->
-                                    <div class="space-y-3">
-                                        <h5 class="font-bold text-cj-morado-profundo text-sm flex items-center gap-2">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                                            </svg>
-                                            Datos del Envío
-                                        </h5>
-                                        <div class="space-y-2 text-sm">
-                                            <div class="flex justify-between">
-                                                <span class="text-cj-texto-claro">Tasa aplicada:</span>
-                                                <span class="font-mono font-semibold text-cj-texto">{{ number_format($transaction->exchangeRate->ves_rate, 2) }} Bs/PEN</span>
-                                            </div>
-                                            @if($transaction->usd_bcv_rate)
-                                            <div class="flex justify-between">
-                                                <span class="text-cj-texto-claro">Tasa BCV USD:</span>
-                                                <span class="font-mono text-cj-texto">{{ number_format($transaction->usd_bcv_rate, 2) }}</span>
-                                            </div>
-                                            @endif
-                                            @if($transaction->eur_bcv_rate)
-                                            <div class="flex justify-between">
-                                                <span class="text-cj-texto-claro">Tasa BCV EUR:</span>
-                                                <span class="font-mono text-cj-texto">{{ number_format($transaction->eur_bcv_rate, 2) }}</span>
-                                            </div>
-                                            @endif
-                                            @if($transaction->seller)
-                                            <div class="flex justify-between">
-                                                <span class="text-cj-texto-claro">Vendedor:</span>
-                                                <span class="font-semibold text-cj-morado-profundo">{{ $transaction->seller->name }}</span>
-                                            </div>
-                                            @endif
-                                        </div>
+                            <!-- Datos receptor Venezuela -->
+                            @if($tx->recipient_bank)
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-widest text-cj-texto-claro mb-3">Receptor en Venezuela</p>
+                                <div class="bg-white rounded-xl border border-gray-100 divide-y divide-gray-50">
+                                    <div class="flex justify-between px-4 py-2.5 text-sm">
+                                        <span class="text-cj-texto-claro">Tipo</span>
+                                        <span class="font-semibold text-cj-texto capitalize">
+                                            {{ $tx->operation_type === 'pago_movil' ? 'Pago Móvil' : 'Transferencia' }}
+                                        </span>
                                     </div>
-
-                                    <!-- Datos bancarios receptor (Venezuela) -->
-                                    @if($transaction->recipient_bank)
-                                    <div class="space-y-3">
-                                        <h5 class="font-bold text-cj-morado-profundo text-sm flex items-center gap-2">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-                                            </svg>
-                                            Receptor (Venezuela)
-                                        </h5>
-                                        <div class="space-y-2 text-sm">
-                                            <div class="flex justify-between">
-                                                <span class="text-cj-texto-claro">Banco:</span>
-                                                <span class="font-semibold text-cj-texto">{{ $transaction->recipient_bank }}</span>
-                                            </div>
-                                            <div class="flex justify-between">
-                                                <span class="text-cj-texto-claro">Cuenta:</span>
-                                                <span class="font-mono text-cj-texto">{{ $transaction->recipient_account_number }}</span>
-                                            </div>
-                                            <div class="flex justify-between">
-                                                <span class="text-cj-texto-claro">Cédula:</span>
-                                                <span class="font-mono text-cj-texto">{{ $transaction->recipient_dni }}</span>
-                                            </div>
-                                            <div class="flex justify-between">
-                                                <span class="text-cj-texto-claro">Tipo:</span>
-                                                <span class="capitalize text-cj-texto">{{ $transaction->recipient_account_type }}</span>
-                                            </div>
-                                        </div>
+                                    <div class="flex justify-between px-4 py-2.5 text-sm">
+                                        <span class="text-cj-texto-claro">Banco VE</span>
+                                        <span class="font-semibold text-cj-texto">{{ $tx->recipient_bank }}</span>
                                     </div>
-                                    @endif
-
-                                    <!-- Datos bancarios origen (Perú) -->
-                                    @if($transaction->sender_bank)
-                                    <div class="space-y-3">
-                                        <h5 class="font-bold text-cj-morado-profundo text-sm flex items-center gap-2">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-                                            </svg>
-                                            Origen (Perú)
-                                        </h5>
-                                        <div class="space-y-2 text-sm">
-                                            <div class="flex justify-between">
-                                                <span class="text-cj-texto-claro">Banco:</span>
-                                                <span class="font-semibold text-cj-texto">{{ $transaction->sender_bank }}</span>
-                                            </div>
-                                            <div class="flex justify-between">
-                                                <span class="text-cj-texto-claro">Cuenta:</span>
-                                                <span class="font-mono text-cj-texto">{{ $transaction->sender_account_number }}</span>
-                                            </div>
-                                        </div>
+                                    <div class="flex justify-between px-4 py-2.5 text-sm">
+                                        <span class="text-cj-texto-claro">Cédula</span>
+                                        <span class="font-mono text-cj-texto">{{ $tx->recipient_dni }}</span>
                                     </div>
-                                    @endif
-
-                                    <!-- Comprobante -->
-                                    @if($transaction->voucher)
-                                    <div class="space-y-3">
-                                        <h5 class="font-bold text-cj-morado-profundo text-sm flex items-center gap-2">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                            </svg>
-                                            Comprobante
-                                        </h5>
-                                        <a href="{{ asset('storage/' . $transaction->voucher) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-cj-turquesa/10 hover:bg-cj-turquesa/20 text-cj-turquesa rounded-lg transition-all text-sm font-semibold">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                            </svg>
-                                            Ver comprobante
-                                        </a>
+                                    <div class="flex justify-between px-4 py-2.5 text-sm">
+                                        <span class="text-cj-texto-claro">Teléfono</span>
+                                        <span class="font-mono text-cj-texto">{{ $tx->recipient_phone }}</span>
                                     </div>
-                                    @endif
-
-                                    <!-- Observaciones -->
-                                    @if($transaction->observation)
-                                    <div class="space-y-3 md:col-span-2">
-                                        <h5 class="font-bold text-orange-600 text-sm flex items-center gap-2">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                                            </svg>
-                                            ⚠️ Observaciones
-                                        </h5>
-                                        <div class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-lg">
-                                            <p class="text-sm text-orange-800 font-semibold">{{ $transaction->observation }}</p>
-                                            <p class="text-xs text-orange-600 mt-2">Por favor, revisa esta observación y contacta al vendedor si es necesario.</p>
-                                        </div>
+                                    @if($tx->recipient_account_number)
+                                    <div class="flex justify-between px-4 py-2.5 text-sm">
+                                        <span class="text-cj-texto-claro">Cuenta</span>
+                                        <span class="font-mono text-cj-texto">{{ $tx->recipient_account_number }}</span>
                                     </div>
-                                    @endif
-
-                                    <!-- Notas -->
-                                    @if($transaction->notes)
-                                    <div class="space-y-3 md:col-span-2">
-                                        <h5 class="font-bold text-cj-morado-profundo text-sm">Notas</h5>
-                                        <p class="text-sm text-cj-texto bg-white p-3 rounded-lg italic">{{ $transaction->notes }}</p>
+                                    <div class="flex justify-between px-4 py-2.5 text-sm">
+                                        <span class="text-cj-texto-claro">Tipo cuenta</span>
+                                        <span class="font-semibold text-cj-texto capitalize">{{ $tx->recipient_account_type }}</span>
                                     </div>
                                     @endif
                                 </div>
                             </div>
+                            @endif
+
+                            <!-- Comprobante del cliente -->
+                            @if($tx->voucher)
+                            <div class="flex items-center justify-between bg-white rounded-xl border border-gray-100 px-4 py-3">
+                                <div>
+                                    <p class="text-xs font-bold uppercase tracking-widest text-cj-texto-claro">Tu comprobante</p>
+                                    <p class="text-sm font-semibold text-cj-texto mt-0.5">Enviado al registro</p>
+                                </div>
+                                <a href="{{ asset('storage/' . $tx->voucher) }}" target="_blank"
+                                   class="flex items-center gap-1.5 px-3 py-2 bg-cj-turquesa/10 hover:bg-cj-turquesa/20 text-cj-turquesa rounded-lg text-sm font-semibold transition-all">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                    Ver
+                                </a>
+                            </div>
+                            @endif
+
+                            <!-- Comprobante final del admin -->
+                            @if($tx->final_voucher)
+                            <div class="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+                                <div>
+                                    <p class="text-xs font-bold uppercase tracking-widest text-green-600">Comprobante de envío</p>
+                                    <p class="text-sm font-semibold text-green-800 mt-0.5">Confirmación del operador</p>
+                                </div>
+                                <a href="{{ asset('storage/' . $tx->final_voucher) }}" target="_blank"
+                                   class="flex items-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold transition-all">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                    </svg>
+                                    Descargar
+                                </a>
+                            </div>
+                            @endif
+
                         </div>
-                        @endforeach
                     </div>
-                @endif
+                </div>
+                @endforeach
             </div>
+            @endif
+
         </div>
     </div>
 </x-app-layout>

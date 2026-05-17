@@ -11,16 +11,35 @@ class TransactionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $transactions = Transaction::with(['seller', 'exchangeRate'])
+        $statusFilter = $request->get('status', 'all');
+        $validStatuses = ['all', 'pending', 'observed', 'processing', 'completed', 'cancelled'];
+        if (!in_array($statusFilter, $validStatuses)) {
+            $statusFilter = 'all';
+        }
+
+        $query = Transaction::with(['seller', 'exchangeRate', 'logs'])
             ->where('user_id', auth()->id())
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->orderBy('created_at', 'desc');
 
-        $totalSpent = $transactions->sum('amount_pen');
+        if ($statusFilter !== 'all') {
+            $query->where('status', $statusFilter);
+        }
 
-        return view('transactions.index', compact('transactions', 'totalSpent'));
+        $transactions = $query->get();
+
+        // Contadores para los chips
+        $counts = Transaction::where('user_id', auth()->id())
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
+        $counts['all'] = array_sum($counts);
+
+        $totalSpent = Transaction::where('user_id', auth()->id())->sum('amount_pen');
+
+        return view('transactions.index', compact('transactions', 'totalSpent', 'statusFilter', 'counts'));
     }
 
     /**
