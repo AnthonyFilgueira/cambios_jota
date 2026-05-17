@@ -111,8 +111,17 @@ Route::middleware('auth')->group(function () {
 
     // Dashboards
     Route::get('/owner-dashboard',  [OwnerDashboardController::class, 'index'])->name('owner.dashboard');
-    Route::get('/seller-dashboard', [\App\Http\Controllers\SellerDashboardController::class, 'index'])->name('seller.dashboard');
+    Route::get('/seller-dashboard', fn() => redirect()->route('seller.bandeja'))->name('seller.dashboard');
     Route::get('/client-dashboard', [\App\Http\Controllers\ClientDashboardController::class, 'index'])->name('client.dashboard');
+
+    // Panel del Vendedor — bandeja de solicitudes
+    Route::prefix('seller')->name('seller.')->group(function () {
+        Route::get('/bandeja',                       [\App\Http\Controllers\SellerTransactionController::class, 'bandeja'])->name('bandeja');
+        Route::get('/solicitud/{transaction}',       [\App\Http\Controllers\SellerTransactionController::class, 'show'])->name('solicitud.show');
+        Route::post('/solicitud/{transaction}/approve', [\App\Http\Controllers\SellerTransactionController::class, 'approve'])->name('solicitud.approve');
+        Route::post('/solicitud/{transaction}/observe', [\App\Http\Controllers\SellerTransactionController::class, 'observe'])->name('solicitud.observe');
+        Route::post('/solicitud/{transaction}/deny',    [\App\Http\Controllers\SellerTransactionController::class, 'deny'])->name('solicitud.deny');
+    });
 
     // Transacciones (cliente crea, admin/vendedor gestiona)
     Route::get('/transactions',                           [TransactionController::class, 'index'])->name('transactions.index');
