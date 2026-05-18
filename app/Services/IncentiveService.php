@@ -33,13 +33,15 @@ class IncentiveService
         $bonusPen = $rules->sum(fn ($r) => $this->calculateBonus($r, $amountPen));
 
         return [
-            'has_bonus'     => $bonusPen > 0,
+            'has_bonus'     => $rules->isNotEmpty(),
             'bonus_pen'     => round($bonusPen, 2),
             'effective_pen' => round($amountPen + $bonusPen, 2),
             'rules'         => $rules->values()->map(fn ($r) => [
                 'name'       => $r->name,
                 'value_label'=> $r->valueLabel(),
                 'type_icon'  => $r->typeIcon(),
+                'value_type' => $r->value_type,
+                'value'      => (float) $r->value,
             ]),
         ];
     }
