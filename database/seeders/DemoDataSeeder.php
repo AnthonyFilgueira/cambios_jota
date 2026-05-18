@@ -30,7 +30,10 @@ class DemoDataSeeder extends Seeder
         // 2. Crear vendedores
         $this->crearVendedores();
 
-        // 3. Crear ventas (30 total)
+        // 3. Asignar vendedores a clientes
+        $this->asignarVendedoresAClientes();
+
+        // 4. Crear ventas (30 total)
         $this->crearVentas();
 
         // 4. Crear observaciones/logs
@@ -129,6 +132,24 @@ class DemoDataSeeder extends Seeder
         }
 
         $this->command->info('  ✓ 4 vendedores creados (VEND001-VEND004) vinculados a usuarios');
+    }
+
+    private function asignarVendedoresAClientes()
+    {
+        $this->command->info('🔗 Asignando vendedores a clientes...');
+
+        // Juan Pérez y María González → Pedro Martínez (VEND001)
+        $pedro = $this->vendedores['VEND001'];
+        $this->clientes[0]->update(['assigned_seller_id' => $pedro->id]); // Juan Pérez
+        $this->clientes[1]->update(['assigned_seller_id' => $pedro->id]); // María González
+
+        // Carlos Rodríguez y Ana Torres → Ana López (VEND002)
+        $ana = $this->vendedores['VEND002'];
+        $this->clientes[2]->update(['assigned_seller_id' => $ana->id]); // Carlos Rodríguez
+        $this->clientes[3]->update(['assigned_seller_id' => $ana->id]); // Ana Torres
+
+        $this->command->info('  ✓ Juan Pérez + María González → Pedro Martínez (VEND001)');
+        $this->command->info('  ✓ Carlos Rodríguez + Ana Torres → Ana López (VEND002)');
     }
 
     private function crearVentas()

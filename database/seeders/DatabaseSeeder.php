@@ -48,6 +48,11 @@ class DatabaseSeeder extends Seeder
             CountryBankSeeder::class,        // Perú + Venezuela + 3 cuentas asignadas a vendedores
         ]);
 
+        // 6. Incentivos de demostración (DESPUÉS de DemoDataSeeder — necesita users y sellers)
+        $this->call([
+            IncentiveSeeder::class,          // 7 incentivos de demo (5 activos, 2 inactivos)
+        ]);
+
         $this->command->info('✅ Database seeding completed!');
     }
 }
