@@ -298,7 +298,7 @@
 
                     <!-- SECCIÓN 2: RECEPTOR EN VENEZUELA -->
                     <div class="bg-gradient-to-r from-cj-rosa/5 to-cj-morado-medio/5 rounded-xl p-6 border border-pink-200"
-                         x-data="{ opType: '{{ old('operation_type', $transaction->operation_type ?? 'transferencia') }}' }">
+                         x-data="{ opType: '{{ old('operation_type', $transaction->operation_type ?? 'transferencia') }}', acctType: '{{ old('recipient_account_type', $transaction->recipient_account_type ?? 'ahorro') }}' }">
                         <h4 class="text-lg font-bold text-cj-morado-profundo mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
@@ -394,16 +394,18 @@
                                 </label>
                                 <div class="flex gap-3 mt-1">
                                     <label class="flex-1 flex items-center gap-2 border-2 rounded-xl p-3 cursor-pointer transition-all"
-                                           :class="$refs.actype?.value === 'ahorro' ? 'border-cj-turquesa bg-cj-turquesa/5' : 'border-gray-200'">
-                                        <input type="radio" name="recipient_account_type" value="ahorro" x-ref="actype"
-                                               {{ old('recipient_account_type', $transaction->recipient_account_type ?? 'ahorro') === 'ahorro' ? 'checked' : '' }}
+                                           :class="acctType === 'ahorro' ? 'border-cj-turquesa bg-cj-turquesa/5' : 'border-gray-200'">
+                                        <input type="radio" name="recipient_account_type" value="ahorro"
+                                               @change="acctType = 'ahorro'"
+                                               :checked="acctType === 'ahorro'"
                                                class="text-cj-turquesa">
                                         <span class="text-sm font-medium">Ahorro</span>
                                     </label>
                                     <label class="flex-1 flex items-center gap-2 border-2 rounded-xl p-3 cursor-pointer transition-all"
-                                           :class="$refs.actype?.value === 'corriente' ? 'border-cj-turquesa bg-cj-turquesa/5' : 'border-gray-200'">
+                                           :class="acctType === 'corriente' ? 'border-cj-turquesa bg-cj-turquesa/5' : 'border-gray-200'">
                                         <input type="radio" name="recipient_account_type" value="corriente"
-                                               {{ old('recipient_account_type', $transaction->recipient_account_type ?? '') === 'corriente' ? 'checked' : '' }}
+                                               @change="acctType = 'corriente'"
+                                               :checked="acctType === 'corriente'"
                                                class="text-cj-turquesa">
                                         <span class="text-sm font-medium">Corriente</span>
                                     </label>
