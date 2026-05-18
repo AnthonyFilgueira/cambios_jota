@@ -50,7 +50,9 @@ Route::get('/', function () {
             ];
         });
 
-    return view('welcome', compact('rates', 'pairs'));
+    $bonusPreview = app(\App\Services\IncentiveService::class)->getReceptorPreview(null, 0);
+
+    return view('welcome', compact('rates', 'pairs', 'bonusPreview'));
 });
 
 // API pública: buscar vendedor por código (usada en el formulario de transacción)

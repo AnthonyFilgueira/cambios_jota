@@ -208,6 +208,20 @@
                         <span class="text-2xl">🇻🇪</span>
                     </div>
                     <div class="text-xs opacity-90 mt-1">Bolívares venezolanos</div>
+                    @if($bonusPreview['has_bonus'])
+                    <div class="mt-3 bg-white/20 backdrop-blur-sm rounded-xl px-3 py-2 flex items-center gap-2">
+                        <span class="text-lg">🎁</span>
+                        <div>
+                            <p class="text-xs font-bold">¡Bono incluido!</p>
+                            <p class="text-xs opacity-90">
+                                @foreach($bonusPreview['rules'] as $br)
+                                    {{ $br['type_icon'] }} {{ $br['name'] }}: +{{ $br['value_label'] }}
+                                    @if(!$loop->last) · @endif
+                                @endforeach
+                            </p>
+                        </div>
+                    </div>
+                    @endif
                 </div>
 
                 <!-- Botón CTA -->
@@ -256,6 +270,10 @@
                     montoEnviar: 0,
                     vesRecibir: 0,
 
+                    // Bono activo (cargado desde backend)
+                    bonusPen: {{ $bonusPreview['bonus_pen'] ?? 0 }},
+                    bonusType: '{{ $bonusPreview['rules'][0]['type_icon'] ?? '' }}',
+
                     // Inicializar
                     init() {
                         this.cambiarPar();
@@ -292,7 +310,7 @@
                         this.inputEUR = '';
                         const monto = parseFloat(this.inputOrigen) || 0;
                         this.montoEnviar = this.round(monto);
-                        this.vesRecibir = this.round(monto * this.currentPair.ves_rate);
+                        this.vesRecibir = this.round((monto + this.bonusPen) * this.currentPair.ves_rate);
                     },
 
                     // CASO 2: Cliente ingresa USD (conversión a tasa BCV dólar)
@@ -302,7 +320,7 @@
                         const usd = parseFloat(this.inputUSD) || 0;
                         const vesIntermedios = usd * this.currentPair.usd_rate;
                         this.montoEnviar = this.round(vesIntermedios / this.currentPair.ves_rate);
-                        this.vesRecibir = this.round(vesIntermedios);
+                        this.vesRecibir = this.round(vesIntermedios + this.bonusPen * this.currentPair.ves_rate);
                     },
 
                     // CASO 3: Cliente ingresa EUR (conversión a tasa BCV euro)
@@ -312,7 +330,7 @@
                         const eur = parseFloat(this.inputEUR) || 0;
                         const vesIntermedios = eur * this.currentPair.eur_rate;
                         this.montoEnviar = this.round(vesIntermedios / this.currentPair.ves_rate);
-                        this.vesRecibir = this.round(vesIntermedios);
+                        this.vesRecibir = this.round(vesIntermedios + this.bonusPen * this.currentPair.ves_rate);
                     },
 
                     // Formatear montos con separadores de miles y 2 decimales

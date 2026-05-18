@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaction;
 use App\Models\TransactionLog;
+use App\Services\IncentiveService;
 use Illuminate\Http\Request;
 
 class TransactionController extends Controller
@@ -109,12 +110,13 @@ class TransactionController extends Controller
         $seller = $user->assignedSeller;
         $pairs  = $this->getCurrencyPairs();
 
-        // Pre-cargar cuentas del vendedor asignado
         $sellerAccounts = $seller
             ? $seller->businessAccounts->where('active', true)->values()
             : collect();
 
-        return view('transactions.create', compact('pairs', 'seller', 'sellerAccounts'));
+        $bonusPreview = app(IncentiveService::class)->getReceptorPreview($user, 0);
+
+        return view('transactions.create', compact('pairs', 'seller', 'sellerAccounts', 'bonusPreview'));
     }
 
     /**
@@ -182,6 +184,9 @@ class TransactionController extends Controller
         }
 
         $transaction = Transaction::create($validated);
+
+        // Aplicar incentivos extra_receptor (ajusta amount_ves y registra pivot)
+        app(IncentiveService::class)->applyToTransaction($transaction);
 
         // Notificar al vendedor
         if ($seller->user) {

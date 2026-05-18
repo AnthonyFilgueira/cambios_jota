@@ -23,6 +23,7 @@
 
                     <!-- Hidden fields -->
                     <input type="hidden" name="amount_ves" x-model="amountVes">
+                    <input type="hidden" name="bonus_amount_pen" x-model="bonusAmountPen">
 
                     <!-- SECCIÓN 1: DATOS DEL ENVÍO -->
                     <div class="bg-gradient-to-r from-cj-morado-profundo/5 to-cj-turquesa/5 rounded-xl p-6 border border-cj-morado-claro">
@@ -222,6 +223,10 @@
                                     Bs. <span x-text="formatMoney(amountVes)">0.00</span>
                                 </div>
                                 <div class="text-xs opacity-90 mt-1">Bolívares venezolanos</div>
+                                <div x-show="bonusAmountPen > 0" class="mt-3 bg-white/20 rounded-lg px-3 py-2 flex items-center gap-2">
+                                    <span>🎁</span>
+                                    <p class="text-xs font-semibold">Incluye bono de S/ <span x-text="bonusAmountPen.toFixed(2)"></span></p>
+                                </div>
                             </div>
 
                             <!-- Tasa aplicada -->
@@ -526,6 +531,10 @@
             usdBcvRate: 0,
             eurBcvRate: 0,
 
+            // Bono activo (cargado desde backend)
+            bonusPen: {{ $bonusPreview['bonus_pen'] ?? 0 }},
+            bonusAmountPen: 0,
+
             // Inputs de cotización
             inputUSD: '',
             inputEUR: '',
@@ -677,11 +686,12 @@
                 }
             },
 
-            // Recalcular VES basado en PEN
+            // Recalcular VES basado en PEN (incluye bono)
             recalculate() {
                 const pen = parseFloat(this.amountPen) || 0;
                 const rate = parseFloat(this.selectedRate) || 0;
-                this.amountVes = this.round(pen * rate);
+                this.bonusAmountPen = this.bonusPen;
+                this.amountVes = this.round((pen + this.bonusPen) * rate);
             },
 
             // Formatear montos

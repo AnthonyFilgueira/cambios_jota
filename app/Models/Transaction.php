@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Transaction extends Model
@@ -38,13 +39,17 @@ class Transaction extends Model
         // Tasas BCV (snapshot para historicidad)
         'usd_bcv_rate',
         'eur_bcv_rate',
+
+        // Incentivos
+        'bonus_amount_pen',
     ];
 
     protected $casts = [
-        'amount_pen' => 'decimal:2',
-        'amount_ves' => 'decimal:2',
-        'usd_bcv_rate' => 'decimal:6',
-        'eur_bcv_rate' => 'decimal:6',
+        'amount_pen'       => 'decimal:2',
+        'amount_ves'       => 'decimal:2',
+        'bonus_amount_pen' => 'decimal:2',
+        'usd_bcv_rate'     => 'decimal:6',
+        'eur_bcv_rate'     => 'decimal:6',
     ];
 
     public function user(): BelongsTo
@@ -65,6 +70,12 @@ class Transaction extends Model
     public function logs(): HasMany
     {
         return $this->hasMany(TransactionLog::class);
+    }
+
+    public function incentiveRules(): BelongsToMany
+    {
+        return $this->belongsToMany(IncentiveRule::class, 'transaction_incentive_rules')
+            ->withPivot('bonus_amount', 'benefit_type', 'applied_at');
     }
 
     // Métodos de workflow
@@ -96,6 +107,9 @@ class Transaction extends Model
         if ($this->status === 'processing') {
             $this->status = 'completed';
             $this->save();
+
+            app(\App\Services\IncentiveService::class)->applySellerBonusOnComplete($this);
+
             return true;
         }
 
