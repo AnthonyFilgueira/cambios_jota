@@ -583,7 +583,7 @@
         return {
             // Datos principales
             amountPen: {{ old('amount_pen', $transaction->amount_pen ?? 0) }},
-            selectedRateId: '',
+            selectedRateId: '{{ old('exchange_rate_id', $transaction->exchange_rate_id ?? '') }}',
             selectedRate: 0,
             amountVes: 0,
             vesWithoutBonus: 0,
@@ -607,9 +607,12 @@
             sellerError: '',
 
             init() {
-                // Si hay un monto pre-cargado (modo edición), calcular VES
+                // Modo edición: monto pre-cargado → leer tasa del select y recalcular
                 if (this.amountPen > 0) {
-                    this.$nextTick(() => this.calculateFromPEN());
+                    this.$nextTick(() => {
+                        this.onRateChange();      // carga selectedRate desde el <select> pre-seleccionado
+                        this.calculateFromPEN();  // calcula VES con la tasa correcta
+                    });
                 } else {
                     this.loadSimulatorData();
                 }
