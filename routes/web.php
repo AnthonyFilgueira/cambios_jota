@@ -144,6 +144,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/transactions/{transaction}/upload-final-voucher', [TransactionController::class, 'uploadFinalVoucher'])->name('transactions.uploadFinalVoucher');
     Route::get('/transactions/{transaction}/confirmacion',          [TransactionController::class, 'confirmacion'])->name('transactions.confirmacion');
     Route::post('/transactions/{transaction}/cancel',               [TransactionController::class, 'cancel'])->name('transactions.cancel');
+    Route::get('/transactions/{transaction}/edit',                  [TransactionController::class, 'edit'])->name('transactions.edit');
+    Route::post('/transactions/{transaction}/update',               [TransactionController::class, 'update'])->name('transactions.update');
 
     // Ventas (vendedor registra, admin aprueba)
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');

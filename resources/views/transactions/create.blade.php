@@ -5,20 +5,42 @@
 
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-cj-texto leading-tight">
-            💸 Iniciar Envío
+            {{ isset($transaction) ? '✏️ Corregir solicitud' : '💸 Iniciar Envío' }}
         </h2>
     </x-slot>
 
     <div class="py-6" x-data="transactionForm()">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
+            {{-- Banner de observación del vendedor (modo edición) --}}
+            @isset($transaction)
+            <div class="mb-6 bg-orange-50 border-2 border-orange-400 rounded-2xl p-5 shadow-md">
+                <div class="flex items-start gap-3">
+                    <span class="text-2xl">⚠️</span>
+                    <div>
+                        <p class="font-bold text-orange-800 text-base">El vendedor solicitó correcciones</p>
+                        <p class="text-orange-700 mt-1 text-sm">{{ $transaction->observation }}</p>
+                        <p class="text-xs text-orange-500 mt-2">Corrige los datos marcados y vuelve a enviar la solicitud.</p>
+                    </div>
+                </div>
+            </div>
+            @endisset
+
             <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/50 p-8">
                 <div class="mb-6">
-                    <h3 class="text-2xl font-bold text-cj-morado-profundo">Solicitud de Envío</h3>
-                    <p class="text-sm text-cj-texto-claro mt-1">Complete todos los datos para procesar su envío Perú → Venezuela</p>
+                    <h3 class="text-2xl font-bold text-cj-morado-profundo">
+                        {{ isset($transaction) ? 'Corrección de solicitud #' . $transaction->id : 'Solicitud de Envío' }}
+                    </h3>
+                    <p class="text-sm text-cj-texto-claro mt-1">
+                        {{ isset($transaction) ? 'Actualiza los datos y vuelve a enviar al vendedor.' : 'Complete todos los datos para procesar su envío Perú → Venezuela' }}
+                    </p>
                 </div>
 
+                @isset($transaction)
+                <form method="POST" action="{{ route('transactions.update', $transaction) }}" enctype="multipart/form-data" class="space-y-8">
+                @else
                 <form method="POST" action="{{ route('transactions.store') }}" enctype="multipart/form-data" class="space-y-8">
+                @endisset
                     @csrf
 
                     <!-- Hidden fields -->
@@ -276,7 +298,7 @@
 
                     <!-- SECCIÓN 2: RECEPTOR EN VENEZUELA -->
                     <div class="bg-gradient-to-r from-cj-rosa/5 to-cj-morado-medio/5 rounded-xl p-6 border border-pink-200"
-                         x-data="{ opType: '{{ old('operation_type', 'transferencia') }}' }">
+                         x-data="{ opType: '{{ old('operation_type', $transaction->operation_type ?? 'transferencia') }}' }">
                         <h4 class="text-lg font-bold text-cj-morado-profundo mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
@@ -323,7 +345,7 @@
                             <div>
                                 <label for="recipient_dni" class="block text-sm font-medium text-cj-texto mb-2">Cédula del titular *</label>
                                 <input type="text" name="recipient_dni" id="recipient_dni"
-                                    value="{{ old('recipient_dni') }}" required
+                                    value="{{ old('recipient_dni', $transaction->recipient_dni ?? '') }}" required
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
                                     placeholder="V-12345678">
                                 @error('recipient_dni')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
@@ -336,7 +358,7 @@
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
                                     <option value="">Selecciona banco</option>
                                     @foreach(['Banco de Venezuela','Banesco','Banco Mercantil','BBVA Provincial','Banco Nacional de Crédito (BNC)','Banco Bicentenario','Banco del Tesoro','Banco Exterior','Corp Banca','Banco Caroni','Sofitasa','Bangente','Bancrecer'] as $b)
-                                        <option value="{{ $b }}" {{ old('recipient_bank') == $b ? 'selected' : '' }}>{{ $b }}</option>
+                                        <option value="{{ $b }}" {{ old('recipient_bank', $transaction->recipient_bank ?? '') == $b ? 'selected' : '' }}>{{ $b }}</option>
                                     @endforeach
                                 </select>
                                 @error('recipient_bank')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
@@ -346,7 +368,7 @@
                             <div>
                                 <label for="recipient_phone" class="block text-sm font-medium text-cj-texto mb-2">Teléfono del titular *</label>
                                 <input type="tel" name="recipient_phone" id="recipient_phone"
-                                    value="{{ old('recipient_phone') }}" required
+                                    value="{{ old('recipient_phone', $transaction->recipient_phone ?? '') }}" required
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
                                     placeholder="0412-1234567">
                                 @error('recipient_phone')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
@@ -358,7 +380,7 @@
                                     Número de cuenta *
                                 </label>
                                 <input type="text" name="recipient_account_number" id="recipient_account_number"
-                                    value="{{ old('recipient_account_number') }}"
+                                    value="{{ old('recipient_account_number', $transaction->recipient_account_number ?? '') }}"
                                     :required="opType === 'transferencia'"
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
                                     placeholder="0102-0000-00-0000123456">
@@ -374,14 +396,14 @@
                                     <label class="flex-1 flex items-center gap-2 border-2 rounded-xl p-3 cursor-pointer transition-all"
                                            :class="$refs.actype?.value === 'ahorro' ? 'border-cj-turquesa bg-cj-turquesa/5' : 'border-gray-200'">
                                         <input type="radio" name="recipient_account_type" value="ahorro" x-ref="actype"
-                                               {{ old('recipient_account_type', 'ahorro') === 'ahorro' ? 'checked' : '' }}
+                                               {{ old('recipient_account_type', $transaction->recipient_account_type ?? 'ahorro') === 'ahorro' ? 'checked' : '' }}
                                                class="text-cj-turquesa">
                                         <span class="text-sm font-medium">Ahorro</span>
                                     </label>
                                     <label class="flex-1 flex items-center gap-2 border-2 rounded-xl p-3 cursor-pointer transition-all"
                                            :class="$refs.actype?.value === 'corriente' ? 'border-cj-turquesa bg-cj-turquesa/5' : 'border-gray-200'">
                                         <input type="radio" name="recipient_account_type" value="corriente"
-                                               {{ old('recipient_account_type') === 'corriente' ? 'checked' : '' }}
+                                               {{ old('recipient_account_type', $transaction->recipient_account_type ?? '') === 'corriente' ? 'checked' : '' }}
                                                class="text-cj-turquesa">
                                         <span class="text-sm font-medium">Corriente</span>
                                     </label>
@@ -405,7 +427,7 @@
                             <div>
                                 <label for="sender_dni" class="block text-sm font-medium text-cj-texto mb-2">DNI del titular que transfiere *</label>
                                 <input type="text" name="sender_dni" id="sender_dni"
-                                    value="{{ old('sender_dni') }}" required
+                                    value="{{ old('sender_dni', $transaction->sender_dni ?? '') }}" required
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
                                     placeholder="12345678">
                                 @error('sender_dni')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
@@ -418,7 +440,7 @@
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
                                     <option value="">Selecciona banco</option>
                                     @foreach(['BCP — Banco de Crédito del Perú','Interbank','BBVA Perú','Scotiabank Perú','Banco de la Nación','BanBif','Mibanco','Banco Pichincha','Banco GNB','Banco Falabella Perú','Banco Ripley','Caja Metropolitana'] as $b)
-                                        <option value="{{ $b }}" {{ old('sender_bank') == $b ? 'selected' : '' }}>{{ $b }}</option>
+                                        <option value="{{ $b }}" {{ old('sender_bank', $transaction->sender_bank ?? '') == $b ? 'selected' : '' }}>{{ $b }}</option>
                                     @endforeach
                                 </select>
                                 @error('sender_bank')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
@@ -430,7 +452,7 @@
                                     Nº de cuenta origen <span class="text-cj-texto-claro font-normal">(opcional)</span>
                                 </label>
                                 <input type="text" name="sender_account_number" id="sender_account_number"
-                                    value="{{ old('sender_account_number') }}"
+                                    value="{{ old('sender_account_number', $transaction->sender_account_number ?? '') }}"
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
                                     placeholder="000-000000-0-00">
                                 @error('sender_account_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
@@ -520,7 +542,7 @@
                             id="notes"
                             rows="3"
                             class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
-                            placeholder="Información adicional sobre el envío...">{{ old('notes') }}</textarea>
+                            placeholder="Información adicional sobre el envío...">{{ old('notes', $transaction->notes ?? '') }}</textarea>
                         @error('notes')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -542,11 +564,12 @@
 
                     <!-- Botones -->
                     <div class="flex gap-4 pt-4">
-                        <a href="{{ route('dashboard') }}" class="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl text-cj-texto font-semibold hover:bg-gray-50 transition-all text-center">
+                        <a href="{{ isset($transaction) ? route('transactions.index') : route('dashboard') }}"
+                           class="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl text-cj-texto font-semibold hover:bg-gray-50 transition-all text-center">
                             Cancelar
                         </a>
                         <button type="submit" class="flex-1 px-6 py-3 bg-gradient-to-r from-cj-morado-profundo to-cj-morado-medio text-white rounded-xl font-bold hover:shadow-2xl transform hover:-translate-y-1 transition-all shadow-lg">
-                            Enviar Solicitud
+                            {{ isset($transaction) ? '✏️ Guardar y reenviar al vendedor' : 'Enviar Solicitud' }}
                         </button>
                     </div>
                 </form>
@@ -559,7 +582,7 @@
     function transactionForm() {
         return {
             // Datos principales
-            amountPen: 0,
+            amountPen: {{ old('amount_pen', $transaction->amount_pen ?? 0) }},
             selectedRateId: '',
             selectedRate: 0,
             amountVes: 0,
@@ -584,8 +607,12 @@
             sellerError: '',
 
             init() {
-                // Intentar cargar datos del simulador
-                this.loadSimulatorData();
+                // Si hay un monto pre-cargado (modo edición), calcular VES
+                if (this.amountPen > 0) {
+                    this.$nextTick(() => this.calculateFromPEN());
+                } else {
+                    this.loadSimulatorData();
+                }
             },
 
             async searchSeller() {

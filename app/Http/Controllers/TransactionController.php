@@ -206,22 +206,6 @@ class TransactionController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
@@ -425,5 +409,100 @@ class TransactionController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * Formulario de edición para transacciones observadas (cliente corrige)
+     */
+    public function edit(Transaction $transaction)
+    {
+        if ($transaction->user_id !== auth()->id()) {
+            abort(403, 'No autorizado');
+        }
+        if ($transaction->status !== 'observed') {
+            abort(403, 'Solo puedes editar solicitudes con observaciones pendientes.');
+        }
+
+        $user   = auth()->user()->load('assignedSeller.businessAccounts.bank');
+        $seller = $user->assignedSeller;
+        $pairs  = $this->getCurrencyPairs();
+
+        $sellerAccounts = $seller
+            ? $seller->businessAccounts->where('active', true)->values()
+            : collect();
+
+        $bonusPreview = app(IncentiveService::class)->getReceptorPreview($user, 0);
+
+        return view('transactions.create', compact('pairs', 'seller', 'sellerAccounts', 'bonusPreview', 'transaction'));
+    }
+
+    /**
+     * Actualiza una transacción observada (cliente corrige y reenvía)
+     */
+    public function update(Request $request, Transaction $transaction)
+    {
+        if ($transaction->user_id !== auth()->id()) {
+            abort(403, 'No autorizado');
+        }
+        if ($transaction->status !== 'observed') {
+            abort(403, 'Solo puedes editar solicitudes con observaciones pendientes.');
+        }
+
+        $operationType = $request->input('operation_type', 'transferencia');
+
+        $validated = $request->validate([
+            'amount_pen'       => 'required|numeric|min:1',
+            'amount_ves'       => 'required|numeric|min:1',
+            'exchange_rate_id' => 'required|exists:exchange_rates,id',
+            'operation_type'   => 'required|in:transferencia,pago_movil',
+            'notes'            => 'nullable|string|max:500',
+            'usd_bcv_rate'     => 'nullable|numeric',
+            'eur_bcv_rate'     => 'nullable|numeric',
+            'recipient_bank'   => 'required|string|max:255',
+            'recipient_dni'    => 'required|string|max:30',
+            'recipient_phone'  => 'required|string|max:30',
+            'recipient_account_number' => 'required_if:operation_type,transferencia|nullable|string|max:255',
+            'recipient_account_type'   => 'required_if:operation_type,transferencia|nullable|in:ahorro,corriente',
+            'sender_bank'       => 'required|string|max:255',
+            'sender_account_number' => 'nullable|string|max:255',
+            'sender_dni'        => 'required|string|max:30',
+            'bonus_amount_pen'  => 'nullable|numeric|min:0',
+            'voucher'           => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        // Actualizar comprobante solo si se sube uno nuevo
+        if ($request->hasFile('voucher')) {
+            $validated['voucher'] = $request->file('voucher')->store('vouchers', 'public');
+        } else {
+            unset($validated['voucher']);
+        }
+
+        // Volver a pendiente y limpiar observación
+        $validated['status']      = 'pending';
+        $validated['observation'] = null;
+
+        $transaction->update($validated);
+
+        // Recalcular incentivos
+        app(IncentiveService::class)->applyToTransaction($transaction);
+
+        // Notificar al vendedor
+        if ($transaction->seller && $transaction->seller->user) {
+            $transaction->seller->user->notify(
+                new \App\Notifications\NewTransactionForSeller($transaction)
+            );
+        }
+
+        \App\Models\TransactionLog::create([
+            'transaction_id' => $transaction->id,
+            'user_id'        => auth()->id(),
+            'action'         => 'corrected_by_client',
+            'old_status'     => 'observed',
+            'new_status'     => 'pending',
+            'comment'        => 'Cliente corrigió y reenvió la solicitud.',
+        ]);
+
+        return redirect()->route('transactions.index')
+            ->with('success', '¡Solicitud corregida y reenviada al vendedor!');
     }
 }

@@ -98,8 +98,8 @@
                 <x-nav-link :href="route('seller.dashboard')" :active="request()->routeIs('seller.dashboard')">
                     🏠 Mi Panel
                 </x-nav-link>
-                <x-nav-link :href="route('sales.pending.seller')" :active="request()->routeIs('sales.pending.seller')">
-                    ⏳ Pendientes
+                <x-nav-link :href="route('seller.bandeja')" :active="request()->routeIs('seller.bandeja')">
+                    ⏳ Bandeja
                 </x-nav-link>
                 <x-nav-link :href="route('sales.index')" :active="request()->routeIs('sales.index')">
                     📋 Mis Ventas
@@ -224,7 +224,7 @@
 
             @if($isSeller)
                 <x-responsive-nav-link :href="route('seller.dashboard')">🏠 Mi Panel</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('sales.pending.seller')">⏳ Solicitudes pendientes</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('seller.bandeja')">⏳ Bandeja de solicitudes</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('sales.index')">📋 Mis ventas</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('wallet.index')">💰 Mi Monedero</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('exchange_rates.index')">💱 Tasas del día</x-responsive-nav-link>

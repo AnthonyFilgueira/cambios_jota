@@ -126,10 +126,15 @@
                             </div>
                         </div>
 
-                        <!-- Alerta observación visible sin expandir -->
+                        <!-- Alerta observación visible sin expandir + botón Corregir -->
                         @if($tx->status === 'observed' && $tx->observation)
-                        <div class="mt-3 bg-orange-50 border border-orange-200 rounded-xl px-4 py-2 text-xs text-orange-700 text-left">
-                            <span class="font-semibold">Observación:</span> {{ Str::limit($tx->observation, 100) }}
+                        <div class="mt-3 bg-orange-50 border-2 border-orange-300 rounded-xl px-4 py-3 text-left space-y-2">
+                            <p class="text-xs font-bold text-orange-700">⚠️ El vendedor solicitó una corrección:</p>
+                            <p class="text-sm text-orange-800">{{ $tx->observation }}</p>
+                            <a href="{{ route('transactions.edit', $tx) }}"
+                               class="inline-flex items-center gap-1.5 mt-1 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl transition-all shadow-sm">
+                                ✏️ Corregir y reenviar
+                            </a>
                         </div>
                         @endif
                     </button>
