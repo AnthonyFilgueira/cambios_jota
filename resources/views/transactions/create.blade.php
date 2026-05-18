@@ -206,35 +206,70 @@
                         </div>
 
                         <!-- Resumen visual del envío -->
-                        <div class="grid md:grid-cols-2 gap-4">
+                        <div class="space-y-3">
                             <!-- Tú envías -->
-                            <div class="bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio text-white rounded-xl p-6">
+                            <div class="bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio text-white rounded-xl p-5">
                                 <div class="text-xs uppercase tracking-widest opacity-90 mb-2 font-semibold">Tú envías</div>
-                                <div class="text-3xl font-bold">
-                                    S/. <span x-text="formatMoney(amountPen)">0.00</span>
+                                <div class="flex items-center gap-3 flex-wrap">
+                                    <span class="text-3xl font-bold">S/. <span x-text="formatMoney(amountPen)">0.00</span></span>
+                                    <!-- Badge animado de bono -->
+                                    <span x-show="bonusAmountPen > 0 && amountPen > 0"
+                                          x-transition:enter="transition ease-out duration-300"
+                                          x-transition:enter-start="opacity-0 scale-75"
+                                          x-transition:enter-end="opacity-100 scale-100"
+                                          class="flex items-center gap-1.5 bg-yellow-400 text-yellow-900 font-black text-sm px-3 py-1.5 rounded-full shadow-lg animate-bounce">
+                                        <span>🎁</span>
+                                        <span>+S/ <span x-text="bonusAmountPen.toFixed(2)"></span> BONO</span>
+                                    </span>
                                 </div>
                                 <div class="text-xs opacity-75 mt-1">Soles peruanos</div>
+                                <!-- Lista de bonos individuales -->
+                                <div x-show="bonusAmountPen > 0 && amountPen > 0" class="mt-3 space-y-1.5">
+                                    <template x-for="rule in bonusRules" :key="rule.name">
+                                        <div class="text-xs bg-white/15 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
+                                            <span>🎁</span>
+                                            <span x-text="rule.name + ': +S/ ' + calcularBonusRegla(rule, amountPen).toFixed(2)"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Separador tasa con desglose -->
+                            <div class="bg-cj-morado-medio/10 border-2 border-cj-morado-medio/20 rounded-xl p-4 text-center">
+                                <template x-if="bonusAmountPen <= 0 || amountPen <= 0">
+                                    <div>
+                                        <span class="text-xs text-cj-texto-claro uppercase tracking-wider">Tasa de conversión: </span>
+                                        <span class="text-base font-bold text-cj-morado-profundo font-mono">1 PEN = <span x-text="selectedRate.toFixed(2)">0.00</span> VES</span>
+                                    </div>
+                                </template>
+                                <template x-if="bonusAmountPen > 0 && amountPen > 0">
+                                    <div class="space-y-1">
+                                        <div class="text-sm font-medium text-cj-morado-profundo">
+                                            Base S/.<span x-text="formatMoney(amountPen)"></span>
+                                            + <span class="text-yellow-600 font-bold">🎁 S/.<span x-text="bonusAmountPen.toFixed(2)"></span> bono</span>
+                                            = <span class="font-black text-cj-turquesa">S/.<span x-text="formatMoney(amountPen + bonusAmountPen)"></span> efectivo</span>
+                                        </div>
+                                        <div class="text-xs text-cj-texto-claro">1 PEN = <span x-text="selectedRate.toFixed(2)"></span> VES</div>
+                                    </div>
+                                </template>
                             </div>
 
                             <!-- Tu familiar recibe -->
-                            <div class="bg-gradient-to-br from-cj-turquesa to-cj-rosa text-white rounded-xl p-6">
+                            <div class="bg-gradient-to-br from-cj-turquesa to-cj-rosa text-white rounded-xl p-5">
                                 <div class="text-xs uppercase tracking-widest opacity-90 mb-2 font-semibold">Tu familiar recibe</div>
-                                <div class="text-3xl font-bold flex items-center gap-2">
+                                <div class="text-3xl font-bold">
                                     Bs. <span x-text="formatMoney(amountVes)">0.00</span>
                                 </div>
-                                <div class="text-xs opacity-90 mt-1">Bolívares venezolanos</div>
-                                <div x-show="bonusAmountPen > 0" class="mt-3 bg-white/20 rounded-lg px-3 py-2 flex items-center gap-2">
-                                    <span>🎁</span>
-                                    <p class="text-xs font-semibold">Incluye bono de S/ <span x-text="bonusAmountPen.toFixed(2)"></span></p>
+                                <div class="text-xs opacity-90 mt-1">Bolívares venezolanos 🇻🇪</div>
+                                <!-- Comparativa sin bono / con bono -->
+                                <div x-show="bonusAmountPen > 0 && amountPen > 0"
+                                     x-transition:enter="transition ease-out duration-500"
+                                     x-transition:enter-start="opacity-0 translate-y-2"
+                                     x-transition:enter-end="opacity-100 translate-y-0"
+                                     class="mt-3 bg-white/15 rounded-xl px-4 py-3 space-y-1">
+                                    <div class="text-xs opacity-75 line-through">Sin bono: Bs. <span x-text="formatMoney(vesWithoutBonus)"></span></div>
+                                    <div class="text-sm font-black text-yellow-300">🎁 +Bs. <span x-text="formatMoney(Math.round(bonusAmountPen * selectedRate))"></span> extra gracias al bono</div>
                                 </div>
-                            </div>
-
-                            <!-- Tasa aplicada -->
-                            <div class="md:col-span-2 bg-cj-morado-medio/10 border-2 border-cj-morado-medio/20 rounded-xl p-4 text-center">
-                                <span class="text-xs text-cj-texto-claro uppercase tracking-wider">Tasa de conversión: </span>
-                                <span class="text-lg font-bold text-cj-morado-profundo font-mono">
-                                    1 PEN = <span x-text="selectedRate.toFixed(2)">0.00</span> VES
-                                </span>
                             </div>
                         </div>
                     </div>
@@ -528,6 +563,7 @@
             selectedRateId: '',
             selectedRate: 0,
             amountVes: 0,
+            vesWithoutBonus: 0,
             usdBcvRate: 0,
             eurBcvRate: 0,
 
@@ -708,6 +744,7 @@
                 const rate = parseFloat(this.selectedRate) || 0;
                 const bonus = this.calcularBonusTotal(pen);
                 this.bonusAmountPen = bonus;
+                this.vesWithoutBonus = this.round(pen * rate);
                 this.amountVes = this.round((pen + bonus) * rate);
             },
 
