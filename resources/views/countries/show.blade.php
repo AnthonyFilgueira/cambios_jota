@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<x-app-layout>
 <div class="fixed inset-0 -z-20 bg-gradient-to-br from-purple-600 via-pink-500 to-teal-400 animate-gradient-shift"></div>
 <div class="fixed inset-0 -z-10 bg-white/40 backdrop-blur-sm"></div>
 
@@ -458,4 +456,4 @@ function asignacionVendedor(accountId, asignadosIds) {
     }
 }
 </script>
-@endsection
+</x-app-layout>
