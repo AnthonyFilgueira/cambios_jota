@@ -532,7 +532,7 @@
             eurBcvRate: 0,
 
             // Bono activo (cargado desde backend)
-            bonusPen: {{ $bonusPreview['bonus_pen'] ?? 0 }},
+            bonusRules: @json($bonusPreview['rules'] ?? []),
             bonusAmountPen: 0,
 
             // Inputs de cotización
@@ -686,12 +686,29 @@
                 }
             },
 
+            // Calcula el bono de una regla específica para el monto actual
+            calcularBonusRegla(rule, monto) {
+                if (!monto || monto <= 0) return 0;
+                if (rule.value_type === 'fixed') return rule.value;
+                if (rule.value_type === 'percentage') return Math.round(monto * rule.value / 100 * 100) / 100;
+                return 0;
+            },
+
+            // Suma todos los bonos para el monto dado
+            calcularBonusTotal(monto) {
+                if (!monto || monto <= 0 || !this.bonusRules.length) return 0;
+                return Math.round(
+                    this.bonusRules.reduce((sum, rule) => sum + this.calcularBonusRegla(rule, monto), 0) * 100
+                ) / 100;
+            },
+
             // Recalcular VES basado en PEN (incluye bono)
             recalculate() {
                 const pen = parseFloat(this.amountPen) || 0;
                 const rate = parseFloat(this.selectedRate) || 0;
-                this.bonusAmountPen = this.bonusPen;
-                this.amountVes = this.round((pen + this.bonusPen) * rate);
+                const bonus = this.calcularBonusTotal(pen);
+                this.bonusAmountPen = bonus;
+                this.amountVes = this.round((pen + bonus) * rate);
             },
 
             // Formatear montos

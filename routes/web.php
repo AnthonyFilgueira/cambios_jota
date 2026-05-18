@@ -50,7 +50,7 @@ Route::get('/', function () {
             ];
         });
 
-    $bonusPreview = app(\App\Services\IncentiveService::class)->getReceptorPreview(null, 0);
+    $bonusPreview = app(\App\Services\IncentiveService::class)->getReceptorPreview(auth()->user(), 0);
 
     return view('welcome', compact('rates', 'pairs', 'bonusPreview'));
 });
