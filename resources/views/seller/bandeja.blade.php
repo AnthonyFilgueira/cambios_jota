@@ -138,7 +138,7 @@
                         <!-- Montos -->
                         <div class="text-right flex-shrink-0">
                             <p class="font-bold text-cj-morado-profundo">S/ {{ number_format($tx->amount_pen, 2) }}</p>
-                            <p class="text-xs text-cj-texto-claro">→ Bs. {{ number_format($tx->amount_ves, 0) }}</p>
+                            <p class="text-xs text-cj-texto-claro">→ Bs. {{ number_format($tx->amount_ves, 2) }}</p>
                         </div>
 
                         <!-- Estado + flecha -->

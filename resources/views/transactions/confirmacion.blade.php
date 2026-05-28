@@ -35,7 +35,7 @@
                     </div>
                     <div class="bg-gradient-to-br from-cj-turquesa to-teal-400 rounded-2xl p-4 text-white text-left">
                         <p class="text-xs opacity-80 font-medium mb-1">Tu familiar recibe</p>
-                        <p class="text-xl font-bold font-mono">Bs. {{ number_format($transaction->amount_ves, 0) }}</p>
+                        <p class="text-xl font-bold font-mono">Bs. {{ number_format($transaction->amount_ves, 2) }}</p>
                     </div>
                 </div>
 

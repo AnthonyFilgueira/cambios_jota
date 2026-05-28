@@ -107,7 +107,7 @@
                                 </div>
                                 <div class="min-w-0">
                                     <p class="font-bold text-cj-texto">S/ {{ number_format($tx->amount_pen, 2) }}
-                                        <span class="text-cj-texto-claro font-normal text-sm">→ Bs. {{ number_format($tx->amount_ves, 0) }}</span>
+                                        <span class="text-cj-texto-claro font-normal text-sm">→ Bs. {{ number_format($tx->amount_ves, 2) }}</span>
                                     </p>
                                     <p class="text-xs text-cj-texto-claro">{{ $tx->created_at->format('d M Y, H:i') }}</p>
                                 </div>
