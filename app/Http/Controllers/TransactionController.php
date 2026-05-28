@@ -120,42 +120,6 @@ class TransactionController extends Controller
             });
     }
 
-    public function getSellerAccounts(Request $request)
-    {
-        $fromCountryId = $request->input('from_country_id');
-        $sellerCode    = $request->input('seller_code');
-
-        if (!$sellerCode) {
-            return response()->json(['accounts' => []]);
-        }
-
-        $seller = \App\Models\Seller::with(['businessAccounts.bank.country'])
-            ->where('code', strtoupper($sellerCode))
-            ->first();
-
-        if (!$seller) {
-            return response()->json(['accounts' => []]);
-        }
-
-        $accounts = $seller->businessAccounts()
-            ->where('active', true)
-            ->when($fromCountryId, fn($q) => $q->whereHas('bank', fn($b) => $b->where('country_id', $fromCountryId)))
-            ->with('bank.country')
-            ->get()
-            ->map(fn($a) => [
-                'id'             => $a->id,
-                'alias'          => $a->alias ?: $a->bank->name,
-                'bank_name'      => $a->bank->name,
-                'account_number' => $a->account_number,
-                'account_type'   => $a->account_type_label,
-                'account_holder' => $a->account_holder,
-                'dni_ruc'        => $a->dni_ruc,
-                'country'        => $a->bank->country->name ?? null,
-            ])->values();
-
-        return response()->json(['accounts' => $accounts]);
-    }
-
     public function getDocumentTypes(Request $request)
     {
         $countryId = $request->input('country_id');
@@ -214,13 +178,18 @@ class TransactionController extends Controller
         $sellerCode     = strtoupper(trim($request->get('seller_code', '')));
         $exchangeRateId = $request->get('exchange_rate_id');
 
+        if (!$sellerCode) {
+            return response()->json(['accounts' => []]);
+        }
+
         $seller = Seller::where('code', $sellerCode)->first();
         if (!$seller) {
             return response()->json(['accounts' => [], 'error' => 'Vendedor no encontrado'], 404);
         }
 
-        $exchangeRate = ExchangeRate::with('currencyPair.fromCurrency')->find($exchangeRateId);
-        $fromCountryId = $exchangeRate?->currencyPair?->fromCurrency?->country_id;
+        $exchangeRate  = ExchangeRate::with('currencyPair.fromCurrency')->find($exchangeRateId);
+        $fromCountryId = $exchangeRate?->currencyPair?->fromCurrency?->country_id
+                      ?? $request->get('from_country_id');
 
         $accounts = $seller->businessAccounts()
             ->with('bank')
@@ -229,12 +198,13 @@ class TransactionController extends Controller
             ->get()
             ->map(fn ($account) => [
                 'id'             => $account->id,
-                'alias'          => $account->alias,
+                'alias'          => $account->alias ?: ($account->bank->name ?? '—'),
                 'bank_name'      => $account->bank->name ?? '—',
                 'account_number' => $account->account_number,
                 'account_type'   => ucfirst($account->account_type),
                 'account_holder' => $account->account_holder,
                 'dni_ruc'        => $account->dni_ruc,
+                'country'        => $account->bank->country->name ?? null,
             ]);
 
         return response()->json([
