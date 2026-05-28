@@ -363,7 +363,8 @@
 
                     {{-- Panel de asignación de vendedores --}}
                     <div x-show="asignando" x-cloak class="border-t border-gray-100 p-4 bg-teal-50/50"
-                         x-data="asignacionVendedor({{ $account->id }}, {{ json_encode($account->sellers->pluck('id')->toArray()) }})">
+                         data-account-id="{{ $account->id }}"
+                         x-data="asignacionVendedor($el)">
                         <p class="text-xs font-bold text-teal-700 mb-3">Vendedores asignados a esta cuenta</p>
 
                         {{-- Vendedores ya asignados --}}
@@ -373,7 +374,9 @@
                                     <p class="text-sm font-bold text-gray-800">{{ $sellerAsignado->name }}</p>
                                     <p class="text-xs font-mono text-gray-400">{{ $sellerAsignado->code }}</p>
                                 </div>
-                                <button @click="desasignar({{ $account->id }}, {{ $sellerAsignado->id }})"
+                                <button
+                                    data-seller-id="{{ $sellerAsignado->id }}"
+                                    @click="desasignar($event.currentTarget.dataset.sellerId)"
                                     class="text-xs text-red-500 font-bold hover:text-red-700 transition-colors">
                                     Quitar
                                 </button>
@@ -389,7 +392,7 @@
                                     <option value="{{ $vendedor->id }}">{{ $vendedor->name }} ({{ $vendedor->code }})</option>
                                 @endforeach
                             </select>
-                            <button @click="asignar({{ $account->id }})"
+                            <button @click="asignar()"
                                 :disabled="!sellerIdSeleccionado"
                                 class="px-4 py-2 bg-cj-turquesa text-white font-bold rounded-xl text-xs disabled:opacity-40 transition-all">
                                 Asignar
@@ -637,30 +640,27 @@ function paisDetalle() {
     }
 }
 
-function asignacionVendedor(accountId, asignadosIds) {
+function asignacionVendedor(el) {
+    const accountId = el.dataset.accountId;
     return {
+        accountId: accountId,
         sellerIdSeleccionado: '',
-        asignadosIds: asignadosIds,
+        asignadosIds: [],
 
-        asignar(accountId) {
-            if (!this.sellerIdSeleccionado) return;
-            fetch(`/business-accounts/${accountId}/assign`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-                body: JSON.stringify({ seller_id: this.sellerIdSeleccionado }),
-            }).then(() => window.location.reload());
+        async init() {
+            const resp = await axios.get(`/api/business-accounts/${this.accountId}/assigned-sellers`);
+            this.asignadosIds = resp.data;
         },
 
-        desasignar(accountId, sellerId) {
-            fetch(`/business-accounts/${accountId}/unassign/${sellerId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-            }).then(() => window.location.reload());
+        asignar() {
+            if (!this.sellerIdSeleccionado) return;
+            axios.post(`/business-accounts/${this.accountId}/assign`, { seller_id: this.sellerIdSeleccionado })
+                .then(() => window.location.reload());
+        },
+
+        desasignar(sellerId) {
+            axios.delete(`/business-accounts/${this.accountId}/unassign/${sellerId}`)
+                .then(() => window.location.reload());
         },
     }
 }
