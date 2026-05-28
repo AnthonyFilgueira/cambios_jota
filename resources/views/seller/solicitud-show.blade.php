@@ -47,7 +47,7 @@
                     <svg class="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                     <div class="text-right">
                         <p class="text-white/70 text-xs uppercase tracking-wider">Familiar recibe</p>
-                        <p class="text-white text-2xl font-bold">Bs. {{ number_format($transaction->amount_ves, 0) }}</p>
+                        <p class="text-white text-2xl font-bold">Bs. {{ number_format($transaction->amount_ves, 2) }}</p>
                     </div>
                 </div>
                 <div class="px-6 py-4 space-y-3 text-sm">
@@ -63,6 +63,12 @@
                         <span class="text-cj-texto-claro">Tipo de operación</span>
                         <span class="font-semibold">{{ $transaction->operation_type === 'pago_movil' ? 'Pago Móvil' : 'Transferencia Bancaria' }}</span>
                     </div>
+                    @if($transaction->operation_number)
+                    <div class="flex justify-between">
+                        <span class="text-cj-texto-claro">Nº de operación</span>
+                        <span class="font-mono font-semibold">{{ $transaction->operation_number }}</span>
+                    </div>
+                    @endif
                     <div class="flex justify-between">
                         <span class="text-cj-texto-claro">Fecha solicitud</span>
                         <span>{{ $transaction->created_at->format('d/m/Y H:i') }}</span>
@@ -226,7 +232,7 @@
 
             <div class="bg-gray-50 rounded-xl p-4 text-sm space-y-2">
                 <div class="flex justify-between"><span class="text-cj-texto-claro">Cliente envía</span><span class="font-bold">S/ {{ number_format($transaction->amount_pen, 2) }}</span></div>
-                <div class="flex justify-between"><span class="text-cj-texto-claro">Familiar recibe</span><span class="font-bold">Bs. {{ number_format($transaction->amount_ves, 0) }}</span></div>
+                <div class="flex justify-between"><span class="text-cj-texto-claro">Familiar recibe</span><span class="font-bold">Bs. {{ number_format($transaction->amount_ves, 2) }}</span></div>
             </div>
 
             <label class="flex items-start gap-3 cursor-pointer">

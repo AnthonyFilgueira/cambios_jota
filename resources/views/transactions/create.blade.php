@@ -75,14 +75,16 @@
                                         data-rate="{{ $pair['ves_rate'] }}"
                                         data-usd="{{ $pair['usd_rate'] }}"
                                         data-eur="{{ $pair['eur_rate'] }}"
-                                        data-from-name="{{ $pair['from_name'] }}"
-                                        data-from-symbol="{{ $pair['from_symbol'] }}"
+                                        data-from-currency-id="{{ $pair['from_currency_id'] ?? '' }}"
+                                        data-from-name="{{ $pair['from_name'] ?? '' }}"
+                                        data-from-symbol="{{ $pair['from_symbol'] ?? 'S/' }}"
                                         data-from-code="{{ $pair['from_code'] }}"
-                                        data-from-country-id="{{ $pair['from_country_id'] }}"
-                                        data-to-name="{{ $pair['to_name'] }}"
-                                        data-to-symbol="{{ $pair['to_symbol'] }}"
-                                        data-to-code="{{ $pair['to_code'] }}">
-                                        {{ $pair['from_code'] }} → {{ $pair['to_code'] }} (1 {{ $pair['from_code'] }} = {{ number_format($pair['ves_rate'], 2) }} {{ $pair['to_symbol'] }})
+                                        data-from-country-id="{{ $pair['from_country_id'] ?? '' }}"
+                                        data-to-name="{{ $pair['to_name'] ?? '' }}"
+                                        data-to-symbol="{{ $pair['to_symbol'] ?? 'Bs.' }}"
+                                        data-to-code="{{ $pair['to_code'] ?? 'VES' }}"
+                                        data-to-country-id="{{ $pair['to_country_id'] ?? '' }}">
+                                        {{ $pair['from_code'] }} → {{ $pair['to_code'] ?? 'VES' }} (1 {{ $pair['from_code'] }} = {{ number_format($pair['ves_rate'], 2) }} {{ $pair['to_symbol'] ?? 'Bs.' }})
                                     </option>
                                 @endforeach
                             </select>
@@ -319,8 +321,7 @@
                     </div>
 
                     <!-- SECCIÓN 2: RECEPTOR EN VENEZUELA -->
-                    <div class="bg-gradient-to-r from-cj-rosa/5 to-cj-morado-medio/5 rounded-xl p-6 border border-pink-200"
-                         x-data="{ opType: '{{ old('operation_type', $transaction->operation_type ?? 'transferencia') }}', acctType: '{{ old('recipient_account_type', $transaction->recipient_account_type ?? 'ahorro') }}' }">
+                    <div class="bg-gradient-to-r from-cj-rosa/5 to-cj-morado-medio/5 rounded-xl p-6 border border-pink-200">
                         <h4 class="text-lg font-bold text-cj-morado-profundo mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
@@ -329,48 +330,96 @@
                             🇻🇪 Receptor en Venezuela
                         </h4>
 
-                        <!-- Tipo de operación -->
+                        <!-- Tipo de operación (cargado dinámicamente por país destino) -->
                         <div class="mb-6">
                             <label class="block text-sm font-semibold text-cj-texto mb-3">Tipo de operación *</label>
                             <input type="hidden" name="operation_type" :value="opType">
-                            <div class="grid grid-cols-2 gap-3">
-                                <button type="button"
-                                        @click="opType = 'transferencia'"
-                                        :class="opType === 'transferencia'
-                                            ? 'border-cj-morado-profundo bg-cj-morado-profundo text-white shadow-lg'
-                                            : 'border-gray-200 bg-white text-cj-texto hover:border-cj-morado-profundo'"
-                                        class="flex flex-col items-center gap-2 p-4 border-2 rounded-xl transition-all">
-                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                                    </svg>
-                                    <span class="text-sm font-semibold">Transferencia Bancaria</span>
-                                </button>
-                                <button type="button"
-                                        @click="opType = 'pago_movil'"
-                                        :class="opType === 'pago_movil'
-                                            ? 'border-cj-turquesa bg-cj-turquesa text-white shadow-lg'
-                                            : 'border-gray-200 bg-white text-cj-texto hover:border-cj-turquesa'"
-                                        class="flex flex-col items-center gap-2 p-4 border-2 rounded-xl transition-all">
-                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                                    </svg>
-                                    <span class="text-sm font-semibold">Pago Móvil</span>
-                                </button>
-                            </div>
+
+                            {{-- Métodos dinámicos (cuando hay paymentMethods cargados) --}}
+                            <template x-if="paymentMethods.length > 0">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <template x-for="pm in paymentMethods" :key="pm.id">
+                                        <button type="button"
+                                                @click="opType = pm.code"
+                                                :class="opType === pm.code
+                                                    ? 'border-cj-morado-profundo bg-cj-morado-profundo text-white shadow-lg'
+                                                    : 'border-gray-200 bg-white text-cj-texto hover:border-cj-morado-profundo'"
+                                                class="flex flex-col items-center gap-2 p-4 border-2 rounded-xl transition-all">
+                                            <span class="text-2xl" x-text="pm.code === 'pago_movil' ? '📱' : '🏦'"></span>
+                                            <span class="text-sm font-semibold" x-text="pm.name"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </template>
+
+                            {{-- Fallback hardcodeado (sin país seleccionado o sin métodos configurados) --}}
+                            <template x-if="paymentMethods.length === 0">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button type="button"
+                                            @click="opType = 'transferencia'"
+                                            :class="opType === 'transferencia'
+                                                ? 'border-cj-morado-profundo bg-cj-morado-profundo text-white shadow-lg'
+                                                : 'border-gray-200 bg-white text-cj-texto hover:border-cj-morado-profundo'"
+                                            class="flex flex-col items-center gap-2 p-4 border-2 rounded-xl transition-all">
+                                        <span class="text-2xl">🏦</span>
+                                        <span class="text-sm font-semibold">Transferencia Bancaria</span>
+                                    </button>
+                                    <button type="button"
+                                            @click="opType = 'pago_movil'"
+                                            :class="opType === 'pago_movil'
+                                                ? 'border-cj-turquesa bg-cj-turquesa text-white shadow-lg'
+                                                : 'border-gray-200 bg-white text-cj-texto hover:border-cj-turquesa'"
+                                            class="flex flex-col items-center gap-2 p-4 border-2 rounded-xl transition-all">
+                                        <span class="text-2xl">📱</span>
+                                        <span class="text-sm font-semibold">Pago Móvil</span>
+                                    </button>
+                                </div>
+                            </template>
+
                             <p x-show="opType === 'pago_movil'" class="mt-2 text-xs text-cj-turquesa font-medium">
                                 Solo necesitas cédula, banco y teléfono — sin número de cuenta.
                             </p>
                         </div>
 
                         <div class="grid md:grid-cols-2 gap-6">
-                            <!-- Cédula del titular -->
-                            <div>
-                                <label for="recipient_dni" class="block text-sm font-medium text-cj-texto mb-2">Cédula del titular *</label>
-                                <input type="text" name="recipient_dni" id="recipient_dni"
-                                    value="{{ old('recipient_dni', $transaction->recipient_dni ?? '') }}" required
-                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
-                                    placeholder="V-12345678">
-                                @error('recipient_dni')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            <!-- Documento del titular receptor -->
+                            <div x-data="{ recDocTypes: [], loadingRecDoc: false }"
+                                 x-init="
+                                    $watch('toCountryId', async (id) => {
+                                        if (!id) return;
+                                        loadingRecDoc = true;
+                                        const res = await fetch('/transactions/document-types?country_id=' + id);
+                                        recDocTypes = await res.json();
+                                        loadingRecDoc = false;
+                                    });
+                                 " class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-cj-texto mb-2">Tipo de documento *</label>
+                                    <select name="recipient_document_type" required
+                                        class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
+                                        <option value="">Seleccionar</option>
+                                        <template x-for="dt in recDocTypes" :key="dt.id">
+                                            <option :value="dt.code" :selected="dt.code === '{{ old('recipient_document_type', $transaction->recipient_document_type ?? '') }}'">
+                                                <span x-text="dt.code + ' — ' + dt.name"></span>
+                                            </option>
+                                        </template>
+                                        @if(old('recipient_document_type', $transaction->recipient_document_type ?? ''))
+                                        <option value="{{ old('recipient_document_type', $transaction->recipient_document_type ?? '') }}" selected>
+                                            {{ old('recipient_document_type', $transaction->recipient_document_type ?? '') }}
+                                        </option>
+                                        @endif
+                                    </select>
+                                    @error('recipient_document_type')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-cj-texto mb-2">Número de documento *</label>
+                                    <input type="text" name="recipient_document_number"
+                                        value="{{ old('recipient_document_number', $transaction->recipient_document_number ?? $transaction->recipient_dni ?? '') }}"
+                                        required
+                                        class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                        placeholder="V-12345678">
+                                    @error('recipient_document_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                </div>
                             </div>
 
                             <!-- Banco receptor -->
@@ -447,14 +496,44 @@
                         </h4>
 
                         <div class="grid md:grid-cols-2 gap-6">
-                            <!-- DNI del titular que transfiere -->
-                            <div>
-                                <label for="sender_dni" class="block text-sm font-medium text-cj-texto mb-2">DNI del titular que transfiere *</label>
-                                <input type="text" name="sender_dni" id="sender_dni"
-                                    value="{{ old('sender_dni', $transaction->sender_dni ?? '') }}" required
-                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
-                                    placeholder="12345678">
-                                @error('sender_dni')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            <!-- Documento del titular que transfiere -->
+                            <div x-data="{ docTypes: [], loadingDocTypes: false }"
+                                 x-init="
+                                    $watch('fromCountryId', async (id) => {
+                                        if (!id) return;
+                                        loadingDocTypes = true;
+                                        const res = await fetch('/transactions/document-types?country_id=' + id);
+                                        docTypes = await res.json();
+                                        loadingDocTypes = false;
+                                    });
+                                 " class="md:col-span-2 grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-cj-texto mb-2">Tipo de documento *</label>
+                                    <select name="sender_document_type" required
+                                        class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
+                                        <option value="">Seleccionar</option>
+                                        <template x-for="dt in docTypes" :key="dt.id">
+                                            <option :value="dt.code" :selected="dt.code === '{{ old('sender_document_type', $transaction->sender_document_type ?? '') }}'">
+                                                <span x-text="dt.code + ' — ' + dt.name"></span>
+                                            </option>
+                                        </template>
+                                        @if(old('sender_document_type', $transaction->sender_document_type ?? ''))
+                                        <option value="{{ old('sender_document_type', $transaction->sender_document_type ?? '') }}" selected>
+                                            {{ old('sender_document_type', $transaction->sender_document_type ?? '') }}
+                                        </option>
+                                        @endif
+                                    </select>
+                                    @error('sender_document_type')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-cj-texto mb-2">Número de documento *</label>
+                                    <input type="text" name="sender_document_number"
+                                        value="{{ old('sender_document_number', $transaction->sender_document_number ?? $transaction->sender_dni ?? '') }}"
+                                        required
+                                        class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                        placeholder="12345678">
+                                    @error('sender_document_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                </div>
                             </div>
 
                             <!-- Banco origen (Perú) -->
@@ -480,6 +559,19 @@
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
                                     placeholder="000-000000-0-00">
                                 @error('sender_account_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Número de operación bancaria (solo transferencia) -->
+                            <div class="md:col-span-2" x-show="opType === 'transferencia'" x-cloak>
+                                <label for="operation_number" class="block text-sm font-medium text-cj-texto mb-2">
+                                    Número de operación <span class="text-cj-texto-claro font-normal">(opcional)</span>
+                                </label>
+                                <input type="text" name="operation_number" id="operation_number"
+                                    value="{{ old('operation_number', $transaction->operation_number ?? '') }}"
+                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                    placeholder="Ej: 123456789">
+                                <p class="mt-1 text-xs text-cj-texto-claro">Número de referencia o constancia que te dio el banco</p>
+                                @error('operation_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
                             <!-- Comprobante con preview -->
@@ -646,6 +738,16 @@
             inputUSD: '',
             inputEUR: '',
 
+            // Tipo de operación Venezuela
+            opType: '{{ old('operation_type', $transaction->operation_type ?? 'transferencia') }}',
+            acctType: '{{ old('recipient_account_type', $transaction->recipient_account_type ?? 'ahorro') }}',
+
+            // Moneda y países del par seleccionado (para incentivos y métodos de pago)
+            fromCurrencyId: null,
+            fromCountryId: null,
+            toCountryId: null,
+            paymentMethods: [],
+
             // Búsqueda de vendedor
             sellerCode: '',
             sellerData: null,
@@ -748,15 +850,22 @@
                     this.selectedRate    = parseFloat(option.dataset.rate);
                     this.usdBcvRate      = parseFloat(option.dataset.usd);
                     this.eurBcvRate      = parseFloat(option.dataset.eur);
-                    this.fromName        = option.dataset.fromName     || '';
-                    this.fromSymbol      = option.dataset.fromSymbol   || '';
-                    this.fromCode        = option.dataset.fromCode     || '';
+                    this.fromCurrencyId  = option.dataset.fromCurrencyId ? parseInt(option.dataset.fromCurrencyId) : null;
+                    this.fromName        = option.dataset.fromName      || '';
+                    this.fromSymbol      = option.dataset.fromSymbol    || '';
+                    this.fromCode        = option.dataset.fromCode      || '';
                     this.fromCountryId   = option.dataset.fromCountryId || null;
-                    this.toName          = option.dataset.toName       || '';
-                    this.toSymbol        = option.dataset.toSymbol     || '';
-                    this.toCode          = option.dataset.toCode       || '';
+                    this.toName          = option.dataset.toName        || '';
+                    this.toSymbol        = option.dataset.toSymbol      || '';
+                    this.toCode          = option.dataset.toCode        || '';
+                    this.toCountryId     = option.dataset.toCountryId   || null;
                     this.recalculate();
                     this.fetchSellerAccounts(select.value);
+                    if (this.toCountryId) {
+                        fetch('/transactions/payment-methods?country_id=' + this.toCountryId)
+                            .then(r => r.json())
+                            .then(data => { this.paymentMethods = data; });
+                    }
                 }
             },
 
@@ -831,11 +940,14 @@
                 return 0;
             },
 
-            // Suma todos los bonos para el monto dado
+            // Suma todos los bonos para el monto dado, filtrado por moneda del par seleccionado
             calcularBonusTotal(monto) {
                 if (!monto || monto <= 0 || !this.bonusRules.length) return 0;
+                const applicable = this.bonusRules.filter(rule =>
+                    rule.currency_id === null || rule.currency_id === this.fromCurrencyId
+                );
                 return Math.round(
-                    this.bonusRules.reduce((sum, rule) => sum + this.calcularBonusRegla(rule, monto), 0) * 100
+                    applicable.reduce((sum, rule) => sum + this.calcularBonusRegla(rule, monto), 0) * 100
                 ) / 100;
             },
 

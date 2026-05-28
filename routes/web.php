@@ -43,17 +43,18 @@ Route::get('/', function () {
             $to   = $rate->currencyPair->toCurrency;
 
             return [
-                'id'              => $rate->id,
-                'from_code'       => $from->code,
-                'from_name'       => $from->name,
-                'from_country'    => $from->country,
-                'from_symbol'     => $from->symbol,
-                'from_country_id' => $from->country_id,
-                'flag'            => $from->flag_emoji,
-                'to_code'         => $to->code     ?? 'VES',
-                'to_name'         => $to->name     ?? 'Bolívar Digital',
-                'to_symbol'       => $to->symbol   ?? 'Bs.',
-                'ves_rate'        => $rate->ves_rate,
+                'id'               => $rate->id,
+                'from_currency_id' => $from->id ?? null,
+                'from_code'        => $from->code,
+                'from_name'        => $from->name,
+                'from_country'     => $from->country,
+                'from_symbol'      => $from->symbol,
+                'from_country_id'  => $from->country_id,
+                'flag'             => $from->flag_emoji,
+                'to_code'          => $to->code     ?? 'VES',
+                'to_name'          => $to->name     ?? 'Bolívar Digital',
+                'to_symbol'        => $to->symbol   ?? 'Bs.',
+                'ves_rate'         => $rate->ves_rate,
                 'usd_rate'        => $rate->usd_rate,
                 'eur_rate'        => $rate->eur_rate,
                 'is_active'       => $rate->is_active,
@@ -144,6 +145,9 @@ Route::middleware('auth')->group(function () {
     Route::post('sellers/{seller}/commissions',       [SellerController::class, 'storeCommission'])->name('sellers.commissions.store');
 
     // Transacciones (cliente crea, admin/vendedor gestiona)
+    Route::get('/transactions/seller-accounts',           [TransactionController::class, 'getSellerAccounts'])->name('transactions.sellerAccounts');
+    Route::get('/transactions/document-types',            [TransactionController::class, 'getDocumentTypes'])->name('transactions.documentTypes');
+    Route::get('/transactions/payment-methods',           [TransactionController::class, 'getPaymentMethods'])->name('transactions.paymentMethods');
     Route::get('/transactions',                           [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/seller-accounts',           [TransactionController::class, 'getSellerAccounts'])->name('transactions.sellerAccounts');
     Route::get('/transactions/create',                    [TransactionController::class, 'create'])->name('transactions.create');
@@ -158,8 +162,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions/{transaction}/edit',                  [TransactionController::class, 'edit'])->name('transactions.edit');
     Route::post('/transactions/{transaction}/update',               [TransactionController::class, 'update'])->name('transactions.update');
 
-    // Ventas (vendedor registra, admin aprueba)
+    // Reportes
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/conciliation', [ReportController::class, 'conciliation'])->name('reports.conciliation');
+    Route::get('reports/export/transactions', [ReportController::class, 'exportTransactions'])->name('reports.export.transactions');
+    Route::get('reports/export/conciliation', [ReportController::class, 'exportConciliation'])->name('reports.export.conciliation');
+
+    // Ventas (vendedor registra, admin aprueba)
     Route::resource('sales', SaleController::class);
     Route::get('sales-bulk',                              [SaleController::class, 'bulkCreate'])->name('sales.bulk.create');
     Route::post('sales/bulk',                             [SaleController::class, 'bulkStore'])->name('sales.bulk.store');
@@ -204,6 +213,14 @@ Route::middleware('auth')->group(function () {
     Route::get('countries/{country}',                                  [CountryController::class, 'show'])->name('countries.show');
     Route::put('countries/{country}',                                  [CountryController::class, 'update'])->name('countries.update');
     Route::patch('countries/{country}/toggle-active',                  [CountryController::class, 'toggleActive'])->name('countries.toggleActive');
+    Route::post('countries/{country}/payment-methods',                             [CountryController::class, 'storePaymentMethod'])->name('payment-methods.store');
+    Route::put('countries/{country}/payment-methods/{paymentMethod}',              [CountryController::class, 'updatePaymentMethod'])->name('payment-methods.update');
+    Route::patch('countries/{country}/payment-methods/{paymentMethod}/toggle',     [CountryController::class, 'togglePaymentMethod'])->name('payment-methods.toggle');
+    Route::delete('countries/{country}/payment-methods/{paymentMethod}',           [CountryController::class, 'destroyPaymentMethod'])->name('payment-methods.destroy');
+    Route::post('countries/{country}/document-types',                             [CountryController::class, 'storeDocumentType'])->name('document-types.store');
+    Route::put('countries/{country}/document-types/{documentType}',              [CountryController::class, 'updateDocumentType'])->name('document-types.update');
+    Route::patch('countries/{country}/document-types/{documentType}/toggle',     [CountryController::class, 'toggleDocumentType'])->name('document-types.toggle');
+    Route::delete('countries/{country}/document-types/{documentType}',           [CountryController::class, 'destroyDocumentType'])->name('document-types.destroy');
     Route::post('countries/{country}/banks',                           [BankController::class, 'store'])->name('banks.store');
     Route::put('countries/{country}/banks/{bank}',                     [BankController::class, 'update'])->name('banks.update');
     Route::patch('countries/{country}/banks/{bank}/toggle-active',     [BankController::class, 'toggleActive'])->name('banks.toggleActive');

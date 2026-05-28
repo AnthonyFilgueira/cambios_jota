@@ -436,11 +436,15 @@
                         return 0;
                     },
 
-                    // Suma todos los bonos para un monto dado
+                    // Suma todos los bonos para un monto dado, filtrado por moneda del par activo
                     calcularBonusTotal(monto) {
                         if (!monto || monto <= 0 || !this.bonusRules.length) return 0;
+                        const activeCurrencyId = this.currentPair?.from_currency_id ?? null;
+                        const applicable = this.bonusRules.filter(rule =>
+                            rule.currency_id === null || rule.currency_id === activeCurrencyId
+                        );
                         return this.round(
-                            this.bonusRules.reduce((sum, rule) => sum + this.calcularBonusRegla(rule, monto), 0)
+                            applicable.reduce((sum, rule) => sum + this.calcularBonusRegla(rule, monto), 0)
                         );
                     },
 

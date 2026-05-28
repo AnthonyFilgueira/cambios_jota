@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Currency;
 use App\Models\IncentiveRule;
 use App\Models\Seller;
 use App\Models\User;
@@ -11,8 +12,9 @@ class IncentiveController extends Controller
 {
     public function index()
     {
-        $active   = IncentiveRule::active()->orderBy('starts_at', 'desc')->get();
-        $inactive = IncentiveRule::where(fn ($q) =>
+        $active   = IncentiveRule::with('currency')->active()->orderBy('starts_at', 'desc')->get();
+        $inactive = IncentiveRule::with('currency')
+                    ->where(fn ($q) =>
                         $q->where('active', false)
                           ->orWhere('ends_at', '<', now())
                           ->orWhereColumn('uses_count', '>=', 'max_uses')
@@ -22,7 +24,9 @@ class IncentiveController extends Controller
                     ->get()
                     ->filter(fn ($r) => !$r->isCurrentlyActive());
 
-        return view('admin.incentives.index', compact('active', 'inactive'));
+        $currencies = Currency::where('is_active', true)->orderBy('code')->get();
+
+        return view('admin.incentives.index', compact('active', 'inactive', 'currencies'));
     }
 
     public function store(Request $request)
@@ -30,6 +34,7 @@ class IncentiveController extends Controller
         $validated = $request->validate([
             'name'                 => 'required|string|max:150',
             'description'          => 'nullable|string|max:500',
+            'currency_id'          => 'nullable|exists:currencies,id',
             'type'                 => 'required|in:extra_receptor,extra_comision,descuento_tasa',
             'target_type'          => 'required|in:todos_clientes,cliente_nuevo,cliente_especifico,todos_vendedores,vendedor_especifico,clientes_de_vendedor',
             'target_id'            => 'nullable|integer',

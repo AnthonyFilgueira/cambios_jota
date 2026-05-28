@@ -168,6 +168,9 @@
                                         <div class="text-sm space-y-1">
                                             <p><span class="text-gray-500">Banco:</span> {{ $transaction->sender_bank }}</p>
                                             <p><span class="text-gray-500">Cuenta:</span> {{ $transaction->sender_account_number }}</p>
+                                            @if($transaction->operation_number)
+                                            <p><span class="text-gray-500">Nº operación:</span> <span class="font-mono font-semibold">{{ $transaction->operation_number }}</span></p>
+                                            @endif
                                         </div>
                                     </div>
 

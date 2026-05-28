@@ -111,7 +111,7 @@
                                         $toSym   = $tx->exchangeRate?->currencyPair?->toCurrency?->symbol ?? 'Bs.';
                                     @endphp
                                     <p class="font-bold text-cj-texto">{{ $fromSym }} {{ number_format($tx->amount_pen, 2) }}
-                                        <span class="text-cj-texto-claro font-normal text-sm">→ {{ $toSym }} {{ number_format($tx->amount_ves, 0) }}</span>
+                                        <span class="text-cj-texto-claro font-normal text-sm">→ {{ $toSym }} {{ number_format($tx->amount_ves, 2) }}</span>
                                     </p>
                                     <p class="text-xs text-cj-texto-claro">{{ $tx->created_at->format('d M Y, H:i') }}</p>
                                 </div>
@@ -198,6 +198,12 @@
                                             {{ $tx->operation_type === 'pago_movil' ? 'Pago Móvil' : 'Transferencia' }}
                                         </span>
                                     </div>
+                                    @if($tx->operation_number)
+                                    <div class="flex justify-between px-4 py-2.5 text-sm">
+                                        <span class="text-cj-texto-claro">Nº operación</span>
+                                        <span class="font-mono font-semibold text-cj-texto">{{ $tx->operation_number }}</span>
+                                    </div>
+                                    @endif
                                     <div class="flex justify-between px-4 py-2.5 text-sm">
                                         <span class="text-cj-texto-claro">Banco VE</span>
                                         <span class="font-semibold text-cj-texto">{{ $tx->recipient_bank }}</span>

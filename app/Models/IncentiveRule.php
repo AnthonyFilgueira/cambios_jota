@@ -12,6 +12,7 @@ class IncentiveRule extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'currency_id',
         'name', 'description', 'type', 'target_type', 'target_id',
         'value_type', 'value', 'min_amount', 'min_transactions',
         'starts_at', 'ends_at', 'active', 'created_by',
@@ -33,6 +34,11 @@ class IncentiveRule extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function currency(): BelongsTo
+    {
+        return $this->belongsTo(Currency::class);
     }
 
     public function appliedTransactions(): BelongsToMany
@@ -76,9 +82,13 @@ class IncentiveRule extends Model
 
     public function valueLabel(): string
     {
-        return $this->value_type === 'fixed'
-            ? 'S/ ' . number_format($this->value, 2)
-            : number_format($this->value, 2) . '%';
+        if ($this->value_type !== 'fixed') {
+            return number_format($this->value, 2) . '%';
+        }
+
+        $symbol = $this->currency?->symbol ?? 'S/';
+
+        return $symbol . ' ' . number_format($this->value, 2);
     }
 
     public function usesLabel(): string
