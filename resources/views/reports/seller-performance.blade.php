@@ -10,7 +10,7 @@
         </div>
     </x-slot>
 
-    <div class="py-6" x-data="{ period: '{{ $period }}' }">
+    <div class="py-6" x-data="{ period: new URLSearchParams(window.location.search).get('period') ?? 'month' }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <!-- FILTROS DE PERÍODO -->
@@ -20,13 +20,13 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Período</label>
                         <select name="period" x-model="period" @change="$el.form.submit()"
                                 class="rounded-md border-gray-300 shadow-sm focus:border-cj-morado-medio focus:ring focus:ring-cj-morado-claro">
-                            <option value="today" {{ $period === 'today' ? 'selected' : '' }}>Hoy</option>
-                            <option value="week" {{ $period === 'week' ? 'selected' : '' }}>Esta semana</option>
-                            <option value="month" {{ $period === 'month' ? 'selected' : '' }}>Este mes</option>
-                            <option value="quarter" {{ $period === 'quarter' ? 'selected' : '' }}>Este trimestre</option>
-                            <option value="year" {{ $period === 'year' ? 'selected' : '' }}>Este año</option>
-                            <option value="all" {{ $period === 'all' ? 'selected' : '' }}>Todo el tiempo</option>
-                            <option value="custom" {{ $period === 'custom' ? 'selected' : '' }}>Personalizado</option>
+                            <option value="today" :selected="period === 'today'">Hoy</option>
+                            <option value="week" :selected="period === 'week'">Esta semana</option>
+                            <option value="month" :selected="period === 'month'">Este mes</option>
+                            <option value="quarter" :selected="period === 'quarter'">Este trimestre</option>
+                            <option value="year" :selected="period === 'year'">Este año</option>
+                            <option value="all" :selected="period === 'all'">Todo el tiempo</option>
+                            <option value="custom" :selected="period === 'custom'">Personalizado</option>
                         </select>
                     </div>
 

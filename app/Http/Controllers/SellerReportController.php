@@ -58,7 +58,6 @@ class SellerReportController extends Controller
             'rankings',
             'comparison',
             'systemAverage',
-            'period',
             'startDate',
             'endDate'
         ));
@@ -104,7 +103,6 @@ class SellerReportController extends Controller
 
         return view('reports.seller-rankings', compact(
             'sellers',
-            'period',
             'startDate',
             'endDate',
             'sortBy',
