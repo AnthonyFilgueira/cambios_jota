@@ -94,7 +94,7 @@
                                         data-to-flag="{{ $pair['to_flag'] ?? '🏳' }}"
                                         data-to-country="{{ $pair['to_country'] ?? '' }}"
                                         data-to-country-id="{{ $pair['to_country_id'] ?? '' }}">
-                                        {{ $pair['from_code'] }} → {{ $pair['to_code'] ?? 'VES' }} (1 {{ $pair['from_code'] }} = {{ number_format($pair['ves_rate'], 2) }} {{ $pair['to_symbol'] ?? 'Bs.' }})
+                                        {{ $pair['from_code'] }} → {{ $pair['to_code'] ?? 'VES' }} (1 {{ $pair['from_code'] }} = {{ $pair['ves_rate'] >= 1 ? number_format($pair['ves_rate'], 2) : number_format($pair['ves_rate'], 6) }} {{ $pair['to_symbol'] ?? 'Bs.' }})
                                     </option>
                                 @endforeach
                             </select>
@@ -202,7 +202,7 @@
                         @endif
 
                         <!-- Sección de cotización -->
-                        <div class="bg-cj-morado-claro/20 rounded-xl p-5 mb-6">
+                        <div class="bg-cj-morado-claro/20 rounded-xl p-5 mb-6" x-show="selectedRateId">
                             <h5 class="text-sm font-bold text-cj-morado-profundo mb-3 uppercase tracking-wider">¿Cuánto quieres cotizar?</h5>
                             <div class="grid md:grid-cols-3 gap-4">
                                 <!-- Cotizar en USD -->
@@ -267,7 +267,7 @@
                         </div>
 
                         <!-- Resumen visual del envío -->
-                        <div class="space-y-3">
+                        <div class="space-y-3" x-show="selectedRateId">
                             <!-- Tú envías -->
                             <div class="bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio text-white rounded-xl p-5">
                                 <div class="text-xs uppercase tracking-widest opacity-90 mb-2 font-semibold">Tú envías</div>
@@ -300,7 +300,7 @@
                                 <template x-if="bonusAmountPen <= 0 || amountPen <= 0">
                                     <div>
                                         <span class="text-xs text-cj-texto-claro uppercase tracking-wider">Tasa de conversión: </span>
-                                        <span class="text-base font-bold text-cj-morado-profundo font-mono">1 <span x-text="fromCode || 'PEN'"></span> = <span x-text="selectedRate.toFixed(2)">0.00</span> <span x-text="toCode || 'VES'"></span></span>
+                                        <span class="text-base font-bold text-cj-morado-profundo font-mono">1 <span x-text="fromCode || 'PEN'"></span> = <span x-text="formatRate(selectedRate)">0.00</span> <span x-text="toCode || 'VES'"></span></span>
                                     </div>
                                 </template>
                                 <template x-if="bonusAmountPen > 0 && amountPen > 0">
@@ -310,7 +310,7 @@
                                             + <span class="text-yellow-600 font-bold">🎁 <span x-text="fromSymbol || 'S/.'"></span><span x-text="bonusAmountPen.toFixed(2)"></span> bono</span>
                                             = <span class="font-black text-cj-turquesa"><span x-text="fromSymbol || 'S/.'"></span><span x-text="formatMoney(amountPen + bonusAmountPen)"></span> efectivo</span>
                                         </div>
-                                        <div class="text-xs text-cj-texto-claro">1 <span x-text="fromCode || 'PEN'"></span> = <span x-text="selectedRate.toFixed(2)"></span> <span x-text="toCode || 'VES'"></span></div>
+                                        <div class="text-xs text-cj-texto-claro">1 <span x-text="fromCode || 'PEN'"></span> = <span x-text="formatRate(selectedRate)"></span> <span x-text="toCode || 'VES'"></span></div>
                                     </div>
                                 </template>
                             </div>
@@ -1044,6 +1044,14 @@
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 }).format(value || 0);
+            },
+
+            formatRate(val) {
+                if (!val || val === 0) return '0.00';
+                if (val >= 100)  return val.toFixed(2);
+                if (val >= 1)    return val.toFixed(4);
+                if (val >= 0.01) return val.toFixed(4);
+                return val.toFixed(6);
             }
         }
     }
