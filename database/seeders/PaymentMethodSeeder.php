@@ -12,26 +12,118 @@ class PaymentMethodSeeder extends Seeder
 {
     public function run(): void
     {
-        $peru      = Country::where('code_iso', 'PE')->first();
-        $venezuela = Country::where('code_iso', 'VE')->first();
+        $countries = Country::whereIn('code_iso', ['PE', 'VE', 'CL', 'CO', 'AR', 'BR'])
+            ->get()
+            ->keyBy('code_iso');
 
-        if ($peru) {
-            PaymentMethod::firstOrCreate(
-                ['country_id' => $peru->id, 'code' => 'transferencia_bancaria'],
-                ['name' => 'Transferencia Bancaria', 'active' => true]
-            );
-        }
+        $methods = [
+            // ─── PERÚ (sender side) ───────────────────────────────────────
+            'PE' => [
+                [
+                    'code'            => 'transferencia_bancaria',
+                    'name'            => 'Transferencia Bancaria',
+                    'side'            => 'sender',
+                    'fields_required' => ['bank', 'account_number', 'account_type'],
+                ],
+                [
+                    'code'            => 'agente',
+                    'name'            => 'Agente',
+                    'side'            => 'sender',
+                    'fields_required' => ['bank'],
+                ],
+                [
+                    'code'            => 'yape',
+                    'name'            => 'Yape',
+                    'side'            => 'sender',
+                    'fields_required' => ['phone'],
+                ],
+                [
+                    'code'            => 'plin',
+                    'name'            => 'Plin',
+                    'side'            => 'sender',
+                    'fields_required' => ['phone'],
+                ],
+            ],
 
-        if ($venezuela) {
-            $veMethods = [
-                ['code' => 'transferencia_bancaria', 'name' => 'Transferencia Bancaria'],
-                ['code' => 'pago_movil',             'name' => 'Pago Móvil'],
-            ];
+            // ─── VENEZUELA (recipient side) ───────────────────────────────
+            'VE' => [
+                [
+                    'code'            => 'transferencia_bancaria',
+                    'name'            => 'Transferencia Bancaria',
+                    'side'            => 'recipient',
+                    'fields_required' => ['bank', 'account_number', 'account_type'],
+                ],
+                [
+                    'code'            => 'pago_movil',
+                    'name'            => 'Pago Móvil',
+                    'side'            => 'recipient',
+                    'fields_required' => ['phone', 'bank'],
+                ],
+            ],
 
-            foreach ($veMethods as $method) {
-                PaymentMethod::firstOrCreate(
-                    ['country_id' => $venezuela->id, 'code' => $method['code']],
-                    array_merge($method, ['active' => true])
+            // ─── CHILE (sender side) ──────────────────────────────────────
+            'CL' => [
+                [
+                    'code'            => 'transferencia_bancaria',
+                    'name'            => 'Transferencia Bancaria',
+                    'side'            => 'sender',
+                    'fields_required' => ['bank', 'account_number', 'account_type'],
+                ],
+            ],
+
+            // ─── COLOMBIA (sender side) ───────────────────────────────────
+            'CO' => [
+                [
+                    'code'            => 'transferencia_bancaria',
+                    'name'            => 'Transferencia Bancaria',
+                    'side'            => 'sender',
+                    'fields_required' => ['bank', 'account_number', 'account_type'],
+                ],
+            ],
+
+            // ─── ARGENTINA (sender side) ──────────────────────────────────
+            'AR' => [
+                [
+                    'code'            => 'transferencia_bancaria',
+                    'name'            => 'Transferencia Bancaria',
+                    'side'            => 'sender',
+                    'fields_required' => ['bank', 'account_number', 'account_type'],
+                ],
+            ],
+
+            // ─── BRASIL (sender side) ─────────────────────────────────────
+            'BR' => [
+                [
+                    'code'            => 'transferencia_bancaria',
+                    'name'            => 'Transferencia Bancaria',
+                    'side'            => 'sender',
+                    'fields_required' => ['bank', 'account_number', 'account_type'],
+                ],
+                [
+                    'code'            => 'pix',
+                    'name'            => 'PIX',
+                    'side'            => 'sender',
+                    'fields_required' => ['phone'],
+                ],
+            ],
+        ];
+
+        foreach ($methods as $iso => $countryMethods) {
+            $country = $countries->get($iso);
+
+            if (! $country) {
+                continue;
+            }
+
+            foreach ($countryMethods as $method) {
+                PaymentMethod::updateOrCreate(
+                    ['country_id' => $country->id, 'code' => $method['code']],
+                    [
+                        'name'            => $method['name'],
+                        'side'            => $method['side'],
+                        'fields_required' => $method['fields_required'],
+                        'active'          => true,
+                    ]
                 );
             }
         }
