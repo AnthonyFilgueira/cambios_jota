@@ -6,11 +6,8 @@ use App\Models\ExchangeRate;
 use App\Models\Seller;
 use App\Models\Transaction;
 use App\Models\TransactionLog;
-use App\Models\User;
-use App\Notifications\NewTransactionForOwner;
 use App\Services\IncentiveService;
 use Illuminate\Http\Request;
-use Illuminate\Notifications\Notification;
 
 class TransactionController extends Controller
 {
@@ -578,13 +575,4 @@ class TransactionController extends Controller
             ->with('success', '¡Solicitud corregida y reenviada al vendedor!');
     }
 
-    /**
-     * Notify all admin and super-admin users about a transaction event.
-     */
-    private function notifyOwners(Transaction $transaction, string $event, ?string $detail = null): void
-    {
-        User::role(['admin', 'super-admin'])->get()->each(
-            fn (User $owner) => $owner->notify(new NewTransactionForOwner($transaction, $event, $detail))
-        );
-    }
 }

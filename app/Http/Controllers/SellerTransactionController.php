@@ -92,10 +92,13 @@ class SellerTransactionController extends Controller
             'comment'        => 'Solicitud aprobada por el vendedor. Escalada al dueño para ejecución.',
         ]);
 
-        // Notificar al cliente
+        // Notificar al cliente (con email)
         if ($transaction->user) {
-            $transaction->user->notify(new \App\Notifications\TransactionStatusChanged($transaction, 'processing'));
+            $transaction->user->notify(new \App\Notifications\TransactionProcessed($transaction));
         }
+
+        // Notificar al dueño/admin
+        $this->notifyOwners($transaction, 'processing');
 
         return redirect()->route('seller.bandeja')
             ->with('success', '¡Solicitud aprobada! El dueño ha sido notificado para ejecutar la transferencia.');
@@ -127,10 +130,13 @@ class SellerTransactionController extends Controller
             'comment'        => $request->motivo,
         ]);
 
-        // Notificar al cliente
+        // Notificar al cliente (con email)
         if ($transaction->user) {
-            $transaction->user->notify(new \App\Notifications\TransactionStatusChanged($transaction, 'observed', $request->motivo));
+            $transaction->user->notify(new \App\Notifications\TransactionObserved($transaction));
         }
+
+        // Notificar al dueño/admin
+        $this->notifyOwners($transaction, 'observed', $request->motivo);
 
         return redirect()->route('seller.bandeja')
             ->with('success', 'Observación enviada. El cliente ha sido notificado para corregir su solicitud.');
@@ -162,10 +168,13 @@ class SellerTransactionController extends Controller
             'comment'        => $request->motivo,
         ]);
 
-        // Notificar al cliente
+        // Notificar al cliente (con email)
         if ($transaction->user) {
             $transaction->user->notify(new \App\Notifications\TransactionStatusChanged($transaction, 'cancelled', $request->motivo));
         }
+
+        // Notificar al dueño/admin
+        $this->notifyOwners($transaction, 'cancelled', $request->motivo);
 
         return redirect()->route('seller.bandeja')
             ->with('success', 'Solicitud denegada. El cliente ha sido notificado.');
