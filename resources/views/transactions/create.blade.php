@@ -297,8 +297,7 @@
                     </div>
 
                     <!-- SECCIÓN 2: RECEPTOR EN VENEZUELA -->
-                    <div class="bg-gradient-to-r from-cj-rosa/5 to-cj-morado-medio/5 rounded-xl p-6 border border-pink-200"
-                         x-data="{ opType: '{{ old('operation_type', $transaction->operation_type ?? 'transferencia') }}', acctType: '{{ old('recipient_account_type', $transaction->recipient_account_type ?? 'ahorro') }}' }">
+                    <div class="bg-gradient-to-r from-cj-rosa/5 to-cj-morado-medio/5 rounded-xl p-6 border border-pink-200">
                         <h4 class="text-lg font-bold text-cj-morado-profundo mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
@@ -460,6 +459,19 @@
                                 @error('sender_account_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
+                            <!-- Número de operación bancaria (solo transferencia) -->
+                            <div class="md:col-span-2" x-show="opType === 'transferencia'" x-cloak>
+                                <label for="operation_number" class="block text-sm font-medium text-cj-texto mb-2">
+                                    Número de operación <span class="text-cj-texto-claro font-normal">(opcional)</span>
+                                </label>
+                                <input type="text" name="operation_number" id="operation_number"
+                                    value="{{ old('operation_number', $transaction->operation_number ?? '') }}"
+                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                    placeholder="Ej: 123456789">
+                                <p class="mt-1 text-xs text-cj-texto-claro">Número de referencia o constancia que te dio el banco</p>
+                                @error('operation_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
                             <!-- Comprobante con preview -->
                             <div x-data="{ preview: null, fileName: '' }" class="md:col-span-2">
                                 <label class="block text-sm font-medium text-cj-texto mb-2">Comprobante de depósito *</label>
@@ -599,6 +611,10 @@
             // Inputs de cotización
             inputUSD: '',
             inputEUR: '',
+
+            // Tipo de operación Venezuela
+            opType: '{{ old('operation_type', $transaction->operation_type ?? 'transferencia') }}',
+            acctType: '{{ old('recipient_account_type', $transaction->recipient_account_type ?? 'ahorro') }}',
 
             // Búsqueda de vendedor
             sellerCode: '',
