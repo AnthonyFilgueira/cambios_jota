@@ -82,19 +82,19 @@
                         <!-- Tasa USD -->
                         <div class="text-center">
                             <div class="text-xs text-cj-texto-claro uppercase tracking-wide mb-1 font-medium">USD</div>
-                            <div class="font-mono text-sm font-semibold text-cj-morado-profundo" x-text="tasas.usd.toFixed(2)"></div>
+                            <div class="font-mono text-sm font-semibold text-cj-morado-profundo" x-text="formatTasa(tasas.usd)"></div>
                         </div>
 
                         <!-- Tasa EUR -->
                         <div class="text-center">
                             <div class="text-xs text-cj-texto-claro uppercase tracking-wide mb-1 font-medium">EUR</div>
-                            <div class="font-mono text-sm font-semibold text-cj-morado-profundo" x-text="tasas.eur.toFixed(2)"></div>
+                            <div class="font-mono text-sm font-semibold text-cj-morado-profundo" x-text="formatTasa(tasas.eur)"></div>
                         </div>
 
-                        <!-- Tasa VES -->
+                        <!-- Tasa destino (dinámica según par seleccionado) -->
                         <div class="text-center">
-                            <div class="text-xs text-cj-texto-claro uppercase tracking-wide mb-1 font-medium">VES</div>
-                            <div class="font-mono text-sm font-semibold text-cj-turquesa" x-text="tasas.ves.toFixed(2)"></div>
+                            <div class="text-xs text-cj-texto-claro uppercase tracking-wide mb-1 font-medium" x-text="currentPair.to_code || 'VES'"></div>
+                            <div class="font-mono text-sm font-semibold text-cj-turquesa" x-text="formatTasa(tasas.ves)"></div>
                         </div>
                     </div>
                 </div>
@@ -109,7 +109,7 @@
                         @change="cambiarPar()"
                         class="w-full p-3 border-2 border-cj-morado-profundo/20 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all font-semibold text-cj-texto">
                         <template x-for="pair in pairs" :key="pair.id">
-                            <option :value="pair.id" x-text="`${pair.flag} ${pair.from_country} (${pair.from_code})`"></option>
+                            <option :value="pair.id" x-text="`${pair.flag} ${pair.from_country} → ${pair.to_country} ${pair.to_flag}`"></option>
                         </template>
                     </select>
 
@@ -213,7 +213,7 @@
                 <div class="bg-cj-morado-medio text-white text-center py-3">
                     <div class="text-xs uppercase tracking-wider opacity-90 mb-1">Tasa de conversión</div>
                     <div class="font-mono text-lg font-bold">
-                        1 <span x-text="currentPair.from_code"></span> = <span x-text="currentPair.ves_rate.toFixed(2)">0.00</span> <span x-text="currentPair.to_code || 'VES'"></span>
+                        1 <span x-text="currentPair.from_code"></span> = <span x-text="formatTasa(currentPair.ves_rate)">0.00</span> <span x-text="currentPair.to_code || 'VES'"></span>
                     </div>
                     <div x-show="bonusTotal > 0 && montoEnviar > 0" class="text-xs mt-1 opacity-80">
                         Base <span x-text="formatearMonto(montoEnviar)"></span> + 🎁 <span x-text="formatearMonto(bonusTotal)"></span> bono = <span x-text="formatearMonto(montoEnviar + bonusTotal)"></span> efectivo
@@ -225,7 +225,7 @@
                     <div class="text-xs uppercase tracking-widest opacity-95 mb-2 font-semibold">Tu familiar recibe</div>
                     <div class="text-4xl font-bold flex items-center gap-2">
                         <span x-text="currentPair.to_symbol || 'Bs.'"></span> <span x-text="formatearMonto(vesRecibir)">0.00</span>
-                        <span class="text-2xl">🇻🇪</span>
+                        <span class="text-2xl" x-text="currentPair.to_flag || '🇻🇪'"></span>
                     </div>
                     <!-- Comparativa con/sin bono -->
                     <div x-show="bonusTotal > 0 && montoEnviar > 0" class="mt-3">
@@ -426,6 +426,14 @@
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         }).format(valor);
+                    },
+
+                    formatTasa(val) {
+                        if (!val || val === 0) return '0.00';
+                        if (val >= 100)  return val.toFixed(2);
+                        if (val >= 1)    return val.toFixed(4);
+                        if (val >= 0.01) return val.toFixed(4);
+                        return val.toFixed(6);
                     },
 
                     // Calcula el bono de una regla para un monto dado
