@@ -128,7 +128,12 @@
                         </div>
 
                         <!-- Cuentas del vendedor para depositar (Alpine.js — se actualiza al cambiar el par) -->
-                        <div class="mb-6">
+                        <template x-if="!selectedRateId">
+                            <div class="mb-6 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl p-4 text-center text-sm text-gray-400">
+                                👆 Selecciona una tasa de cambio para ver las cuentas disponibles
+                            </div>
+                        </template>
+                        <div class="mb-6" x-show="selectedRateId">
                             <!-- Estado de carga -->
                             <div x-show="loadingAccounts" class="flex items-center justify-center gap-2 py-6 text-cj-texto-claro">
                                 <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
@@ -775,9 +780,11 @@
             // Tipos de documento y bancos (cargados en onRateChange — scope padre)
             docTypes: [],
             recDocTypes: [],
+            senderBanks: [],
             recipientBanks: [],
             loadingDocTypes: false,
             loadingRecDocTypes: false,
+            loadingSenderBanks: false,
             loadingRecipientBanks: false,
 
             // Búsqueda de vendedor
@@ -787,7 +794,7 @@
             sellerFound: false,
             sellerSearching: false,
             sellerError: '',
-            sellerAccountsDisplay: @json($sellerAccountsMapped),
+            sellerAccountsDisplay: [],
             loadingAccounts: false,
 
             init() {
