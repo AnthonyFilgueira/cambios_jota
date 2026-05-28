@@ -1,6 +1,6 @@
 # Manual de Usuario — Cambio J
 
-**Versión:** REQ-12 (mayo 2026)
+**Versión:** REQ-12 + Multi-Corredor (mayo 2026)
 **Stack:** Laravel 12 · Alpine.js · Blade · Tailwind CSS · MySQL
 
 ---
@@ -19,21 +19,50 @@
 10. [Reportes y exportaciones](#10-reportes-y-exportaciones)
 11. [Campos nuevos de REQ-12](#11-campos-nuevos-de-req-12)
 12. [Comandos de mantenimiento](#12-comandos-de-mantenimiento)
+13. [Notas técnicas de la UX dinámica](#13-notas-técnicas-de-la-ux-dinámica)
 
 ---
 
 ## 1. Introducción
 
-**Cambio J** es una plataforma de remesas en línea que permite a clientes en Perú enviar dinero a familiares en Venezuela. El sistema gestiona el tipo de cambio PEN (soles) → VES (bolívares digitales) en tiempo real y automatiza el proceso de cobro, validación y pago.
+**Cambio J** es una plataforma de remesas en línea **multi-corredor** que permite a clientes desde varios países latinoamericanos enviar dinero a familiares en Venezuela o Perú. El sistema gestiona tipos de cambio en tiempo real para múltiples pares de divisas y automatiza el proceso de cobro, validación y pago.
+
+### Países y corredores activos
+
+| País de origen | Moneda | Destinos disponibles |
+|----------------|--------|---------------------|
+| 🇵🇪 Perú | PEN | Venezuela (VES) |
+| 🇦🇷 Argentina | ARS | Venezuela (VES) · Perú (PEN) |
+| 🇨🇱 Chile | CLP | Venezuela (VES) · Perú (PEN) |
+| 🇨🇴 Colombia | COP | Venezuela (VES) · Perú (PEN) |
+| 🇧🇷 Brasil | BRL | Venezuela (VES) · Perú (PEN) |
+| — | USD | Perú (PEN) |
+
+### Pares de divisas activos
+
+| Par | Tasa aproximada | Descripción |
+|-----|----------------|-------------|
+| PEN → VES | 1 PEN = 173.71 Bs. | Perú a Venezuela |
+| ARS → VES | 1 ARS = 3.00 Bs. | Argentina a Venezuela |
+| ARS → PEN | 1 ARS = 0.0031 PEN | Argentina a Perú |
+| CLP → VES | 1 CLP = 0.55 Bs. | Chile a Venezuela |
+| CLP → PEN | 1 CLP = 0.0045 PEN | Chile a Perú |
+| COP → VES | 1 COP = 0.12 Bs. | Colombia a Venezuela |
+| COP → PEN | 1 COP = 0.00082 PEN | Colombia a Perú |
+| BRL → PEN | 1 BRL = 0.72 PEN | Brasil a Perú |
+| BRL → VES | 1 BRL = 86.20 Bs. | Brasil a Venezuela |
+| USD → PEN | 1 USD = 3.72 PEN | USD a Perú |
+
+> Las tasas son referenciales. El valor exacto lo determina la tasa activa configurada en el sistema.
 
 ### Flujo general
 
 ```
-CLIENTE (Perú)          VENDEDOR             ADMINISTRADOR / DUEÑO
-━━━━━━━━━━━━━━━━━       ━━━━━━━━━━━━━━━━     ━━━━━━━━━━━━━━━━━━━━━
-Crea la transacción  →  Revisa y aprueba  →  Ejecuta el pago
-Sube comprobante                              Sube voucher final
-Recibe confirmación                          Acredita comisión
+CLIENTE (cualquier país)   VENDEDOR             ADMINISTRADOR / DUEÑO
+━━━━━━━━━━━━━━━━━━━━━      ━━━━━━━━━━━━━━━━     ━━━━━━━━━━━━━━━━━━━━━
+Elige corredor          →  Revisa y aprueba  →  Ejecuta el pago
+Sube comprobante                               Sube voucher final
+Recibe confirmación                            Acredita comisión
 ```
 
 ---
@@ -98,39 +127,58 @@ Solo puede operar sus propias transacciones:
 
 **Paso a paso:**
 
-#### PASO 1 — Seleccionar la tasa de cambio
-- Elige el par de divisas disponible (ej. `PEN → VES`)
-- El sistema muestra la tasa vigente y actualiza todos los cálculos automáticamente
+#### PASO 1 — Seleccionar la tasa de cambio *(paso obligatorio — todo lo demás permanece oculto hasta aquí)*
+- Elige el **par de divisas** disponible en el selector (ej. `CLP → PEN`, `ARS → VES`, `BRL → PEN`)
+- Al seleccionar, el formulario se activa automáticamente:
+  - Las cabeceras muestran el país de origen y destino con su bandera
+  - Se cargan los bancos, tipos de documento y cuentas del negocio correctos para ese corredor
+  - Aparecen las secciones del formulario (receptor + remitente)
+- **Antes de elegir una tasa, ninguna sección del formulario es visible** — esto es intencional para evitar confusión
 
-#### PASO 2 — Ingresar el código del vendedor
-- Escribe el código único de tu vendedor (formato `VEN-XXXXXX`)
-- El sistema busca las cuentas del negocio asignadas a ese vendedor filtradas por el país de origen
-- Si el código es válido, aparecerán las cuentas disponibles para transferir
+#### PASO 2 — Cuentas del negocio para tu depósito
+- Aparecen automáticamente después de seleccionar la tasa
+- Solo se muestran las cuentas del país de origen del corredor elegido asignadas a tu vendedor
+- Ejemplo: si elegiste `CLP → PEN`, verás cuentas en **Chile** (Banco de Chile, Banco Estado)
+- Si elegiste `ARS → PEN`, verás cuentas en **Argentina** (Banco Nación, Banco Galicia)
+- Debes transferir el monto exacto a una de estas cuentas antes de continuar
 
-#### PASO 3 — Elegir método de pago *(REQ-12)*
-- Los métodos disponibles se cargan automáticamente según el **país destino** del par seleccionado
-- Ejemplos:
-  - Si el destino es **Venezuela** → `Transferencia bancaria` / `Pago Móvil`
-  - Si el destino es **Perú** → `Transferencia bancaria`
+#### PASO 3 — Elegir método de pago
+- Los métodos disponibles se cargan automáticamente según el **país de origen** del par seleccionado
+- Métodos por país:
+  | País | Métodos disponibles |
+  |------|---------------------|
+  | 🇵🇪 Perú | Transferencia Bancaria |
+  | 🇦🇷 Argentina | Transferencia Bancaria · CVU / Alias |
+  | 🇨🇱 Chile | Transferencia Bancaria |
+  | 🇨🇴 Colombia | Transferencia Bancaria · Nequi · Daviplata |
+  | 🇧🇷 Brasil | Transferencia Bancaria · PIX |
 
-#### PASO 4 — Ingresar el número de operación *(REQ-12)*
+#### PASO 4 — Ingresar el número de operación
 - Solo aparece si el método de pago es **Transferencia bancaria**
 - Es el número de referencia que da tu banco al hacer la transferencia
 - Campo opcional pero recomendado para facilitar la conciliación
 
 #### PASO 5 — Datos del remitente (quien envía)
-- **Tipo de documento** *(REQ-12)*: se carga dinámicamente según el país de origen del par
-  - Perú: DNI / CE / RUC
-  - Venezuela: Cédula (V) / Extranjero (E) / Jurídico (J) / Gubernamental (G)
-- **Número de documento**: ingresa el número sin prefijo ni guiones
+- **Tipo de documento**: se carga dinámicamente según el **país de origen** del par
+  | País | Tipos de documento |
+  |------|--------------------|
+  | 🇵🇪 Perú | DNI · CE (Carné de Extranjería) · RUC |
+  | 🇦🇷 Argentina | DNI · CUIT · CUIL |
+  | 🇨🇱 Chile | RUT · RUN |
+  | 🇨🇴 Colombia | CC · CE · NIT |
+  | 🇧🇷 Brasil | CPF · CNPJ · RG |
+- **Banco del remitente**: banco desde el que se realizará la transferencia (cargado por país)
+- **Número de documento**: ingresa el número según el tipo seleccionado
 
-#### PASO 6 — Datos del destinatario (quien recibe en Venezuela)
-- **Tipo de documento** *(REQ-12)*: cargado según el país destino
+#### PASO 6 — Datos del destinatario (quien recibe)
+- **Tipo de documento**: cargado según el **país destino**
+  - Si destino es Venezuela: Cédula (V) · Extranjero (E) · Jurídico (J) · Gubernamental (G)
+  - Si destino es Perú: DNI · CE · RUC
 - **Número de documento**
-- **Banco destino**: nombre del banco venezolano
+- **Banco destino**: banco receptor (cargado según el país destino)
 - **Número de cuenta**: solo si el método es transferencia bancaria
 - **Tipo de cuenta**: Ahorro / Corriente
-- **Teléfono**: número venezolano de contacto
+- **Teléfono**: número de contacto del destinatario
 
 #### PASO 7 — Ver el bono/incentivo *(REQ-12)*
 - Si hay reglas de incentivo activas para la moneda seleccionada, aparece el preview del bono
@@ -342,6 +390,19 @@ Vista centralizada de **todas** las transacciones del sistema.
 
 **Ruta:** `/countries`
 
+**Países activos en el sistema:**
+
+| País | Código | Rol | Bancos | Cuentas del negocio |
+|------|--------|-----|--------|---------------------|
+| 🇵🇪 Perú | PE | Origen | 7 | 3 |
+| 🇻🇪 Venezuela | VE | Destino | 8 | 0 |
+| 🇨🇱 Chile | CL | Origen | 7 | 2 |
+| 🇨🇴 Colombia | CO | Origen | 7 | 2 |
+| 🇦🇷 Argentina | AR | Origen | 7 | 2 |
+| 🇧🇷 Brasil | BR | Origen | 7 | 2 |
+
+> Venezuela es solo destino — los clientes reciben dinero ahí, pero no inician envíos desde Venezuela.
+
 Cada país tiene 4 pestañas de configuración:
 
 #### Pestaña Bancos
@@ -373,23 +434,31 @@ Configura qué tipos de documento se muestran en el formulario de transacción s
 | Prefijo | Prefijo que se añade al número (ej. `V-`) |
 | Placeholder | Texto de ayuda en el campo (ej. `00000000`) |
 
-**Datos precargados:**
+**Datos precargados (6 países activos):**
 
 | País | Tipos de documento |
 |------|--------------------|
-| Perú | DNI · CE (Carné de Extranjería) · RUC |
-| Venezuela | V (Cédula venezolana) · E (Extranjero) · J (Jurídico/Empresa) · G (Gubernamental) |
+| 🇵🇪 Perú | DNI · CE (Carné de Extranjería) · RUC |
+| 🇻🇪 Venezuela | V (Cédula venezolana) · E (Extranjero) · J (Jurídico/Empresa) · G (Gubernamental) |
+| 🇨🇱 Chile | RUT (Rol Único Tributario) · RUN (Rol Único Nacional) |
+| 🇨🇴 Colombia | CC (Cédula de Ciudadanía) · CE (Cédula de Extranjería) · NIT |
+| 🇦🇷 Argentina | DNI · CUIT (Tributaria) · CUIL (Laboral) |
+| 🇧🇷 Brasil | CPF · CNPJ · RG |
 
-#### Pestaña Métodos de Pago *(REQ-12)*
+#### Pestaña Métodos de Pago
 
-Configura qué métodos de pago se ofrecen según el país destino de la transacción.
+Configura qué métodos de pago se ofrecen según el **país de origen** del remitente.
 
 **Datos precargados:**
 
 | País | Métodos |
 |------|---------|
-| Perú | Transferencia bancaria |
-| Venezuela | Transferencia bancaria · Pago Móvil |
+| 🇵🇪 Perú | Transferencia bancaria |
+| 🇻🇪 Venezuela | (destino — no aplica métodos de pago) |
+| 🇨🇱 Chile | Transferencia bancaria |
+| 🇨🇴 Colombia | Transferencia bancaria · Nequi · Daviplata |
+| 🇦🇷 Argentina | Transferencia bancaria · CVU / Alias |
+| 🇧🇷 Brasil | Transferencia bancaria · PIX |
 
 ---
 
@@ -401,11 +470,26 @@ Solo una tasa puede estar **activa** por par de divisas. Cada tasa tiene:
 
 | Campo | Descripción |
 |-------|-------------|
-| `ves_rate` | Tasa principal PEN → VES (bolívares por sol) |
-| `usd_rate` | Tasa BCV USD → VES (para conversor USD) |
-| `eur_rate` | Tasa BCV EUR → VES (para conversor EUR) |
+| `ves_rate` | Tasa del par seleccionado (unidades de moneda destino por 1 unidad de moneda origen) |
+| `usd_rate` | Tasa de referencia en USD |
+| `eur_rate` | Tasa de referencia en EUR |
 
-> La tasa activa se muestra en el simulador público y en el formulario de transacción.
+**Tasas activas actuales:**
+
+| ID | Par | ves_rate | Descripción |
+|----|-----|----------|-------------|
+| 1 | PEN → VES | 173.71 | 1 sol = 173.71 bolívares |
+| 4 | ARS → VES | 3.00 | 1 peso argentino = 3 bolívares |
+| 5 | CLP → PEN | 0.0045 | 1 peso chileno = 0.0045 soles |
+| 6 | CLP → VES | 0.55 | 1 peso chileno = 0.55 bolívares |
+| 7 | COP → VES | 0.12 | 1 peso colombiano = 0.12 bolívares |
+| 8 | USD → PEN | 3.72 | 1 dólar = 3.72 soles |
+| 9 | COP → PEN | 0.00082 | 1 COP = 0.00082 soles |
+| 10 | ARS → PEN | 0.0031 | 1 peso argentino = 0.0031 soles |
+| 11 | BRL → PEN | 0.72 | 1 real = 0.72 soles |
+| 12 | BRL → VES | 86.20 | 1 real = 86.20 bolívares |
+
+> La tasa activa se muestra en el simulador público y en el formulario de transacción. Para actualizar una tasa: crear nueva → activar → la anterior queda inactiva automáticamente.
 
 ---
 
@@ -562,16 +646,32 @@ Todos los comandos se ejecutan con el prefijo `./vendor/bin/sail artisan`:
 # Aplicar migraciones pendientes
 ./vendor/bin/sail artisan migrate
 
-# Cargar tipos de documento (Perú y Venezuela)
+# Cargar TODA la base de datos desde cero (orden correcto)
+./vendor/bin/sail artisan db:seed
+
+# ─── Seeders individuales (si se necesita actualizar parcialmente) ───
+
+# Países, bancos y cuentas base (Perú + Venezuela)
+./vendor/bin/sail artisan db:seed --class=CountryBankSeeder
+
+# Tipos de documento (Perú y Venezuela)
 ./vendor/bin/sail artisan db:seed --class=DocumentTypeSeeder
 
-# Cargar métodos de pago (transferencia / pago móvil por país)
+# Métodos de pago por país
 ./vendor/bin/sail artisan db:seed --class=PaymentMethodSeeder
 
-# Cargar datos de demostración (vendedores, clientes, transacciones de prueba)
+# Chile + Colombia + pares CLP→PEN, COP→VES, etc.
+./vendor/bin/sail artisan db:seed --class=MultiCorridorSeeder
+
+# Argentina + Brasil + cuentas CL/CO/AR/BR + pares ARS→PEN, BRL→PEN, etc.
+./vendor/bin/sail artisan db:seed --class=MoreCorridorsSeeder
+
+# Datos de demostración (vendedores, clientes, transacciones de prueba)
 ./vendor/bin/sail artisan db:seed --class=DemoDataSeeder
 
-# Ejecutar todos los tests
+# ─── Utilidades ──────────────────────────────────────────────────────
+
+# Ejecutar todos los tests (38 tests, ~21s)
 ./vendor/bin/sail artisan test
 
 # Ver logs en tiempo real
@@ -582,6 +682,12 @@ Todos los comandos se ejecutan con el prefijo `./vendor/bin/sail artisan`:
 
 # Limpiar caché de configuración
 ./vendor/bin/sail artisan config:clear
+
+# Ver rutas activas
+./vendor/bin/sail artisan route:list
+
+# Consola interactiva (Tinker)
+./vendor/bin/sail artisan tinker
 ```
 
 ---
@@ -609,4 +715,62 @@ Todos los comandos se ejecutan con el prefijo `./vendor/bin/sail artisan`:
 
 ---
 
-*Documento generado automáticamente a partir del estado del código en la rama `feat/REQ-12-multi-mejoras`. Para actualizar, revisar los cambios en `routes/web.php`, los controllers y los modelos correspondientes.*
+---
+
+## 13. Notas técnicas de la UX dinámica
+
+### Comportamiento del formulario de transacción
+
+El formulario `/transactions/create` usa **Alpine.js** para reaccionar en tiempo real sin recargar la página.
+
+**Estado inicial (sin tasa seleccionada):**
+- Solo el selector de tasa es visible
+- Las secciones de receptor y remitente permanecen **ocultas**
+- Las cuentas del negocio muestran el placeholder: "Selecciona una tasa de cambio para ver las cuentas disponibles"
+- No se cargan bancos, tipos de documento ni métodos de pago
+
+**Al seleccionar una tasa:**
+1. El formulario lee los atributos `data-*` del `<option>` seleccionado (país, bandera, country_id)
+2. Se actualizan las cabeceras dinámicamente: "🇨🇱 Tu transferencia desde Chile" / "🇵🇪 Receptor en Perú"
+3. Se ejecutan 4 llamadas AJAX en paralelo:
+   - `GET /transactions/sender-banks?country_id={fromCountryId}` → bancos del remitente
+   - `GET /transactions/document-types?country_id={fromCountryId}` → tipos de doc del remitente
+   - `GET /transactions/recipient-banks?country_id={toCountryId}` → bancos del receptor
+   - `GET /transactions/seller-accounts?rate_id={selectedRateId}` → cuentas del negocio para ese corredor
+4. Las secciones del formulario se muestran con transición suave
+
+**Al cambiar la tasa:**
+- Todos los datos se limpian y se vuelven a cargar para el nuevo corredor
+- Los campos completados se resetean (previene errores de datos mixtos)
+
+### Arquitectura de cuentas del negocio
+
+```
+Tasa seleccionada (rate_id)
+      ↓
+ExchangeRate → CurrencyPair → from_currency → country_id
+      ↓
+BusinessAccount filtrado por:
+  • country_id = país de origen del corredor
+  • sellers.id = assigned_seller_id del cliente autenticado
+      ↓
+Se muestran al cliente solo las cuentas aplicables
+```
+
+### Seeders y su orden
+
+Los seeders deben ejecutarse en orden específico (ya configurado en `DatabaseSeeder.php`):
+
+1. `RolesAndPermissionsSeeder` — roles y permisos Spatie
+2. `CurrencySeeder` → `CurrencyPairSeeder` → `ExchangeRateSeeder` — monedas y tasas base
+3. `DemoDataSeeder` — usuarios, vendedores de prueba
+4. `CountryBankSeeder` — Perú + Venezuela
+5. `DocumentTypeSeeder` + `PaymentMethodSeeder` — tipos de doc y métodos de pago PE/VE
+6. `MultiCorridorSeeder` — Chile + Colombia + pares CLP→PEN, COP→VES
+7. `MoreCorridorsSeeder` — Argentina + Brasil + cuentas CL/CO/AR/BR + pares ARS→PEN, BRL→PEN
+8. `IncentiveSeeder` — incentivos de demostración
+
+---
+
+*Documento actualizado — rama `feat/REQ-12-multi-mejoras` — mayo 2026.*
+*Refleja el estado tras la implementación de multi-corredor con 6 países activos, UX dinámica del formulario y suite de tests 38/38 PASS.*
