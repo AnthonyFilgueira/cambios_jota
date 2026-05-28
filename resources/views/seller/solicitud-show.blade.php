@@ -63,6 +63,12 @@
                         <span class="text-cj-texto-claro">Tipo de operación</span>
                         <span class="font-semibold">{{ $transaction->operation_type === 'pago_movil' ? 'Pago Móvil' : 'Transferencia Bancaria' }}</span>
                     </div>
+                    @if($transaction->operation_number)
+                    <div class="flex justify-between">
+                        <span class="text-cj-texto-claro">Nº de operación</span>
+                        <span class="font-mono font-semibold">{{ $transaction->operation_number }}</span>
+                    </div>
+                    @endif
                     <div class="flex justify-between">
                         <span class="text-cj-texto-claro">Fecha solicitud</span>
                         <span>{{ $transaction->created_at->format('d/m/Y H:i') }}</span>

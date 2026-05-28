@@ -39,6 +39,14 @@
                     </div>
                 </div>
 
+                <!-- Número de operación -->
+                @if($transaction->operation_number)
+                <div class="bg-gray-50 rounded-xl px-4 py-3 mb-4 text-left">
+                    <p class="text-xs text-cj-texto-claro font-medium">Nº de operación bancaria</p>
+                    <p class="font-bold text-cj-texto font-mono">{{ $transaction->operation_number }}</p>
+                </div>
+                @endif
+
                 <!-- Vendedor asignado -->
                 @if($transaction->seller)
                 <div class="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 mb-6 text-left">

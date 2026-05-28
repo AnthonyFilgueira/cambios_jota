@@ -194,6 +194,12 @@
                                             {{ $tx->operation_type === 'pago_movil' ? 'Pago Móvil' : 'Transferencia' }}
                                         </span>
                                     </div>
+                                    @if($tx->operation_number)
+                                    <div class="flex justify-between px-4 py-2.5 text-sm">
+                                        <span class="text-cj-texto-claro">Nº operación</span>
+                                        <span class="font-mono font-semibold text-cj-texto">{{ $tx->operation_number }}</span>
+                                    </div>
+                                    @endif
                                     <div class="flex justify-between px-4 py-2.5 text-sm">
                                         <span class="text-cj-texto-claro">Banco VE</span>
                                         <span class="font-semibold text-cj-texto">{{ $tx->recipient_bank }}</span>
