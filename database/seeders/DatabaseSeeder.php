@@ -46,6 +46,10 @@ class DatabaseSeeder extends Seeder
         // 5. Países, bancos y cuentas del negocio (DESPUÉS de vendedores para asignarles cuentas)
         $this->call([
             CountryBankSeeder::class,        // Perú + Venezuela + 3 cuentas asignadas a vendedores
+            DocumentTypeSeeder::class,       // Tipos de documento por país (PE y VE)
+            PaymentMethodSeeder::class,      // Métodos de pago por país
+            MultiCorridorSeeder::class,      // Chile + Colombia + nuevos pares (CLP→PEN, COP→VES, etc.)
+            MoreCorridorsSeeder::class,      // Argentina + Brasil + cuentas CL/CO/AR/BR + pares (ARS→PEN, BRL→PEN, etc.)
         ]);
 
         // 6. Incentivos de demostración (DESPUÉS de DemoDataSeeder — necesita users y sellers)

@@ -375,7 +375,7 @@
             function simulador() {
                 return {
                     pairs: @json($pairs),
-                    selectedPairId: {{ collect($pairs)->firstWhere('is_active', true)['id'] ?? collect($pairs)->first()['id'] }},
+                    selectedPairId: {{ (collect($pairs)->firstWhere('is_active', true) ?? collect($pairs)->first())['id'] ?? 0 }},
                     currentPair: {},
                     tasas: {
                         usd: {{ $rates->usd_rate }},

@@ -105,55 +105,23 @@ class TransactionController extends Controller
                 return [
                     'id'               => $rate->id,
                     'from_currency_id' => $from?->id ?? null,
-                    'from_code'        => $from?->code   ?? 'N/A',
-                    'from_name'        => $from?->name   ?? 'N/A',
-                    'from_symbol'      => $from?->symbol ?? '$',
+                    'from_code'        => $from?->code       ?? 'N/A',
+                    'from_name'        => $from?->name       ?? 'N/A',
+                    'from_symbol'      => $from?->symbol     ?? '$',
+                    'from_flag'        => $from?->flag_emoji ?? '🏳',
+                    'from_country'     => $from?->country    ?? '',
                     'from_country_id'  => $from?->originCountry?->id ?? $from?->country_id ?? null,
-                    'to_code'          => $to?->code     ?? 'VES',
-                    'to_name'          => $to?->name     ?? 'Bolívar Digital',
-                    'to_symbol'        => $to?->symbol   ?? 'Bs.',
+                    'to_code'          => $to?->code         ?? 'VES',
+                    'to_name'          => $to?->name         ?? 'Bolívar Digital',
+                    'to_symbol'        => $to?->symbol       ?? 'Bs.',
+                    'to_flag'          => $to?->flag_emoji   ?? '🏳',
+                    'to_country'       => $to?->country      ?? '',
                     'to_country_id'    => $to?->originCountry?->id ?? $to?->country_id ?? null,
-                    'ves_rate'         => $rate->ves_rate  ?? 0,
-                    'usd_rate'         => $rate->usd_rate  ?? 0,
-                    'eur_rate'         => $rate->eur_rate  ?? 0,
+                    'ves_rate'         => $rate->ves_rate    ?? 0,
+                    'usd_rate'         => $rate->usd_rate    ?? 0,
+                    'eur_rate'         => $rate->eur_rate    ?? 0,
                 ];
             });
-    }
-
-    public function getSellerAccounts(Request $request)
-    {
-        $fromCountryId = $request->input('from_country_id');
-        $sellerCode    = $request->input('seller_code');
-
-        if (!$sellerCode) {
-            return response()->json(['accounts' => []]);
-        }
-
-        $seller = \App\Models\Seller::with(['businessAccounts.bank.country'])
-            ->where('code', strtoupper($sellerCode))
-            ->first();
-
-        if (!$seller) {
-            return response()->json(['accounts' => []]);
-        }
-
-        $accounts = $seller->businessAccounts()
-            ->where('active', true)
-            ->when($fromCountryId, fn($q) => $q->whereHas('bank', fn($b) => $b->where('country_id', $fromCountryId)))
-            ->with('bank.country')
-            ->get()
-            ->map(fn($a) => [
-                'id'             => $a->id,
-                'alias'          => $a->alias ?: $a->bank->name,
-                'bank_name'      => $a->bank->name,
-                'account_number' => $a->account_number,
-                'account_type'   => $a->account_type_label,
-                'account_holder' => $a->account_holder,
-                'dni_ruc'        => $a->dni_ruc,
-                'country'        => $a->bank->country->name ?? null,
-            ])->values();
-
-        return response()->json(['accounts' => $accounts]);
     }
 
     public function getDocumentTypes(Request $request)
@@ -188,6 +156,38 @@ class TransactionController extends Controller
         return response()->json($methods);
     }
 
+    public function getSenderBanks(Request $request)
+    {
+        $countryId = $request->input('country_id');
+
+        if (!$countryId) {
+            return response()->json([]);
+        }
+
+        return response()->json(
+            \App\Models\Bank::where('country_id', $countryId)
+                ->where('active', true)
+                ->orderBy('name')
+                ->get(['id', 'name'])
+        );
+    }
+
+    public function getRecipientBanks(Request $request)
+    {
+        $countryId = $request->input('country_id');
+
+        if (!$countryId) {
+            return response()->json([]);
+        }
+
+        return response()->json(
+            \App\Models\Bank::where('country_id', $countryId)
+                ->where('active', true)
+                ->orderBy('name')
+                ->get(['id', 'name'])
+        );
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -214,13 +214,18 @@ class TransactionController extends Controller
         $sellerCode     = strtoupper(trim($request->get('seller_code', '')));
         $exchangeRateId = $request->get('exchange_rate_id');
 
+        if (!$sellerCode) {
+            return response()->json(['accounts' => []]);
+        }
+
         $seller = Seller::where('code', $sellerCode)->first();
         if (!$seller) {
             return response()->json(['accounts' => [], 'error' => 'Vendedor no encontrado'], 404);
         }
 
-        $exchangeRate = ExchangeRate::with('currencyPair.fromCurrency')->find($exchangeRateId);
-        $fromCountryId = $exchangeRate?->currencyPair?->fromCurrency?->country_id;
+        $exchangeRate  = ExchangeRate::with('currencyPair.fromCurrency')->find($exchangeRateId);
+        $fromCountryId = $exchangeRate?->currencyPair?->fromCurrency?->country_id
+                      ?? $request->get('from_country_id');
 
         $accounts = $seller->businessAccounts()
             ->with('bank')
@@ -229,12 +234,13 @@ class TransactionController extends Controller
             ->get()
             ->map(fn ($account) => [
                 'id'             => $account->id,
-                'alias'          => $account->alias,
+                'alias'          => $account->alias ?: ($account->bank->name ?? '—'),
                 'bank_name'      => $account->bank->name ?? '—',
                 'account_number' => $account->account_number,
                 'account_type'   => ucfirst($account->account_type),
                 'account_holder' => $account->account_holder,
                 'dni_ruc'        => $account->dni_ruc,
+                'country'        => $account->bank->country->name ?? null,
             ]);
 
         return response()->json([

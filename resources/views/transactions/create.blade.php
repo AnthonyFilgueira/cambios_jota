@@ -32,7 +32,13 @@
                         {{ isset($transaction) ? 'Corrección de solicitud #' . $transaction->id : 'Solicitud de Envío' }}
                     </h3>
                     <p class="text-sm text-cj-texto-claro mt-1">
-                        {{ isset($transaction) ? 'Actualiza los datos y vuelve a enviar al vendedor.' : 'Complete todos los datos para procesar su envío Perú → Venezuela' }}
+                        @isset($transaction)
+                            Actualiza los datos y vuelve a enviar al vendedor.
+                        @else
+                            <span x-text="fromCode && toCode ? 'Complete todos los datos para procesar su envío ' + (fromCountry || fromCode) + ' → ' + (toCountry || toCode) : 'Complete todos los datos para procesar su envío'">
+                                Complete todos los datos para procesar su envío
+                            </span>
+                        @endisset
                     </p>
                 </div>
 
@@ -79,10 +85,14 @@
                                         data-from-name="{{ $pair['from_name'] ?? '' }}"
                                         data-from-symbol="{{ $pair['from_symbol'] ?? 'S/' }}"
                                         data-from-code="{{ $pair['from_code'] }}"
+                                        data-from-flag="{{ $pair['from_flag'] ?? '🏳' }}"
+                                        data-from-country="{{ $pair['from_country'] ?? '' }}"
                                         data-from-country-id="{{ $pair['from_country_id'] ?? '' }}"
                                         data-to-name="{{ $pair['to_name'] ?? '' }}"
                                         data-to-symbol="{{ $pair['to_symbol'] ?? 'Bs.' }}"
                                         data-to-code="{{ $pair['to_code'] ?? 'VES' }}"
+                                        data-to-flag="{{ $pair['to_flag'] ?? '🏳' }}"
+                                        data-to-country="{{ $pair['to_country'] ?? '' }}"
                                         data-to-country-id="{{ $pair['to_country_id'] ?? '' }}">
                                         {{ $pair['from_code'] }} → {{ $pair['to_code'] ?? 'VES' }} (1 {{ $pair['from_code'] }} = {{ number_format($pair['ves_rate'], 2) }} {{ $pair['to_symbol'] ?? 'Bs.' }})
                                     </option>
@@ -118,7 +128,12 @@
                         </div>
 
                         <!-- Cuentas del vendedor para depositar (Alpine.js — se actualiza al cambiar el par) -->
-                        <div class="mb-6">
+                        <template x-if="!selectedRateId">
+                            <div class="mb-6 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl p-4 text-center text-sm text-gray-400">
+                                👆 Selecciona una tasa de cambio para ver las cuentas disponibles
+                            </div>
+                        </template>
+                        <div class="mb-6" x-show="selectedRateId">
                             <!-- Estado de carga -->
                             <div x-show="loadingAccounts" class="flex items-center justify-center gap-2 py-6 text-cj-texto-claro">
                                 <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
@@ -320,14 +335,27 @@
                         </div>
                     </div>
 
-                    <!-- SECCIÓN 2: RECEPTOR EN VENEZUELA -->
-                    <div class="bg-gradient-to-r from-cj-rosa/5 to-cj-morado-medio/5 rounded-xl p-6 border border-pink-200">
+                    <!-- Placeholder: mostrar cuando no hay tasa seleccionada -->
+                    <template x-if="!selectedRateId">
+                        <div class="text-center py-14 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                            <div class="text-5xl mb-3">👆</div>
+                            <p class="text-lg font-semibold text-gray-500">Selecciona una tasa de cambio para continuar</p>
+                            <p class="text-sm text-gray-400 mt-1">Los campos del formulario se cargarán automáticamente según el corredor elegido</p>
+                        </div>
+                    </template>
+
+                    <!-- SECCIÓN 2: RECEPTOR EN DESTINO -->
+                    <div x-show="selectedRateId"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="bg-gradient-to-r from-cj-rosa/5 to-cj-morado-medio/5 rounded-xl p-6 border border-pink-200">
                         <h4 class="text-lg font-bold text-cj-morado-profundo mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                             </svg>
-                            🇻🇪 Receptor en Venezuela
+                            <span x-text="toFlag || '🌍'"></span> Receptor en <span x-text="toCountry || toCode || 'destino'">Venezuela</span>
                         </h4>
 
                         <!-- Tipo de operación (cargado dinámicamente por país destino) -->
@@ -383,16 +411,7 @@
 
                         <div class="grid md:grid-cols-2 gap-6">
                             <!-- Documento del titular receptor -->
-                            <div x-data="{ recDocTypes: [], loadingRecDoc: false }"
-                                 x-init="
-                                    $watch('toCountryId', async (id) => {
-                                        if (!id) return;
-                                        loadingRecDoc = true;
-                                        const res = await fetch('/transactions/document-types?country_id=' + id);
-                                        recDocTypes = await res.json();
-                                        loadingRecDoc = false;
-                                    });
-                                 " class="grid grid-cols-2 gap-3">
+                            <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-sm font-medium text-cj-texto mb-2">Tipo de documento *</label>
                                     <select name="recipient_document_type" required
@@ -422,15 +441,22 @@
                                 </div>
                             </div>
 
-                            <!-- Banco receptor -->
+                            <!-- Banco receptor (dinámico según país destino) -->
                             <div>
                                 <label for="recipient_bank" class="block text-sm font-medium text-cj-texto mb-2">Banco receptor *</label>
                                 <select name="recipient_bank" id="recipient_bank" required
-                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
+                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                    :disabled="loadingRecipientBanks">
                                     <option value="">Selecciona banco</option>
-                                    @foreach(['Banco de Venezuela','Banesco','Banco Mercantil','BBVA Provincial','Banco Nacional de Crédito (BNC)','Banco Bicentenario','Banco del Tesoro','Banco Exterior','Corp Banca','Banco Caroni','Sofitasa','Bangente','Bancrecer'] as $b)
-                                        <option value="{{ $b }}" {{ old('recipient_bank', $transaction->recipient_bank ?? '') == $b ? 'selected' : '' }}>{{ $b }}</option>
-                                    @endforeach
+                                    <template x-for="bank in recipientBanks" :key="bank.id">
+                                        <option :value="bank.name"
+                                                :selected="bank.name === '{{ old('recipient_bank', $transaction->recipient_bank ?? '') }}'">
+                                            <span x-text="bank.name"></span>
+                                        </option>
+                                    </template>
+                                    <template x-if="!loadingRecipientBanks && recipientBanks.length === 0">
+                                        <option value="" disabled>Selecciona una tasa de cambio primero</option>
+                                    </template>
                                 </select>
                                 @error('recipient_bank')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
@@ -486,27 +512,22 @@
                         </div>
                     </div>
 
-                    <!-- SECCIÓN 3: TU TRANSFERENCIA DESDE PERÚ -->
-                    <div class="bg-gradient-to-r from-cj-turquesa/5 to-cj-morado-profundo/5 rounded-xl p-6 border border-teal-200">
+                    <!-- SECCIÓN 3: TU TRANSFERENCIA DESDE ORIGEN -->
+                    <div x-show="selectedRateId"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="bg-gradient-to-r from-cj-turquesa/5 to-cj-morado-profundo/5 rounded-xl p-6 border border-teal-200">
                         <h4 class="text-lg font-bold text-cj-morado-profundo mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                             </svg>
-                            🇵🇪 Tu transferencia desde Perú
+                            <span x-text="fromFlag || '🌍'"></span> Tu transferencia desde <span x-text="fromCountry || fromCode || 'origen'">Perú</span>
                         </h4>
 
                         <div class="grid md:grid-cols-2 gap-6">
                             <!-- Documento del titular que transfiere -->
-                            <div x-data="{ docTypes: [], loadingDocTypes: false }"
-                                 x-init="
-                                    $watch('fromCountryId', async (id) => {
-                                        if (!id) return;
-                                        loadingDocTypes = true;
-                                        const res = await fetch('/transactions/document-types?country_id=' + id);
-                                        docTypes = await res.json();
-                                        loadingDocTypes = false;
-                                    });
-                                 " class="md:col-span-2 grid grid-cols-2 gap-3">
+                            <div class="md:col-span-2 grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-sm font-medium text-cj-texto mb-2">Tipo de documento *</label>
                                     <select name="sender_document_type" required
@@ -536,15 +557,23 @@
                                 </div>
                             </div>
 
-                            <!-- Banco origen (Perú) -->
+                            <!-- Banco origen (dinámico según país de la moneda origen) -->
                             <div>
                                 <label for="sender_bank" class="block text-sm font-medium text-cj-texto mb-2">Banco desde donde transferiste *</label>
                                 <select name="sender_bank" id="sender_bank" required
-                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
+                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                    :disabled="loadingSenderBanks">
                                     <option value="">Selecciona banco</option>
-                                    @foreach(['BCP — Banco de Crédito del Perú','Interbank','BBVA Perú','Scotiabank Perú','Banco de la Nación','BanBif','Mibanco','Banco Pichincha','Banco GNB','Banco Falabella Perú','Banco Ripley','Caja Metropolitana'] as $b)
-                                        <option value="{{ $b }}" {{ old('sender_bank', $transaction->sender_bank ?? '') == $b ? 'selected' : '' }}>{{ $b }}</option>
-                                    @endforeach
+                                    <template x-if="senderBanks.length > 0">
+                                        <template x-for="bank in senderBanks" :key="bank.id">
+                                            <option :value="bank.name" :selected="bank.name === '{{ old('sender_bank', $transaction->sender_bank ?? '') }}'">
+                                                <span x-text="bank.name"></span>
+                                            </option>
+                                        </template>
+                                    </template>
+                                    <template x-if="senderBanks.length === 0 && !loadingSenderBanks">
+                                        <option value="" disabled>Selecciona una tasa de cambio primero</option>
+                                    </template>
                                 </select>
                                 @error('sender_bank')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
@@ -648,8 +677,11 @@
                         </div>
                     </div>
 
-                    <!-- SECCIÓN 4: NOTAS ADICIONALES -->
-                    <div>
+                    <!-- SECCIÓN 4: NOTAS Y BOTONES (ocultas hasta elegir tasa) -->
+                    <div x-show="selectedRateId"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100">
                         <label for="notes" class="block text-sm font-medium text-cj-texto mb-2">
                             Notas Adicionales (Opcional)
                         </label>
@@ -665,7 +697,7 @@
                     </div>
 
                     <!-- Información importante -->
-                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-xl">
+                    <div x-show="selectedRateId" class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-xl">
                         <div class="flex">
                             <svg class="h-5 w-5 text-blue-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -679,7 +711,7 @@
                     </div>
 
                     <!-- Botones -->
-                    <div class="flex gap-4 pt-4">
+                    <div x-show="selectedRateId" class="flex gap-4 pt-4">
                         <a href="{{ isset($transaction) ? route('transactions.index') : route('dashboard') }}"
                            class="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl text-cj-texto font-semibold hover:bg-gray-50 transition-all text-center">
                             Cancelar
@@ -694,6 +726,17 @@
         </div>
     </div>
 
+    @php
+        $sellerAccountsMapped = $sellerAccounts->map(fn($a) => [
+            'id'             => $a->id,
+            'alias'          => $a->alias,
+            'bank_name'      => $a->bank->name ?? '—',
+            'account_number' => $a->account_number,
+            'account_type'   => ucfirst($a->account_type),
+            'account_holder' => $a->account_holder,
+            'dni_ruc'        => $a->dni_ruc,
+        ])->values()->toArray();
+    @endphp
     <script>
     function transactionForm() {
         return {
@@ -706,29 +749,21 @@
             usdBcvRate: 0,
             eurBcvRate: 0,
 
-            // Moneda activa del par seleccionado
+            // Moneda activa del par seleccionado (para incentivos, cuentas y métodos de pago)
+            fromCurrencyId: null,
             fromName: '',
             fromSymbol: '',
             fromCode: '',
+            fromFlag: '',
+            fromCountry: '',
             fromCountryId: null,
             toName: '',
             toSymbol: '',
             toCode: '',
-
-            // Cuentas del vendedor (reactivas al par de divisa)
-            sellerCode: '{{ $seller->code ?? '' }}',
-            sellerAccountsDisplay: @json(
-                $sellerAccounts->map(fn($a) => [
-                    'id'             => $a->id,
-                    'alias'          => $a->alias,
-                    'bank_name'      => $a->bank->name ?? '—',
-                    'account_number' => $a->account_number,
-                    'account_type'   => ucfirst($a->account_type),
-                    'account_holder' => $a->account_holder,
-                    'dni_ruc'        => $a->dni_ruc,
-                ])->values()
-            ),
-            loadingAccounts: false,
+            toFlag: '',
+            toCountry: '',
+            toCountryId: null,
+            paymentMethods: [],
 
             // Bono activo (cargado desde backend)
             bonusRules: @json($bonusPreview['rules'] ?? []),
@@ -742,19 +777,25 @@
             opType: '{{ old('operation_type', $transaction->operation_type ?? 'transferencia') }}',
             acctType: '{{ old('recipient_account_type', $transaction->recipient_account_type ?? 'ahorro') }}',
 
-            // Moneda y países del par seleccionado (para incentivos y métodos de pago)
-            fromCurrencyId: null,
-            fromCountryId: null,
-            toCountryId: null,
-            paymentMethods: [],
+            // Tipos de documento y bancos (cargados en onRateChange — scope padre)
+            docTypes: [],
+            recDocTypes: [],
+            senderBanks: [],
+            recipientBanks: [],
+            loadingDocTypes: false,
+            loadingRecDocTypes: false,
+            loadingSenderBanks: false,
+            loadingRecipientBanks: false,
 
             // Búsqueda de vendedor
-            sellerCode: '',
+            sellerCode: '{{ $seller->code ?? "" }}',
             sellerData: null,
             sellerAccounts: [],
             sellerFound: false,
             sellerSearching: false,
             sellerError: '',
+            sellerAccountsDisplay: [],
+            loadingAccounts: false,
 
             init() {
                 // Modo edición: monto pre-cargado → leer tasa del select y recalcular
@@ -854,11 +895,15 @@
                     this.fromName        = option.dataset.fromName      || '';
                     this.fromSymbol      = option.dataset.fromSymbol    || '';
                     this.fromCode        = option.dataset.fromCode      || '';
-                    this.fromCountryId   = option.dataset.fromCountryId || null;
+                    this.fromFlag        = option.dataset.fromFlag      || '';
+                    this.fromCountry     = option.dataset.fromCountry   || '';
+                    this.fromCountryId   = option.dataset.fromCountryId ? parseInt(option.dataset.fromCountryId) : null;
                     this.toName          = option.dataset.toName        || '';
                     this.toSymbol        = option.dataset.toSymbol      || '';
                     this.toCode          = option.dataset.toCode        || '';
-                    this.toCountryId     = option.dataset.toCountryId   || null;
+                    this.toFlag          = option.dataset.toFlag        || '';
+                    this.toCountry       = option.dataset.toCountry     || '';
+                    this.toCountryId     = option.dataset.toCountryId   ? parseInt(option.dataset.toCountryId)   : null;
                     this.recalculate();
                     this.fetchSellerAccounts(select.value);
                     if (this.toCountryId) {
@@ -866,7 +911,39 @@
                             .then(r => r.json())
                             .then(data => { this.paymentMethods = data; });
                     }
+                    this.fetchSenderDocTypes(this.fromCountryId);
+                    this.fetchRecipientDocTypes(this.toCountryId);
+                    this.fetchSenderBanksData(this.fromCountryId);
+                    this.fetchRecipientBanks(this.toCountryId);
                 }
+            },
+
+            async fetchSenderDocTypes(countryId) {
+                if (!countryId) { this.docTypes = []; return; }
+                this.loadingDocTypes = true;
+                this.docTypes = await fetch('/transactions/document-types?country_id=' + countryId).then(r => r.json());
+                this.loadingDocTypes = false;
+            },
+
+            async fetchRecipientDocTypes(countryId) {
+                if (!countryId) { this.recDocTypes = []; return; }
+                this.loadingRecDocTypes = true;
+                this.recDocTypes = await fetch('/transactions/document-types?country_id=' + countryId).then(r => r.json());
+                this.loadingRecDocTypes = false;
+            },
+
+            async fetchSenderBanksData(countryId) {
+                if (!countryId) { this.senderBanks = []; return; }
+                this.loadingSenderBanks = true;
+                this.senderBanks = await fetch('/transactions/sender-banks?country_id=' + countryId).then(r => r.json());
+                this.loadingSenderBanks = false;
+            },
+
+            async fetchRecipientBanks(countryId) {
+                if (!countryId) { this.recipientBanks = []; return; }
+                this.loadingRecipientBanks = true;
+                this.recipientBanks = await fetch('/transactions/recipient-banks?country_id=' + countryId).then(r => r.json());
+                this.loadingRecipientBanks = false;
             },
 
             async fetchSellerAccounts(exchangeRateId) {

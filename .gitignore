@@ -1,6 +1,7 @@
 *.log
 .DS_Store
 /docs/
+!/docs/MANUAL-USUARIO-CAMBIO-J.md
 .env
 .env.backup
 .env.production
