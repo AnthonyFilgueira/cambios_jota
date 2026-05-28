@@ -148,8 +148,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions/seller-accounts',           [TransactionController::class, 'getSellerAccounts'])->name('transactions.sellerAccounts');
     Route::get('/transactions/document-types',            [TransactionController::class, 'getDocumentTypes'])->name('transactions.documentTypes');
     Route::get('/transactions/payment-methods',           [TransactionController::class, 'getPaymentMethods'])->name('transactions.paymentMethods');
+    Route::get('/transactions/sender-banks',              [TransactionController::class, 'getSenderBanks'])->name('transactions.senderBanks');
     Route::get('/transactions',                           [TransactionController::class, 'index'])->name('transactions.index');
-    Route::get('/transactions/seller-accounts',           [TransactionController::class, 'getSellerAccounts'])->name('transactions.sellerAccounts');
     Route::get('/transactions/create',                    [TransactionController::class, 'create'])->name('transactions.create');
     Route::post('/transactions',                          [TransactionController::class, 'store'])->name('transactions.store');
     Route::get('/transactions/manage',                    [TransactionController::class, 'manage'])->name('transactions.manage');

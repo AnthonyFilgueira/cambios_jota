@@ -105,17 +105,21 @@ class TransactionController extends Controller
                 return [
                     'id'               => $rate->id,
                     'from_currency_id' => $from?->id ?? null,
-                    'from_code'        => $from?->code   ?? 'N/A',
-                    'from_name'        => $from?->name   ?? 'N/A',
-                    'from_symbol'      => $from?->symbol ?? '$',
+                    'from_code'        => $from?->code       ?? 'N/A',
+                    'from_name'        => $from?->name       ?? 'N/A',
+                    'from_symbol'      => $from?->symbol     ?? '$',
+                    'from_flag'        => $from?->flag_emoji ?? '🏳',
+                    'from_country'     => $from?->country    ?? '',
                     'from_country_id'  => $from?->originCountry?->id ?? $from?->country_id ?? null,
-                    'to_code'          => $to?->code     ?? 'VES',
-                    'to_name'          => $to?->name     ?? 'Bolívar Digital',
-                    'to_symbol'        => $to?->symbol   ?? 'Bs.',
+                    'to_code'          => $to?->code         ?? 'VES',
+                    'to_name'          => $to?->name         ?? 'Bolívar Digital',
+                    'to_symbol'        => $to?->symbol       ?? 'Bs.',
+                    'to_flag'          => $to?->flag_emoji   ?? '🏳',
+                    'to_country'       => $to?->country      ?? '',
                     'to_country_id'    => $to?->originCountry?->id ?? $to?->country_id ?? null,
-                    'ves_rate'         => $rate->ves_rate  ?? 0,
-                    'usd_rate'         => $rate->usd_rate  ?? 0,
-                    'eur_rate'         => $rate->eur_rate  ?? 0,
+                    'ves_rate'         => $rate->ves_rate    ?? 0,
+                    'usd_rate'         => $rate->usd_rate    ?? 0,
+                    'eur_rate'         => $rate->eur_rate    ?? 0,
                 ];
             });
     }
@@ -150,6 +154,22 @@ class TransactionController extends Controller
             ->get(['id', 'code', 'name']);
 
         return response()->json($methods);
+    }
+
+    public function getSenderBanks(Request $request)
+    {
+        $countryId = $request->input('country_id');
+
+        if (!$countryId) {
+            return response()->json([]);
+        }
+
+        $banks = \App\Models\Bank::where('country_id', $countryId)
+            ->where('active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return response()->json($banks);
     }
 
     /**

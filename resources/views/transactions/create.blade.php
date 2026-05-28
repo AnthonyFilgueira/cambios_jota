@@ -32,7 +32,13 @@
                         {{ isset($transaction) ? 'Corrección de solicitud #' . $transaction->id : 'Solicitud de Envío' }}
                     </h3>
                     <p class="text-sm text-cj-texto-claro mt-1">
-                        {{ isset($transaction) ? 'Actualiza los datos y vuelve a enviar al vendedor.' : 'Complete todos los datos para procesar su envío Perú → Venezuela' }}
+                        @isset($transaction)
+                            Actualiza los datos y vuelve a enviar al vendedor.
+                        @else
+                            <span x-text="fromCode && toCode ? 'Complete todos los datos para procesar su envío ' + (fromCountry || fromCode) + ' → ' + (toCountry || toCode) : 'Complete todos los datos para procesar su envío'">
+                                Complete todos los datos para procesar su envío
+                            </span>
+                        @endisset
                     </p>
                 </div>
 
@@ -79,10 +85,14 @@
                                         data-from-name="{{ $pair['from_name'] ?? '' }}"
                                         data-from-symbol="{{ $pair['from_symbol'] ?? 'S/' }}"
                                         data-from-code="{{ $pair['from_code'] }}"
+                                        data-from-flag="{{ $pair['from_flag'] ?? '🏳' }}"
+                                        data-from-country="{{ $pair['from_country'] ?? '' }}"
                                         data-from-country-id="{{ $pair['from_country_id'] ?? '' }}"
                                         data-to-name="{{ $pair['to_name'] ?? '' }}"
                                         data-to-symbol="{{ $pair['to_symbol'] ?? 'Bs.' }}"
                                         data-to-code="{{ $pair['to_code'] ?? 'VES' }}"
+                                        data-to-flag="{{ $pair['to_flag'] ?? '🏳' }}"
+                                        data-to-country="{{ $pair['to_country'] ?? '' }}"
                                         data-to-country-id="{{ $pair['to_country_id'] ?? '' }}">
                                         {{ $pair['from_code'] }} → {{ $pair['to_code'] ?? 'VES' }} (1 {{ $pair['from_code'] }} = {{ number_format($pair['ves_rate'], 2) }} {{ $pair['to_symbol'] ?? 'Bs.' }})
                                     </option>
@@ -327,7 +337,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                             </svg>
-                            🇻🇪 Receptor en Venezuela
+                            <span x-text="toFlag || '🌍'"></span> Receptor en <span x-text="toCountry || toCode || 'destino'">Venezuela</span>
                         </h4>
 
                         <!-- Tipo de operación (cargado dinámicamente por país destino) -->
@@ -492,7 +502,7 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                             </svg>
-                            🇵🇪 Tu transferencia desde Perú
+                            <span x-text="fromFlag || '🌍'"></span> Tu transferencia desde <span x-text="fromCountry || fromCode || 'origen'">Perú</span>
                         </h4>
 
                         <div class="grid md:grid-cols-2 gap-6">
@@ -536,15 +546,32 @@
                                 </div>
                             </div>
 
-                            <!-- Banco origen (Perú) -->
-                            <div>
+                            <!-- Banco origen (dinámico según país de la moneda origen) -->
+                            <div x-data="{ senderBanks: [], loadingSenderBanks: false }"
+                                 x-init="
+                                    $watch('fromCountryId', async (id) => {
+                                        if (!id) { senderBanks = []; return; }
+                                        loadingSenderBanks = true;
+                                        const res = await fetch('/transactions/sender-banks?country_id=' + id);
+                                        senderBanks = await res.json();
+                                        loadingSenderBanks = false;
+                                    });
+                                 ">
                                 <label for="sender_bank" class="block text-sm font-medium text-cj-texto mb-2">Banco desde donde transferiste *</label>
                                 <select name="sender_bank" id="sender_bank" required
-                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
+                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                    :disabled="loadingSenderBanks">
                                     <option value="">Selecciona banco</option>
-                                    @foreach(['BCP — Banco de Crédito del Perú','Interbank','BBVA Perú','Scotiabank Perú','Banco de la Nación','BanBif','Mibanco','Banco Pichincha','Banco GNB','Banco Falabella Perú','Banco Ripley','Caja Metropolitana'] as $b)
-                                        <option value="{{ $b }}" {{ old('sender_bank', $transaction->sender_bank ?? '') == $b ? 'selected' : '' }}>{{ $b }}</option>
-                                    @endforeach
+                                    <template x-if="senderBanks.length > 0">
+                                        <template x-for="bank in senderBanks" :key="bank.id">
+                                            <option :value="bank.name" :selected="bank.name === '{{ old('sender_bank', $transaction->sender_bank ?? '') }}'">
+                                                <span x-text="bank.name"></span>
+                                            </option>
+                                        </template>
+                                    </template>
+                                    <template x-if="senderBanks.length === 0 && !loadingSenderBanks">
+                                        <option value="" disabled>Selecciona una tasa de cambio primero</option>
+                                    </template>
                                 </select>
                                 @error('sender_bank')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
@@ -722,10 +749,14 @@
             fromName: '',
             fromSymbol: '',
             fromCode: '',
+            fromFlag: '',
+            fromCountry: '',
             fromCountryId: null,
             toName: '',
             toSymbol: '',
             toCode: '',
+            toFlag: '',
+            toCountry: '',
             toCountryId: null,
             paymentMethods: [],
 
@@ -849,11 +880,15 @@
                     this.fromName        = option.dataset.fromName      || '';
                     this.fromSymbol      = option.dataset.fromSymbol    || '';
                     this.fromCode        = option.dataset.fromCode      || '';
-                    this.fromCountryId   = option.dataset.fromCountryId || null;
+                    this.fromFlag        = option.dataset.fromFlag      || '';
+                    this.fromCountry     = option.dataset.fromCountry   || '';
+                    this.fromCountryId   = option.dataset.fromCountryId ? parseInt(option.dataset.fromCountryId) : null;
                     this.toName          = option.dataset.toName        || '';
                     this.toSymbol        = option.dataset.toSymbol      || '';
                     this.toCode          = option.dataset.toCode        || '';
-                    this.toCountryId     = option.dataset.toCountryId   || null;
+                    this.toFlag          = option.dataset.toFlag        || '';
+                    this.toCountry       = option.dataset.toCountry     || '';
+                    this.toCountryId     = option.dataset.toCountryId   ? parseInt(option.dataset.toCountryId)   : null;
                     this.recalculate();
                     this.fetchSellerAccounts(select.value);
                     if (this.toCountryId) {
