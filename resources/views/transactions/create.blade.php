@@ -330,8 +330,21 @@
                         </div>
                     </div>
 
-                    <!-- SECCIÓN 2: RECEPTOR EN VENEZUELA -->
-                    <div class="bg-gradient-to-r from-cj-rosa/5 to-cj-morado-medio/5 rounded-xl p-6 border border-pink-200">
+                    <!-- Placeholder: mostrar cuando no hay tasa seleccionada -->
+                    <template x-if="!selectedRateId">
+                        <div class="text-center py-14 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                            <div class="text-5xl mb-3">👆</div>
+                            <p class="text-lg font-semibold text-gray-500">Selecciona una tasa de cambio para continuar</p>
+                            <p class="text-sm text-gray-400 mt-1">Los campos del formulario se cargarán automáticamente según el corredor elegido</p>
+                        </div>
+                    </template>
+
+                    <!-- SECCIÓN 2: RECEPTOR EN DESTINO -->
+                    <div x-show="selectedRateId"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="bg-gradient-to-r from-cj-rosa/5 to-cj-morado-medio/5 rounded-xl p-6 border border-pink-200">
                         <h4 class="text-lg font-bold text-cj-morado-profundo mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
@@ -393,16 +406,7 @@
 
                         <div class="grid md:grid-cols-2 gap-6">
                             <!-- Documento del titular receptor -->
-                            <div x-data="{ recDocTypes: [], loadingRecDoc: false }"
-                                 x-init="
-                                    $watch('toCountryId', async (id) => {
-                                        if (!id) return;
-                                        loadingRecDoc = true;
-                                        const res = await fetch('/transactions/document-types?country_id=' + id);
-                                        recDocTypes = await res.json();
-                                        loadingRecDoc = false;
-                                    });
-                                 " class="grid grid-cols-2 gap-3">
+                            <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-sm font-medium text-cj-texto mb-2">Tipo de documento *</label>
                                     <select name="recipient_document_type" required
@@ -432,15 +436,22 @@
                                 </div>
                             </div>
 
-                            <!-- Banco receptor -->
+                            <!-- Banco receptor (dinámico según país destino) -->
                             <div>
                                 <label for="recipient_bank" class="block text-sm font-medium text-cj-texto mb-2">Banco receptor *</label>
                                 <select name="recipient_bank" id="recipient_bank" required
-                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
+                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                    :disabled="loadingRecipientBanks">
                                     <option value="">Selecciona banco</option>
-                                    @foreach(['Banco de Venezuela','Banesco','Banco Mercantil','BBVA Provincial','Banco Nacional de Crédito (BNC)','Banco Bicentenario','Banco del Tesoro','Banco Exterior','Corp Banca','Banco Caroni','Sofitasa','Bangente','Bancrecer'] as $b)
-                                        <option value="{{ $b }}" {{ old('recipient_bank', $transaction->recipient_bank ?? '') == $b ? 'selected' : '' }}>{{ $b }}</option>
-                                    @endforeach
+                                    <template x-for="bank in recipientBanks" :key="bank.id">
+                                        <option :value="bank.name"
+                                                :selected="bank.name === '{{ old('recipient_bank', $transaction->recipient_bank ?? '') }}'">
+                                            <span x-text="bank.name"></span>
+                                        </option>
+                                    </template>
+                                    <template x-if="!loadingRecipientBanks && recipientBanks.length === 0">
+                                        <option value="" disabled>Selecciona una tasa de cambio primero</option>
+                                    </template>
                                 </select>
                                 @error('recipient_bank')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
@@ -496,8 +507,12 @@
                         </div>
                     </div>
 
-                    <!-- SECCIÓN 3: TU TRANSFERENCIA DESDE PERÚ -->
-                    <div class="bg-gradient-to-r from-cj-turquesa/5 to-cj-morado-profundo/5 rounded-xl p-6 border border-teal-200">
+                    <!-- SECCIÓN 3: TU TRANSFERENCIA DESDE ORIGEN -->
+                    <div x-show="selectedRateId"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="bg-gradient-to-r from-cj-turquesa/5 to-cj-morado-profundo/5 rounded-xl p-6 border border-teal-200">
                         <h4 class="text-lg font-bold text-cj-morado-profundo mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
@@ -507,16 +522,7 @@
 
                         <div class="grid md:grid-cols-2 gap-6">
                             <!-- Documento del titular que transfiere -->
-                            <div x-data="{ docTypes: [], loadingDocTypes: false }"
-                                 x-init="
-                                    $watch('fromCountryId', async (id) => {
-                                        if (!id) return;
-                                        loadingDocTypes = true;
-                                        const res = await fetch('/transactions/document-types?country_id=' + id);
-                                        docTypes = await res.json();
-                                        loadingDocTypes = false;
-                                    });
-                                 " class="md:col-span-2 grid grid-cols-2 gap-3">
+                            <div class="md:col-span-2 grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-sm font-medium text-cj-texto mb-2">Tipo de documento *</label>
                                     <select name="sender_document_type" required
@@ -547,16 +553,7 @@
                             </div>
 
                             <!-- Banco origen (dinámico según país de la moneda origen) -->
-                            <div x-data="{ senderBanks: [], loadingSenderBanks: false }"
-                                 x-init="
-                                    $watch('fromCountryId', async (id) => {
-                                        if (!id) { senderBanks = []; return; }
-                                        loadingSenderBanks = true;
-                                        const res = await fetch('/transactions/sender-banks?country_id=' + id);
-                                        senderBanks = await res.json();
-                                        loadingSenderBanks = false;
-                                    });
-                                 ">
+                            <div>
                                 <label for="sender_bank" class="block text-sm font-medium text-cj-texto mb-2">Banco desde donde transferiste *</label>
                                 <select name="sender_bank" id="sender_bank" required
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
@@ -675,8 +672,11 @@
                         </div>
                     </div>
 
-                    <!-- SECCIÓN 4: NOTAS ADICIONALES -->
-                    <div>
+                    <!-- SECCIÓN 4: NOTAS Y BOTONES (ocultas hasta elegir tasa) -->
+                    <div x-show="selectedRateId"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100">
                         <label for="notes" class="block text-sm font-medium text-cj-texto mb-2">
                             Notas Adicionales (Opcional)
                         </label>
@@ -692,7 +692,7 @@
                     </div>
 
                     <!-- Información importante -->
-                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-xl">
+                    <div x-show="selectedRateId" class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-xl">
                         <div class="flex">
                             <svg class="h-5 w-5 text-blue-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -706,7 +706,7 @@
                     </div>
 
                     <!-- Botones -->
-                    <div class="flex gap-4 pt-4">
+                    <div x-show="selectedRateId" class="flex gap-4 pt-4">
                         <a href="{{ isset($transaction) ? route('transactions.index') : route('dashboard') }}"
                            class="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl text-cj-texto font-semibold hover:bg-gray-50 transition-all text-center">
                             Cancelar
@@ -771,6 +771,14 @@
             // Tipo de operación Venezuela
             opType: '{{ old('operation_type', $transaction->operation_type ?? 'transferencia') }}',
             acctType: '{{ old('recipient_account_type', $transaction->recipient_account_type ?? 'ahorro') }}',
+
+            // Tipos de documento y bancos (cargados en onRateChange — scope padre)
+            docTypes: [],
+            recDocTypes: [],
+            recipientBanks: [],
+            loadingDocTypes: false,
+            loadingRecDocTypes: false,
+            loadingRecipientBanks: false,
 
             // Búsqueda de vendedor
             sellerCode: '{{ $seller->code ?? "" }}',
@@ -896,7 +904,39 @@
                             .then(r => r.json())
                             .then(data => { this.paymentMethods = data; });
                     }
+                    this.fetchSenderDocTypes(this.fromCountryId);
+                    this.fetchRecipientDocTypes(this.toCountryId);
+                    this.fetchSenderBanksData(this.fromCountryId);
+                    this.fetchRecipientBanks(this.toCountryId);
                 }
+            },
+
+            async fetchSenderDocTypes(countryId) {
+                if (!countryId) { this.docTypes = []; return; }
+                this.loadingDocTypes = true;
+                this.docTypes = await fetch('/transactions/document-types?country_id=' + countryId).then(r => r.json());
+                this.loadingDocTypes = false;
+            },
+
+            async fetchRecipientDocTypes(countryId) {
+                if (!countryId) { this.recDocTypes = []; return; }
+                this.loadingRecDocTypes = true;
+                this.recDocTypes = await fetch('/transactions/document-types?country_id=' + countryId).then(r => r.json());
+                this.loadingRecDocTypes = false;
+            },
+
+            async fetchSenderBanksData(countryId) {
+                if (!countryId) { this.senderBanks = []; return; }
+                this.loadingSenderBanks = true;
+                this.senderBanks = await fetch('/transactions/sender-banks?country_id=' + countryId).then(r => r.json());
+                this.loadingSenderBanks = false;
+            },
+
+            async fetchRecipientBanks(countryId) {
+                if (!countryId) { this.recipientBanks = []; return; }
+                this.loadingRecipientBanks = true;
+                this.recipientBanks = await fetch('/transactions/recipient-banks?country_id=' + countryId).then(r => r.json());
+                this.loadingRecipientBanks = false;
             },
 
             async fetchSellerAccounts(exchangeRateId) {
