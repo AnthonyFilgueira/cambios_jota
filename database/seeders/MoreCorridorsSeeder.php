@@ -241,7 +241,7 @@ class MoreCorridorsSeeder extends Seeder
                     'account_type'   => $acctData['account_type'],
                     'account_holder' => $acctData['account_holder'],
                     'dni_ruc'        => null,
-                    'is_active'      => true,
+                    'active'         => true,
                 ]
             );
 
