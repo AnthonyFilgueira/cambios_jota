@@ -802,12 +802,15 @@
             loadingAccounts: false,
 
             async init() {
+                const preselectedId = this.selectedRateId;
+                if (preselectedId) this.selectedRateId = '';
                 await Promise.all([this.loadExchangeRates(), this.loadBonusRules()]);
-                if (this.amountPen > 0) {
-                    this.$nextTick(() => {
-                        this.onRateChange();
-                        this.calculateFromPEN();
-                    });
+                if (preselectedId) {
+                    await this.$nextTick();          // x-for renderiza las opciones
+                    this.selectedRateId = preselectedId; // dispara x-model → select muestra la tasa
+                    await this.$nextTick();          // Alpine aplica la selección en el DOM
+                    this.onRateChange();
+                    if (this.amountPen > 0) this.calculateFromPEN();
                 } else {
                     this.loadSimulatorData();
                 }
