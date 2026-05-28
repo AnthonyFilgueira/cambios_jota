@@ -115,53 +115,67 @@
                             <p class="text-xs text-cj-texto-claro mt-2">Tu vendedor fue asignado al registrarte y es permanente.</p>
                         </div>
 
-                        <!-- Cuentas del vendedor para depositar -->
-                        @if($sellerAccounts->isNotEmpty())
-                        <div class="mb-6 bg-green-50 border-2 border-green-300 rounded-xl p-5">
-                            <h5 class="text-sm font-bold text-green-800 mb-3 flex items-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                        <!-- Cuentas del vendedor para depositar (Alpine.js — se actualiza al cambiar el par) -->
+                        <div class="mb-6">
+                            <!-- Estado de carga -->
+                            <div x-show="loadingAccounts" class="flex items-center justify-center gap-2 py-6 text-cj-texto-claro">
+                                <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
                                 </svg>
-                                Cuentas habilitadas para tu depósito
-                            </h5>
-                            @foreach($sellerAccounts as $i => $account)
-                            <div class="bg-white rounded-xl p-4 mb-3 border border-green-200">
-                                <p class="text-xs uppercase tracking-wider text-green-700 font-bold mb-2">
-                                    {{ $i === 0 ? 'Cuenta Principal' : 'Cuenta Alternativa ' . $i }}
-                                </p>
-                                <div class="grid grid-cols-2 gap-3 text-sm">
-                                    <div>
-                                        <span class="text-gray-400 text-xs">Banco</span>
-                                        <p class="font-bold text-gray-900">{{ $account->bank->name ?? '—' }}</p>
-                                    </div>
-                                    <div>
-                                        <span class="text-gray-400 text-xs">Tipo</span>
-                                        <p class="font-semibold text-gray-900">{{ ucfirst($account->account_type ?? '—') }}</p>
-                                    </div>
-                                    <div class="col-span-2">
-                                        <span class="text-gray-400 text-xs">Nº de Cuenta</span>
-                                        <p class="font-mono font-bold text-lg text-green-700">{{ $account->account_number }}</p>
-                                    </div>
-                                    <div>
-                                        <span class="text-gray-400 text-xs">Titular</span>
-                                        <p class="font-semibold text-gray-900">{{ $account->account_holder }}</p>
+                                <span class="text-sm">Cargando cuentas...</span>
+                            </div>
+
+                            <!-- Cuentas disponibles -->
+                            <template x-if="!loadingAccounts && sellerAccountsDisplay.length > 0">
+                                <div class="bg-green-50 border-2 border-green-300 rounded-xl p-5">
+                                    <h5 class="text-sm font-bold text-green-800 mb-3 flex items-center gap-2">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                        </svg>
+                                        Cuentas habilitadas para tu depósito
+                                    </h5>
+                                    <template x-for="(account, i) in sellerAccountsDisplay" :key="account.id">
+                                        <div class="bg-white rounded-xl p-4 mb-3 border border-green-200">
+                                            <p class="text-xs uppercase tracking-wider text-green-700 font-bold mb-2"
+                                               x-text="i === 0 ? 'Cuenta Principal' : 'Cuenta Alternativa ' + i"></p>
+                                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                                <div>
+                                                    <span class="text-gray-400 text-xs">Banco</span>
+                                                    <p class="font-bold text-gray-900" x-text="account.bank_name || '—'"></p>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-400 text-xs">Tipo</span>
+                                                    <p class="font-semibold text-gray-900" x-text="account.account_type || '—'"></p>
+                                                </div>
+                                                <div class="col-span-2">
+                                                    <span class="text-gray-400 text-xs">Nº de Cuenta</span>
+                                                    <p class="font-mono font-bold text-lg text-green-700" x-text="account.account_number"></p>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-400 text-xs">Titular</span>
+                                                    <p class="font-semibold text-gray-900" x-text="account.account_holder"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-3">
+                                        <p class="text-xs text-yellow-800">
+                                            <strong>Importante:</strong> Deposita el monto exacto a una de estas cuentas y sube el comprobante más abajo.
+                                        </p>
                                     </div>
                                 </div>
-                            </div>
-                            @endforeach
-                            <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-3">
-                                <p class="text-xs text-yellow-800">
-                                    <strong>Importante:</strong> Deposita el monto exacto a una de estas cuentas y sube el comprobante más abajo.
-                                </p>
-                            </div>
+                            </template>
+
+                            <!-- Sin cuentas para este par -->
+                            <template x-if="!loadingAccounts && sellerAccountsDisplay.length === 0">
+                                <div class="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4">
+                                    <p class="text-sm text-yellow-800 font-medium">
+                                        ⚠️ Tu vendedor no tiene cuentas habilitadas para la divisa seleccionada. Contáctalo directamente.
+                                    </p>
+                                </div>
+                            </template>
                         </div>
-                        @else
-                        <div class="mb-6 bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4">
-                            <p class="text-sm text-yellow-800 font-medium">
-                                ⚠️ Tu vendedor aún no tiene cuentas asignadas. Contáctalo directamente.
-                            </p>
-                        </div>
-                        @endif
                         @else
                         <div class="mb-6 bg-red-50 border-2 border-red-300 rounded-xl p-4">
                             <p class="text-sm text-red-700 font-medium">
@@ -609,6 +623,21 @@
             toSymbol: '',
             toCode: '',
 
+            // Cuentas del vendedor (reactivas al par de divisa)
+            sellerCode: '{{ $seller->code ?? '' }}',
+            sellerAccountsDisplay: @json(
+                $sellerAccounts->map(fn($a) => [
+                    'id'             => $a->id,
+                    'alias'          => $a->alias,
+                    'bank_name'      => $a->bank->name ?? '—',
+                    'account_number' => $a->account_number,
+                    'account_type'   => ucfirst($a->account_type),
+                    'account_holder' => $a->account_holder,
+                    'dni_ruc'        => $a->dni_ruc,
+                ])->values()
+            ),
+            loadingAccounts: false,
+
             // Bono activo (cargado desde backend)
             bonusRules: @json($bonusPreview['rules'] ?? []),
             bonusAmountPen: 0,
@@ -727,6 +756,22 @@
                     this.toSymbol        = option.dataset.toSymbol     || '';
                     this.toCode          = option.dataset.toCode       || '';
                     this.recalculate();
+                    this.fetchSellerAccounts(select.value);
+                }
+            },
+
+            async fetchSellerAccounts(exchangeRateId) {
+                if (!this.sellerCode || !exchangeRateId) return;
+                this.loadingAccounts = true;
+                try {
+                    const url = `/transactions/seller-accounts?seller_code=${encodeURIComponent(this.sellerCode)}&exchange_rate_id=${exchangeRateId}`;
+                    const res  = await fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+                    const data = await res.json();
+                    this.sellerAccountsDisplay = data.accounts || [];
+                } catch (e) {
+                    console.error('Error fetching seller accounts:', e);
+                } finally {
+                    this.loadingAccounts = false;
                 }
             },
 
