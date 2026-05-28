@@ -79,6 +79,18 @@ class PaymentMethodSeeder extends Seeder
                     'side'            => 'sender',
                     'fields_required' => ['bank', 'account_number', 'account_type'],
                 ],
+                [
+                    'code'            => 'nequi',
+                    'name'            => 'Nequi',
+                    'side'            => 'sender',
+                    'fields_required' => ['phone'],
+                ],
+                [
+                    'code'            => 'daviplata',
+                    'name'            => 'Daviplata',
+                    'side'            => 'sender',
+                    'fields_required' => ['phone'],
+                ],
             ],
 
             // ─── ARGENTINA (sender side) ──────────────────────────────────
@@ -88,6 +100,12 @@ class PaymentMethodSeeder extends Seeder
                     'name'            => 'Transferencia Bancaria',
                     'side'            => 'sender',
                     'fields_required' => ['bank', 'account_number', 'account_type'],
+                ],
+                [
+                    'code'            => 'cvu_alias',
+                    'name'            => 'CVU / Alias',
+                    'side'            => 'sender',
+                    'fields_required' => ['account_number'],
                 ],
             ],
 
