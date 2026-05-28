@@ -74,8 +74,14 @@
                                         value="{{ $pair['id'] }}"
                                         data-rate="{{ $pair['ves_rate'] }}"
                                         data-usd="{{ $pair['usd_rate'] }}"
-                                        data-eur="{{ $pair['eur_rate'] }}">
-                                        {{ $pair['from_code'] }} → VES (1 {{ $pair['from_code'] }} = {{ number_format($pair['ves_rate'], 2) }} Bs.)
+                                        data-eur="{{ $pair['eur_rate'] }}"
+                                        data-from-country-id="{{ $pair['from_country_id'] ?? '' }}"
+                                        data-to-country-id="{{ $pair['to_country_id'] ?? '' }}"
+                                        data-from-symbol="{{ $pair['from_symbol'] ?? 'S/' }}"
+                                        data-to-symbol="{{ $pair['to_symbol'] ?? 'Bs.' }}"
+                                        data-from-code="{{ $pair['from_code'] }}"
+                                        data-to-code="{{ $pair['to_code'] ?? 'VES' }}">
+                                        {{ $pair['from_code'] }} → {{ $pair['to_code'] ?? 'VES' }} (1 {{ $pair['from_code'] }} = {{ number_format($pair['ves_rate'], 2) }} {{ $pair['to_symbol'] ?? 'Bs.' }})
                                     </option>
                                 @endforeach
                             </select>
@@ -340,14 +346,44 @@
                         </div>
 
                         <div class="grid md:grid-cols-2 gap-6">
-                            <!-- Cédula del titular -->
-                            <div>
-                                <label for="recipient_dni" class="block text-sm font-medium text-cj-texto mb-2">Cédula del titular *</label>
-                                <input type="text" name="recipient_dni" id="recipient_dni"
-                                    value="{{ old('recipient_dni', $transaction->recipient_dni ?? '') }}" required
-                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
-                                    placeholder="V-12345678">
-                                @error('recipient_dni')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            <!-- Documento del titular receptor -->
+                            <div x-data="{ recDocTypes: [], loadingRecDoc: false }"
+                                 x-init="
+                                    $watch('toCountryId', async (id) => {
+                                        if (!id) return;
+                                        loadingRecDoc = true;
+                                        const res = await fetch('/transactions/document-types?country_id=' + id);
+                                        recDocTypes = await res.json();
+                                        loadingRecDoc = false;
+                                    });
+                                 " class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-cj-texto mb-2">Tipo de documento *</label>
+                                    <select name="recipient_document_type" required
+                                        class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
+                                        <option value="">Seleccionar</option>
+                                        <template x-for="dt in recDocTypes" :key="dt.id">
+                                            <option :value="dt.code" :selected="dt.code === '{{ old('recipient_document_type', $transaction->recipient_document_type ?? '') }}'">
+                                                <span x-text="dt.code + ' — ' + dt.name"></span>
+                                            </option>
+                                        </template>
+                                        @if(old('recipient_document_type', $transaction->recipient_document_type ?? ''))
+                                        <option value="{{ old('recipient_document_type', $transaction->recipient_document_type ?? '') }}" selected>
+                                            {{ old('recipient_document_type', $transaction->recipient_document_type ?? '') }}
+                                        </option>
+                                        @endif
+                                    </select>
+                                    @error('recipient_document_type')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-cj-texto mb-2">Número de documento *</label>
+                                    <input type="text" name="recipient_document_number"
+                                        value="{{ old('recipient_document_number', $transaction->recipient_document_number ?? $transaction->recipient_dni ?? '') }}"
+                                        required
+                                        class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                        placeholder="V-12345678">
+                                    @error('recipient_document_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                </div>
                             </div>
 
                             <!-- Banco receptor -->
@@ -424,14 +460,44 @@
                         </h4>
 
                         <div class="grid md:grid-cols-2 gap-6">
-                            <!-- DNI del titular que transfiere -->
-                            <div>
-                                <label for="sender_dni" class="block text-sm font-medium text-cj-texto mb-2">DNI del titular que transfiere *</label>
-                                <input type="text" name="sender_dni" id="sender_dni"
-                                    value="{{ old('sender_dni', $transaction->sender_dni ?? '') }}" required
-                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
-                                    placeholder="12345678">
-                                @error('sender_dni')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            <!-- Documento del titular que transfiere -->
+                            <div x-data="{ docTypes: [], loadingDocTypes: false }"
+                                 x-init="
+                                    $watch('fromCountryId', async (id) => {
+                                        if (!id) return;
+                                        loadingDocTypes = true;
+                                        const res = await fetch('/transactions/document-types?country_id=' + id);
+                                        docTypes = await res.json();
+                                        loadingDocTypes = false;
+                                    });
+                                 " class="md:col-span-2 grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-cj-texto mb-2">Tipo de documento *</label>
+                                    <select name="sender_document_type" required
+                                        class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
+                                        <option value="">Seleccionar</option>
+                                        <template x-for="dt in docTypes" :key="dt.id">
+                                            <option :value="dt.code" :selected="dt.code === '{{ old('sender_document_type', $transaction->sender_document_type ?? '') }}'">
+                                                <span x-text="dt.code + ' — ' + dt.name"></span>
+                                            </option>
+                                        </template>
+                                        @if(old('sender_document_type', $transaction->sender_document_type ?? ''))
+                                        <option value="{{ old('sender_document_type', $transaction->sender_document_type ?? '') }}" selected>
+                                            {{ old('sender_document_type', $transaction->sender_document_type ?? '') }}
+                                        </option>
+                                        @endif
+                                    </select>
+                                    @error('sender_document_type')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-cj-texto mb-2">Número de documento *</label>
+                                    <input type="text" name="sender_document_number"
+                                        value="{{ old('sender_document_number', $transaction->sender_document_number ?? $transaction->sender_dni ?? '') }}"
+                                        required
+                                        class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                        placeholder="12345678">
+                                    @error('sender_document_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                </div>
                             </div>
 
                             <!-- Banco origen (Perú) -->
@@ -616,6 +682,10 @@
             opType: '{{ old('operation_type', $transaction->operation_type ?? 'transferencia') }}',
             acctType: '{{ old('recipient_account_type', $transaction->recipient_account_type ?? 'ahorro') }}',
 
+            // Países activos del par seleccionado (para cargar tipos de documento)
+            fromCountryId: null,
+            toCountryId: null,
+
             // Búsqueda de vendedor
             sellerCode: '',
             sellerData: null,
@@ -718,6 +788,8 @@
                     this.selectedRate = parseFloat(option.dataset.rate);
                     this.usdBcvRate = parseFloat(option.dataset.usd);
                     this.eurBcvRate = parseFloat(option.dataset.eur);
+                    this.fromCountryId = option.dataset.fromCountryId || null;
+                    this.toCountryId   = option.dataset.toCountryId   || null;
                     this.recalculate();
                 }
             },

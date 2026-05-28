@@ -134,6 +134,8 @@ Route::middleware('auth')->group(function () {
     Route::post('sellers/{seller}/commissions',       [SellerController::class, 'storeCommission'])->name('sellers.commissions.store');
 
     // Transacciones (cliente crea, admin/vendedor gestiona)
+    Route::get('/transactions/seller-accounts',           [TransactionController::class, 'getSellerAccounts'])->name('transactions.sellerAccounts');
+    Route::get('/transactions/document-types',            [TransactionController::class, 'getDocumentTypes'])->name('transactions.documentTypes');
     Route::get('/transactions',                           [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/create',                    [TransactionController::class, 'create'])->name('transactions.create');
     Route::post('/transactions',                          [TransactionController::class, 'store'])->name('transactions.store');
