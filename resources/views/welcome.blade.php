@@ -108,14 +108,15 @@
                         x-model="selectedPairId"
                         @change="cambiarPar()"
                         class="w-full p-3 border-2 border-cj-morado-profundo/20 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all font-semibold text-cj-texto">
+                        <option value="" x-show="loadingPairs">Cargando tasas...</option>
                         <template x-for="pair in pairs" :key="pair.id">
-                            <option :value="pair.id" x-text="`${pair.flag} ${pair.from_country} → ${pair.to_country} ${pair.to_flag}`"></option>
+                            <option :value="pair.id" x-text="`${pair.from_flag} ${pair.from_country} → ${pair.to_country} ${pair.to_flag}`"></option>
                         </template>
                     </select>
 
                     <!-- Indicador visual de ruta -->
                     <div class="mt-3 flex items-center justify-center gap-3 text-sm">
-                        <span x-text="currentPair.flag" class="text-2xl"></span>
+                        <span x-text="currentPair.from_flag" class="text-2xl"></span>
                         <span x-text="currentPair.from_country" class="font-semibold text-cj-texto"></span>
                         <span class="text-cj-morado-profundo text-xl font-bold">→</span>
                         <span class="font-semibold text-cj-texto" x-text="currentPair.to_country || 'Venezuela'"></span>
@@ -374,14 +375,11 @@
 
             function simulador() {
                 return {
-                    pairs: @json($pairs),
-                    selectedPairId: {{ (collect($pairs)->firstWhere('is_active', true) ?? collect($pairs)->first())['id'] ?? 0 }},
+                    pairs: [],
+                    selectedPairId: 0,
+                    loadingPairs: true,
                     currentPair: {},
-                    tasas: {
-                        usd: {{ $rates->usd_rate }},
-                        eur: {{ $rates->eur_rate }},
-                        ves: {{ $rates->ves_rate }}
-                    },
+                    tasas: { usd: 0, eur: 0, ves: 0 },
                     inputUSD: '',
                     inputEUR: '',
                     inputOrigen: '',
@@ -398,7 +396,21 @@
                     },
 
                     init() {
-                        this.cambiarPar();
+                        this.loadExchangeRates();
+                    },
+
+                    async loadExchangeRates() {
+                        try {
+                            const resp = await axios.get('/exchange-rates');
+                            this.pairs = resp.data;
+                            const first = this.pairs.find(p => p.is_active) ?? this.pairs[0];
+                            if (first) {
+                                this.selectedPairId = first.id;
+                                this.cambiarPar();
+                            }
+                        } finally {
+                            this.loadingPairs = false;
+                        }
                     },
 
                     cambiarPar() {
