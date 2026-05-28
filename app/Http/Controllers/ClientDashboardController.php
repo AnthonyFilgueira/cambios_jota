@@ -12,7 +12,11 @@ class ClientDashboardController extends Controller
         $user = auth()->user();
 
         // Transacciones del cliente
-        $transactions = Transaction::where('user_id', $user->id)
+        $transactions = Transaction::with([
+                'exchangeRate.currencyPair.fromCurrency',
+                'exchangeRate.currencyPair.toCurrency',
+            ])
+            ->where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 

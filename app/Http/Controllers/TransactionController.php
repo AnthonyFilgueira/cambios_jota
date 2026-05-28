@@ -20,7 +20,12 @@ class TransactionController extends Controller
             $statusFilter = 'all';
         }
 
-        $query = Transaction::with(['seller', 'exchangeRate', 'logs'])
+        $query = Transaction::with([
+                'seller',
+                'exchangeRate.currencyPair.fromCurrency',
+                'exchangeRate.currencyPair.toCurrency',
+                'logs',
+            ])
             ->where('user_id', auth()->id())
             ->orderBy('created_at', 'desc');
 
