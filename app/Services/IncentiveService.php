@@ -11,12 +11,20 @@ use Illuminate\Support\Collection;
 class IncentiveService
 {
     /**
-     * Retorna las reglas activas que aplican a un usuario y monto dados.
-     * Pasa TODOS los filtros: target, condiciones numéricas y max_uses.
+     * Retorna las reglas activas que aplican a un usuario, monto y moneda dados.
+     * Rules with currency_id=null apply to all currencies.
+     * Rules with currency_id only apply when the from-currency matches.
      */
-    public function getApplicableRules(?User $user, float $amountPen): Collection
+    public function getApplicableRules(?User $user, float $amountPen, ?int $currencyId = null): Collection
     {
         return IncentiveRule::active()
+            ->with('currency')
+            ->when($currencyId, function ($q) use ($currencyId) {
+                $q->where(function ($inner) use ($currencyId) {
+                    $inner->whereNull('currency_id')
+                          ->orWhere('currency_id', $currencyId);
+                });
+            })
             ->get()
             ->filter(fn ($rule) => $this->isEligible($rule, $user, $amountPen));
     }
@@ -25,9 +33,9 @@ class IncentiveService
      * Preview sin escribir en BD — para simulador y formulario.
      * Devuelve la suma de bonos de tipo extra_receptor para mostrar al usuario.
      */
-    public function getReceptorPreview(?User $user, float $amountPen): array
+    public function getReceptorPreview(?User $user, float $amountPen, ?int $currencyId = null): array
     {
-        $rules = $this->getApplicableRules($user, $amountPen)
+        $rules = $this->getApplicableRules($user, $amountPen, $currencyId)
             ->where('type', 'extra_receptor');
 
         $bonusPen = $rules->sum(fn ($r) => $this->calculateBonus($r, $amountPen));
