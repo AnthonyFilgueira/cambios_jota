@@ -74,8 +74,15 @@
                                         value="{{ $pair['id'] }}"
                                         data-rate="{{ $pair['ves_rate'] }}"
                                         data-usd="{{ $pair['usd_rate'] }}"
-                                        data-eur="{{ $pair['eur_rate'] }}">
-                                        {{ $pair['from_code'] }} → VES (1 {{ $pair['from_code'] }} = {{ number_format($pair['ves_rate'], 2) }} Bs.)
+                                        data-eur="{{ $pair['eur_rate'] }}"
+                                        data-from-name="{{ $pair['from_name'] }}"
+                                        data-from-symbol="{{ $pair['from_symbol'] }}"
+                                        data-from-code="{{ $pair['from_code'] }}"
+                                        data-from-country-id="{{ $pair['from_country_id'] }}"
+                                        data-to-name="{{ $pair['to_name'] }}"
+                                        data-to-symbol="{{ $pair['to_symbol'] }}"
+                                        data-to-code="{{ $pair['to_code'] }}">
+                                        {{ $pair['from_code'] }} → {{ $pair['to_code'] }} (1 {{ $pair['from_code'] }} = {{ number_format($pair['ves_rate'], 2) }} {{ $pair['to_symbol'] }})
                                     </option>
                                 @endforeach
                             </select>
@@ -201,13 +208,14 @@
                                     </div>
                                 </div>
 
-                                <!-- Monto directo en PEN -->
+                                <!-- Monto directo en moneda de origen -->
                                 <div>
-                                    <label class="block text-xs uppercase tracking-wider font-semibold text-cj-texto-claro mb-2">
+                                    <label class="block text-xs uppercase tracking-wider font-semibold text-cj-texto-claro mb-2"
+                                           x-text="fromCode ? ('En ' + fromName + ' (' + fromCode + ') *') : 'Selecciona una tasa *'">
                                         En Soles (PEN) *
                                     </label>
                                     <div class="relative">
-                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-cj-texto-claro font-medium">S/.</span>
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-cj-texto-claro font-medium" x-text="fromSymbol || 'S/.'"></span>
                                         <input
                                             type="number"
                                             step="0.01"
@@ -233,7 +241,7 @@
                             <div class="bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio text-white rounded-xl p-5">
                                 <div class="text-xs uppercase tracking-widest opacity-90 mb-2 font-semibold">Tú envías</div>
                                 <div class="flex items-center gap-3 flex-wrap">
-                                    <span class="text-3xl font-bold">S/. <span x-text="formatMoney(amountPen)">0.00</span></span>
+                                    <span class="text-3xl font-bold"><span x-text="fromSymbol || 'S/.'"></span> <span x-text="formatMoney(amountPen)">0.00</span></span>
                                     <!-- Badge animado de bono -->
                                     <span x-show="bonusAmountPen > 0 && amountPen > 0"
                                           x-transition:enter="transition ease-out duration-300"
@@ -241,16 +249,16 @@
                                           x-transition:enter-end="opacity-100 scale-100"
                                           class="flex items-center gap-1.5 bg-yellow-400 text-yellow-900 font-black text-sm px-3 py-1.5 rounded-full shadow-lg animate-bounce">
                                         <span>🎁</span>
-                                        <span>+S/ <span x-text="bonusAmountPen.toFixed(2)"></span> BONO</span>
+                                        <span>+<span x-text="fromSymbol || 'S/'"></span> <span x-text="bonusAmountPen.toFixed(2)"></span> BONO</span>
                                     </span>
                                 </div>
-                                <div class="text-xs opacity-75 mt-1">Soles peruanos</div>
+                                <div class="text-xs opacity-75 mt-1" x-text="fromName || 'Moneda de origen'">Soles peruanos</div>
                                 <!-- Lista de bonos individuales -->
                                 <div x-show="bonusAmountPen > 0 && amountPen > 0" class="mt-3 space-y-1.5">
                                     <template x-for="rule in bonusRules" :key="rule.name">
                                         <div class="text-xs bg-white/15 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
                                             <span>🎁</span>
-                                            <span x-text="rule.name + ': +S/ ' + calcularBonusRegla(rule, amountPen).toFixed(2)"></span>
+                                            <span x-text="rule.name + ': +' + (fromSymbol || 'S/') + ' ' + calcularBonusRegla(rule, amountPen).toFixed(2)"></span>
                                         </div>
                                     </template>
                                 </div>
@@ -261,17 +269,17 @@
                                 <template x-if="bonusAmountPen <= 0 || amountPen <= 0">
                                     <div>
                                         <span class="text-xs text-cj-texto-claro uppercase tracking-wider">Tasa de conversión: </span>
-                                        <span class="text-base font-bold text-cj-morado-profundo font-mono">1 PEN = <span x-text="selectedRate.toFixed(2)">0.00</span> VES</span>
+                                        <span class="text-base font-bold text-cj-morado-profundo font-mono">1 <span x-text="fromCode || 'PEN'"></span> = <span x-text="selectedRate.toFixed(2)">0.00</span> <span x-text="toCode || 'VES'"></span></span>
                                     </div>
                                 </template>
                                 <template x-if="bonusAmountPen > 0 && amountPen > 0">
                                     <div class="space-y-1">
                                         <div class="text-sm font-medium text-cj-morado-profundo">
-                                            Base S/.<span x-text="formatMoney(amountPen)"></span>
-                                            + <span class="text-yellow-600 font-bold">🎁 S/.<span x-text="bonusAmountPen.toFixed(2)"></span> bono</span>
-                                            = <span class="font-black text-cj-turquesa">S/.<span x-text="formatMoney(amountPen + bonusAmountPen)"></span> efectivo</span>
+                                            Base <span x-text="fromSymbol || 'S/.'"></span><span x-text="formatMoney(amountPen)"></span>
+                                            + <span class="text-yellow-600 font-bold">🎁 <span x-text="fromSymbol || 'S/.'"></span><span x-text="bonusAmountPen.toFixed(2)"></span> bono</span>
+                                            = <span class="font-black text-cj-turquesa"><span x-text="fromSymbol || 'S/.'"></span><span x-text="formatMoney(amountPen + bonusAmountPen)"></span> efectivo</span>
                                         </div>
-                                        <div class="text-xs text-cj-texto-claro">1 PEN = <span x-text="selectedRate.toFixed(2)"></span> VES</div>
+                                        <div class="text-xs text-cj-texto-claro">1 <span x-text="fromCode || 'PEN'"></span> = <span x-text="selectedRate.toFixed(2)"></span> <span x-text="toCode || 'VES'"></span></div>
                                     </div>
                                 </template>
                             </div>
@@ -280,17 +288,17 @@
                             <div class="bg-gradient-to-br from-cj-turquesa to-cj-rosa text-white rounded-xl p-5">
                                 <div class="text-xs uppercase tracking-widest opacity-90 mb-2 font-semibold">Tu familiar recibe</div>
                                 <div class="text-3xl font-bold">
-                                    Bs. <span x-text="formatMoney(amountVes)">0.00</span>
+                                    <span x-text="toSymbol || 'Bs.'"></span> <span x-text="formatMoney(amountVes)">0.00</span>
                                 </div>
-                                <div class="text-xs opacity-90 mt-1">Bolívares venezolanos 🇻🇪</div>
+                                <div class="text-xs opacity-90 mt-1" x-text="toName || 'Bolívar Digital'">Bolívares venezolanos 🇻🇪</div>
                                 <!-- Comparativa sin bono / con bono -->
                                 <div x-show="bonusAmountPen > 0 && amountPen > 0"
                                      x-transition:enter="transition ease-out duration-500"
                                      x-transition:enter-start="opacity-0 translate-y-2"
                                      x-transition:enter-end="opacity-100 translate-y-0"
                                      class="mt-3 bg-white/15 rounded-xl px-4 py-3 space-y-1">
-                                    <div class="text-xs opacity-75 line-through">Sin bono: Bs. <span x-text="formatMoney(vesWithoutBonus)"></span></div>
-                                    <div class="text-sm font-black text-yellow-300">🎁 +Bs. <span x-text="formatMoney(Math.round(bonusAmountPen * selectedRate))"></span> extra gracias al bono</div>
+                                    <div class="text-xs opacity-75 line-through">Sin bono: <span x-text="toSymbol || 'Bs.'"></span> <span x-text="formatMoney(vesWithoutBonus)"></span></div>
+                                    <div class="text-sm font-black text-yellow-300">🎁 +<span x-text="toSymbol || 'Bs.'"></span> <span x-text="formatMoney(Math.round(bonusAmountPen * selectedRate))"></span> extra gracias al bono</div>
                                 </div>
                             </div>
                         </div>
@@ -592,6 +600,15 @@
             usdBcvRate: 0,
             eurBcvRate: 0,
 
+            // Moneda activa del par seleccionado
+            fromName: '',
+            fromSymbol: '',
+            fromCode: '',
+            fromCountryId: null,
+            toName: '',
+            toSymbol: '',
+            toCode: '',
+
             // Bono activo (cargado desde backend)
             bonusRules: @json($bonusPreview['rules'] ?? []),
             bonusAmountPen: 0,
@@ -699,9 +716,16 @@
                 const option = select.options[select.selectedIndex];
 
                 if (option && option.dataset.rate) {
-                    this.selectedRate = parseFloat(option.dataset.rate);
-                    this.usdBcvRate = parseFloat(option.dataset.usd);
-                    this.eurBcvRate = parseFloat(option.dataset.eur);
+                    this.selectedRate    = parseFloat(option.dataset.rate);
+                    this.usdBcvRate      = parseFloat(option.dataset.usd);
+                    this.eurBcvRate      = parseFloat(option.dataset.eur);
+                    this.fromName        = option.dataset.fromName     || '';
+                    this.fromSymbol      = option.dataset.fromSymbol   || '';
+                    this.fromCode        = option.dataset.fromCode     || '';
+                    this.fromCountryId   = option.dataset.fromCountryId || null;
+                    this.toName          = option.dataset.toName       || '';
+                    this.toSymbol        = option.dataset.toSymbol     || '';
+                    this.toCode          = option.dataset.toCode       || '';
                     this.recalculate();
                 }
             },
