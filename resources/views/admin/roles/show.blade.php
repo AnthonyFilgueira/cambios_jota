@@ -3,7 +3,9 @@
 <div class="fixed inset-0 -z-10 bg-white/40 backdrop-blur-sm"></div>
 
 <div class="max-w-3xl mx-auto px-4 py-8"
-     x-data="gestionPermisos('{{ $role->name }}')">
+     data-role-name="{{ $role->name }}"
+     data-toggle-url="{{ route('admin.roles.togglePermission', $role) }}"
+     x-data="gestionPermisos($el)">
 
     {{-- Header --}}
     <div class="bg-gradient-to-r from-cj-morado-profundo to-cj-morado-medio rounded-2xl p-5 mb-6 shadow-2xl">
@@ -56,7 +58,10 @@
                             </div>
                         </div>
                         {{-- Toggle todo el módulo --}}
-                        <button @click="toggleModule('{{ $module->slug }}', {{ json_encode($module->perms->pluck('name')->toArray()) }})"
+                        <button
+                            data-module-slug="{{ $module->slug }}"
+                            data-perm-names="{{ implode(',', $module->perms->pluck('name')->toArray()) }}"
+                            @click="toggleModule($event.currentTarget.dataset.moduleSlug, $event.currentTarget.dataset.permNames.split(','))"
                             class="text-xs font-bold text-cj-morado-profundo hover:underline">
                             Alternar todos
                         </button>
@@ -66,7 +71,8 @@
                     <div class="divide-y divide-gray-50">
                         @foreach($module->perms as $perm)
                             <div class="flex items-center justify-between px-5 py-3.5"
-                                 x-data="{ on: {{ $perm->assigned ? 'true' : 'false' }} }"
+                                 data-assigned="{{ $perm->assigned ? '1' : '0' }}"
+                                 x-data="{ on: $el.dataset.assigned === '1' }"
                                  id="row-{{ $perm->id }}">
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-semibold text-gray-800">{{ $perm->label ?? $perm->name }}</p>
@@ -90,23 +96,15 @@
 </div>
 
 <script>
-function gestionPermisos(roleName) {
+function gestionPermisos(el) {
+    const toggleUrl = el.dataset.toggleUrl;
     return {
         toast: { show: false, msg: '', ok: true },
 
         async toggle(permissionName) {
-            const row = document.getElementById('row-{{ "" }}');
             try {
-                const response = await fetch(`/admin/roles/{{ $role->id }}/toggle-permission`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    },
-                    body: JSON.stringify({ permission: permissionName }),
-                });
-                const data = await response.json();
-
+                const response = await axios.post(toggleUrl, { permission: permissionName });
+                const data = response.data;
                 if (data.success) {
                     this.showToast(data.message, true);
                 } else {
