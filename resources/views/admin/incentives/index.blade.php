@@ -121,6 +121,24 @@
                     </div>
                 </div>
 
+                <!-- SECCIÓN MONEDA — ¿A qué moneda aplica? -->
+                <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow border border-white/50 p-5">
+                    <p class="text-xs font-bold uppercase tracking-widest text-cj-texto-claro mb-3">
+                        Moneda de aplicación
+                        <span class="text-gray-400 font-normal normal-case tracking-normal ml-1">— vacío = aplica a todas las monedas</span>
+                    </p>
+                    <select name="currency_id" x-model="currencyId" @change="onCurrencyChange()"
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cj-morado-profundo focus:ring-2 focus:ring-cj-morado-profundo/20 transition-all text-cj-texto">
+                        <option value="">Todas las monedas (incentivo global)</option>
+                        @foreach($currencies as $currency)
+                        <option value="{{ $currency->id }}" {{ old('currency_id') == $currency->id ? 'selected' : '' }}>
+                            {{ $currency->symbol }} {{ $currency->code }} — {{ $currency->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-cj-texto-claro mt-2">Si seleccionas una moneda, el incentivo solo se activará cuando el par de cambio involucre esa moneda origen.</p>
+                </div>
+
                 <!-- SECCIÓN 3 — ¿Cuánto? -->
                 <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow border border-white/50 p-5">
                     <p class="text-xs font-bold uppercase tracking-widest text-cj-texto-claro mb-4">
@@ -134,8 +152,8 @@
                                     ? 'border-cj-turquesa bg-teal-50 ring-2 ring-cj-turquesa/20'
                                     : 'border-gray-200 hover:border-cj-turquesa/30'"
                                  class="border-2 rounded-2xl p-4 text-center transition-all">
-                                <p class="text-2xl font-black text-cj-turquesa">S/</p>
-                                <p class="text-xs text-cj-texto-claro mt-1">Monto fijo en soles</p>
+                                <p class="text-2xl font-black text-cj-turquesa" x-text="currencySymbol"></p>
+                                <p class="text-xs text-cj-texto-claro mt-1" x-text="'Monto fijo en ' + currencyCode"></p>
                             </div>
                         </label>
                         <label class="cursor-pointer">
@@ -152,7 +170,7 @@
                     <div class="flex gap-3 items-end">
                         <div class="flex-1">
                             <label class="block text-xs font-semibold text-cj-texto-claro mb-1">
-                                Valor <span x-text="valueType === 'fixed' ? '(S/)' : '(%)'"></span> *
+                                Valor <span x-text="valueType === 'fixed' ? '(' + currencySymbol + ')' : '(%)'"></span> *
                             </label>
                             <input type="number" name="value" step="0.01" min="0" x-model.number="valor" required
                                    placeholder="Ej: 10"
@@ -160,11 +178,11 @@
                         </div>
                         <!-- Preview inline -->
                         <div class="flex-1 bg-gradient-to-br from-cj-morado-claro to-teal-50 rounded-xl p-3 border border-cj-morado-profundo/10">
-                            <p class="text-xs text-cj-texto-claro font-semibold">Ejemplo con S/100</p>
+                            <p class="text-xs text-cj-texto-claro font-semibold" x-text="'Ejemplo con ' + currencySymbol + '100'"></p>
                             <p class="font-bold text-cj-morado-profundo text-lg mt-0.5">
                                 +<span x-text="valueType === 'fixed'
-                                    ? 'S/ ' + parseFloat(valor || 0).toFixed(2)
-                                    : 'S/ ' + (100 * (parseFloat(valor || 0) / 100)).toFixed(2) + ' (' + parseFloat(valor||0).toFixed(1) + '%)'">
+                                    ? currencySymbol + ' ' + parseFloat(valor || 0).toFixed(2)
+                                    : currencySymbol + ' ' + (100 * (parseFloat(valor || 0) / 100)).toFixed(2) + ' (' + parseFloat(valor||0).toFixed(1) + '%)'">
                                 </span>
                             </p>
                             <p class="text-xs text-cj-turquesa font-semibold" x-text="tipo === 'extra_receptor' ? 'El familiar recibe más Bs' : 'El vendedor gana más'"></p>
@@ -241,6 +259,11 @@
                                     <span class="text-xs font-bold text-cj-morado-profundo bg-cj-morado-claro px-2 py-0.5 rounded-full">{{ $rule->typeLabel() }}</span>
                                     <span class="text-xs font-bold text-cj-turquesa bg-cj-turquesa/10 px-2 py-0.5 rounded-full">{{ $rule->valueLabel() }}</span>
                                     <span class="text-xs text-cj-texto-claro">{{ $rule->targetLabel() }}</span>
+                                    @if($rule->currency)
+                                    <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{{ $rule->currency->symbol }} {{ $rule->currency->code }}</span>
+                                    @else
+                                    <span class="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Global</span>
+                                    @endif
                                 </div>
                                 <div class="flex items-center gap-3 mt-1.5 flex-wrap">
                                     <span class="text-xs text-cj-texto-claro">
@@ -498,11 +521,26 @@
     @push('scripts')
     <script>
     function incentivosApp() {
+        const currencies = @json($currencies->map(fn($c) => ['id' => $c->id, 'symbol' => $c->symbol, 'code' => $c->code, 'name' => $c->name]));
+        const oldCurrencyId = {{ old('currency_id') ? (int) old('currency_id') : 'null' }};
+        const defaultCurrency = oldCurrencyId ? currencies.find(c => c.id === oldCurrencyId) : null;
+
         return {
             tipo: 'extra_receptor',
             targetType: 'todos_clientes',
             valueType: 'fixed',
             valor: 10,
+            currencyId: oldCurrencyId,
+            currencySymbol: defaultCurrency ? defaultCurrency.symbol : 'S/',
+            currencyCode: defaultCurrency ? defaultCurrency.code : 'PEN',
+            currencies: currencies,
+            onCurrencyChange() {
+                const found = this.currencyId
+                    ? this.currencies.find(c => c.id == this.currencyId)
+                    : null;
+                this.currencySymbol = found ? found.symbol : 'S/';
+                this.currencyCode   = found ? found.code   : 'PEN';
+            },
         };
     }
     </script>
