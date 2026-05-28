@@ -5,20 +5,42 @@
 
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-cj-texto leading-tight">
-            💸 Iniciar Envío
+            {{ isset($transaction) ? '✏️ Corregir solicitud' : '💸 Iniciar Envío' }}
         </h2>
     </x-slot>
 
     <div class="py-6" x-data="transactionForm()">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
+            {{-- Banner de observación del vendedor (modo edición) --}}
+            @isset($transaction)
+            <div class="mb-6 bg-orange-50 border-2 border-orange-400 rounded-2xl p-5 shadow-md">
+                <div class="flex items-start gap-3">
+                    <span class="text-2xl">⚠️</span>
+                    <div>
+                        <p class="font-bold text-orange-800 text-base">El vendedor solicitó correcciones</p>
+                        <p class="text-orange-700 mt-1 text-sm">{{ $transaction->observation }}</p>
+                        <p class="text-xs text-orange-500 mt-2">Corrige los datos marcados y vuelve a enviar la solicitud.</p>
+                    </div>
+                </div>
+            </div>
+            @endisset
+
             <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/50 p-8">
                 <div class="mb-6">
-                    <h3 class="text-2xl font-bold text-cj-morado-profundo">Solicitud de Envío</h3>
-                    <p class="text-sm text-cj-texto-claro mt-1">Complete todos los datos para procesar su envío Perú → Venezuela</p>
+                    <h3 class="text-2xl font-bold text-cj-morado-profundo">
+                        {{ isset($transaction) ? 'Corrección de solicitud #' . $transaction->id : 'Solicitud de Envío' }}
+                    </h3>
+                    <p class="text-sm text-cj-texto-claro mt-1">
+                        {{ isset($transaction) ? 'Actualiza los datos y vuelve a enviar al vendedor.' : 'Complete todos los datos para procesar su envío Perú → Venezuela' }}
+                    </p>
                 </div>
 
+                @isset($transaction)
+                <form method="POST" action="{{ route('transactions.update', $transaction) }}" enctype="multipart/form-data" class="space-y-8">
+                @else
                 <form method="POST" action="{{ route('transactions.store') }}" enctype="multipart/form-data" class="space-y-8">
+                @endisset
                     @csrf
 
                     <!-- Hidden fields -->
@@ -52,8 +74,15 @@
                                         value="{{ $pair['id'] }}"
                                         data-rate="{{ $pair['ves_rate'] }}"
                                         data-usd="{{ $pair['usd_rate'] }}"
-                                        data-eur="{{ $pair['eur_rate'] }}">
-                                        {{ $pair['from_code'] }} → VES (1 {{ $pair['from_code'] }} = {{ number_format($pair['ves_rate'], 2) }} Bs.)
+                                        data-eur="{{ $pair['eur_rate'] }}"
+                                        data-from-name="{{ $pair['from_name'] }}"
+                                        data-from-symbol="{{ $pair['from_symbol'] }}"
+                                        data-from-code="{{ $pair['from_code'] }}"
+                                        data-from-country-id="{{ $pair['from_country_id'] }}"
+                                        data-to-name="{{ $pair['to_name'] }}"
+                                        data-to-symbol="{{ $pair['to_symbol'] }}"
+                                        data-to-code="{{ $pair['to_code'] }}">
+                                        {{ $pair['from_code'] }} → {{ $pair['to_code'] }} (1 {{ $pair['from_code'] }} = {{ number_format($pair['ves_rate'], 2) }} {{ $pair['to_symbol'] }})
                                     </option>
                                 @endforeach
                             </select>
@@ -86,53 +115,67 @@
                             <p class="text-xs text-cj-texto-claro mt-2">Tu vendedor fue asignado al registrarte y es permanente.</p>
                         </div>
 
-                        <!-- Cuentas del vendedor para depositar -->
-                        @if($sellerAccounts->isNotEmpty())
-                        <div class="mb-6 bg-green-50 border-2 border-green-300 rounded-xl p-5">
-                            <h5 class="text-sm font-bold text-green-800 mb-3 flex items-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                        <!-- Cuentas del vendedor para depositar (Alpine.js — se actualiza al cambiar el par) -->
+                        <div class="mb-6">
+                            <!-- Estado de carga -->
+                            <div x-show="loadingAccounts" class="flex items-center justify-center gap-2 py-6 text-cj-texto-claro">
+                                <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
                                 </svg>
-                                Cuentas habilitadas para tu depósito
-                            </h5>
-                            @foreach($sellerAccounts as $i => $account)
-                            <div class="bg-white rounded-xl p-4 mb-3 border border-green-200">
-                                <p class="text-xs uppercase tracking-wider text-green-700 font-bold mb-2">
-                                    {{ $i === 0 ? 'Cuenta Principal' : 'Cuenta Alternativa ' . $i }}
-                                </p>
-                                <div class="grid grid-cols-2 gap-3 text-sm">
-                                    <div>
-                                        <span class="text-gray-400 text-xs">Banco</span>
-                                        <p class="font-bold text-gray-900">{{ $account->bank->name ?? '—' }}</p>
-                                    </div>
-                                    <div>
-                                        <span class="text-gray-400 text-xs">Tipo</span>
-                                        <p class="font-semibold text-gray-900">{{ ucfirst($account->account_type ?? '—') }}</p>
-                                    </div>
-                                    <div class="col-span-2">
-                                        <span class="text-gray-400 text-xs">Nº de Cuenta</span>
-                                        <p class="font-mono font-bold text-lg text-green-700">{{ $account->account_number }}</p>
-                                    </div>
-                                    <div>
-                                        <span class="text-gray-400 text-xs">Titular</span>
-                                        <p class="font-semibold text-gray-900">{{ $account->account_holder }}</p>
+                                <span class="text-sm">Cargando cuentas...</span>
+                            </div>
+
+                            <!-- Cuentas disponibles -->
+                            <template x-if="!loadingAccounts && sellerAccountsDisplay.length > 0">
+                                <div class="bg-green-50 border-2 border-green-300 rounded-xl p-5">
+                                    <h5 class="text-sm font-bold text-green-800 mb-3 flex items-center gap-2">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                        </svg>
+                                        Cuentas habilitadas para tu depósito
+                                    </h5>
+                                    <template x-for="(account, i) in sellerAccountsDisplay" :key="account.id">
+                                        <div class="bg-white rounded-xl p-4 mb-3 border border-green-200">
+                                            <p class="text-xs uppercase tracking-wider text-green-700 font-bold mb-2"
+                                               x-text="i === 0 ? 'Cuenta Principal' : 'Cuenta Alternativa ' + i"></p>
+                                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                                <div>
+                                                    <span class="text-gray-400 text-xs">Banco</span>
+                                                    <p class="font-bold text-gray-900" x-text="account.bank_name || '—'"></p>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-400 text-xs">Tipo</span>
+                                                    <p class="font-semibold text-gray-900" x-text="account.account_type || '—'"></p>
+                                                </div>
+                                                <div class="col-span-2">
+                                                    <span class="text-gray-400 text-xs">Nº de Cuenta</span>
+                                                    <p class="font-mono font-bold text-lg text-green-700" x-text="account.account_number"></p>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-400 text-xs">Titular</span>
+                                                    <p class="font-semibold text-gray-900" x-text="account.account_holder"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-3">
+                                        <p class="text-xs text-yellow-800">
+                                            <strong>Importante:</strong> Deposita el monto exacto a una de estas cuentas y sube el comprobante más abajo.
+                                        </p>
                                     </div>
                                 </div>
-                            </div>
-                            @endforeach
-                            <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-3">
-                                <p class="text-xs text-yellow-800">
-                                    <strong>Importante:</strong> Deposita el monto exacto a una de estas cuentas y sube el comprobante más abajo.
-                                </p>
-                            </div>
+                            </template>
+
+                            <!-- Sin cuentas para este par -->
+                            <template x-if="!loadingAccounts && sellerAccountsDisplay.length === 0">
+                                <div class="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4">
+                                    <p class="text-sm text-yellow-800 font-medium">
+                                        ⚠️ Tu vendedor no tiene cuentas habilitadas para la divisa seleccionada. Contáctalo directamente.
+                                    </p>
+                                </div>
+                            </template>
                         </div>
-                        @else
-                        <div class="mb-6 bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4">
-                            <p class="text-sm text-yellow-800 font-medium">
-                                ⚠️ Tu vendedor aún no tiene cuentas asignadas. Contáctalo directamente.
-                            </p>
-                        </div>
-                        @endif
                         @else
                         <div class="mb-6 bg-red-50 border-2 border-red-300 rounded-xl p-4">
                             <p class="text-sm text-red-700 font-medium">
@@ -179,13 +222,14 @@
                                     </div>
                                 </div>
 
-                                <!-- Monto directo en PEN -->
+                                <!-- Monto directo en moneda de origen -->
                                 <div>
-                                    <label class="block text-xs uppercase tracking-wider font-semibold text-cj-texto-claro mb-2">
+                                    <label class="block text-xs uppercase tracking-wider font-semibold text-cj-texto-claro mb-2"
+                                           x-text="fromCode ? ('En ' + fromName + ' (' + fromCode + ') *') : 'Selecciona una tasa *'">
                                         En Soles (PEN) *
                                     </label>
                                     <div class="relative">
-                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-cj-texto-claro font-medium">S/.</span>
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-cj-texto-claro font-medium" x-text="fromSymbol || 'S/.'"></span>
                                         <input
                                             type="number"
                                             step="0.01"
@@ -206,42 +250,77 @@
                         </div>
 
                         <!-- Resumen visual del envío -->
-                        <div class="grid md:grid-cols-2 gap-4">
+                        <div class="space-y-3">
                             <!-- Tú envías -->
-                            <div class="bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio text-white rounded-xl p-6">
+                            <div class="bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio text-white rounded-xl p-5">
                                 <div class="text-xs uppercase tracking-widest opacity-90 mb-2 font-semibold">Tú envías</div>
-                                <div class="text-3xl font-bold">
-                                    S/. <span x-text="formatMoney(amountPen)">0.00</span>
+                                <div class="flex items-center gap-3 flex-wrap">
+                                    <span class="text-3xl font-bold"><span x-text="fromSymbol || 'S/.'"></span> <span x-text="formatMoney(amountPen)">0.00</span></span>
+                                    <!-- Badge animado de bono -->
+                                    <span x-show="bonusAmountPen > 0 && amountPen > 0"
+                                          x-transition:enter="transition ease-out duration-300"
+                                          x-transition:enter-start="opacity-0 scale-75"
+                                          x-transition:enter-end="opacity-100 scale-100"
+                                          class="flex items-center gap-1.5 bg-yellow-400 text-yellow-900 font-black text-sm px-3 py-1.5 rounded-full shadow-lg animate-bounce">
+                                        <span>🎁</span>
+                                        <span>+<span x-text="fromSymbol || 'S/'"></span> <span x-text="bonusAmountPen.toFixed(2)"></span> BONO</span>
+                                    </span>
                                 </div>
-                                <div class="text-xs opacity-75 mt-1">Soles peruanos</div>
+                                <div class="text-xs opacity-75 mt-1" x-text="fromName || 'Moneda de origen'">Soles peruanos</div>
+                                <!-- Lista de bonos individuales -->
+                                <div x-show="bonusAmountPen > 0 && amountPen > 0" class="mt-3 space-y-1.5">
+                                    <template x-for="rule in bonusRules" :key="rule.name">
+                                        <div class="text-xs bg-white/15 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
+                                            <span>🎁</span>
+                                            <span x-text="rule.name + ': +' + (fromSymbol || 'S/') + ' ' + calcularBonusRegla(rule, amountPen).toFixed(2)"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Separador tasa con desglose -->
+                            <div class="bg-cj-morado-medio/10 border-2 border-cj-morado-medio/20 rounded-xl p-4 text-center">
+                                <template x-if="bonusAmountPen <= 0 || amountPen <= 0">
+                                    <div>
+                                        <span class="text-xs text-cj-texto-claro uppercase tracking-wider">Tasa de conversión: </span>
+                                        <span class="text-base font-bold text-cj-morado-profundo font-mono">1 <span x-text="fromCode || 'PEN'"></span> = <span x-text="selectedRate.toFixed(2)">0.00</span> <span x-text="toCode || 'VES'"></span></span>
+                                    </div>
+                                </template>
+                                <template x-if="bonusAmountPen > 0 && amountPen > 0">
+                                    <div class="space-y-1">
+                                        <div class="text-sm font-medium text-cj-morado-profundo">
+                                            Base <span x-text="fromSymbol || 'S/.'"></span><span x-text="formatMoney(amountPen)"></span>
+                                            + <span class="text-yellow-600 font-bold">🎁 <span x-text="fromSymbol || 'S/.'"></span><span x-text="bonusAmountPen.toFixed(2)"></span> bono</span>
+                                            = <span class="font-black text-cj-turquesa"><span x-text="fromSymbol || 'S/.'"></span><span x-text="formatMoney(amountPen + bonusAmountPen)"></span> efectivo</span>
+                                        </div>
+                                        <div class="text-xs text-cj-texto-claro">1 <span x-text="fromCode || 'PEN'"></span> = <span x-text="selectedRate.toFixed(2)"></span> <span x-text="toCode || 'VES'"></span></div>
+                                    </div>
+                                </template>
                             </div>
 
                             <!-- Tu familiar recibe -->
-                            <div class="bg-gradient-to-br from-cj-turquesa to-cj-rosa text-white rounded-xl p-6">
+                            <div class="bg-gradient-to-br from-cj-turquesa to-cj-rosa text-white rounded-xl p-5">
                                 <div class="text-xs uppercase tracking-widest opacity-90 mb-2 font-semibold">Tu familiar recibe</div>
-                                <div class="text-3xl font-bold flex items-center gap-2">
-                                    Bs. <span x-text="formatMoney(amountVes)">0.00</span>
+                                <div class="text-3xl font-bold">
+                                    <span x-text="toSymbol || 'Bs.'"></span> <span x-text="formatMoney(amountVes)">0.00</span>
                                 </div>
-                                <div class="text-xs opacity-90 mt-1">Bolívares venezolanos</div>
-                                <div x-show="bonusAmountPen > 0" class="mt-3 bg-white/20 rounded-lg px-3 py-2 flex items-center gap-2">
-                                    <span>🎁</span>
-                                    <p class="text-xs font-semibold">Incluye bono de S/ <span x-text="bonusAmountPen.toFixed(2)"></span></p>
+                                <div class="text-xs opacity-90 mt-1" x-text="toName || 'Bolívar Digital'">Bolívares venezolanos 🇻🇪</div>
+                                <!-- Comparativa sin bono / con bono -->
+                                <div x-show="bonusAmountPen > 0 && amountPen > 0"
+                                     x-transition:enter="transition ease-out duration-500"
+                                     x-transition:enter-start="opacity-0 translate-y-2"
+                                     x-transition:enter-end="opacity-100 translate-y-0"
+                                     class="mt-3 bg-white/15 rounded-xl px-4 py-3 space-y-1">
+                                    <div class="text-xs opacity-75 line-through">Sin bono: <span x-text="toSymbol || 'Bs.'"></span> <span x-text="formatMoney(vesWithoutBonus)"></span></div>
+                                    <div class="text-sm font-black text-yellow-300">🎁 +<span x-text="toSymbol || 'Bs.'"></span> <span x-text="formatMoney(Math.round(bonusAmountPen * selectedRate))"></span> extra gracias al bono</div>
                                 </div>
-                            </div>
-
-                            <!-- Tasa aplicada -->
-                            <div class="md:col-span-2 bg-cj-morado-medio/10 border-2 border-cj-morado-medio/20 rounded-xl p-4 text-center">
-                                <span class="text-xs text-cj-texto-claro uppercase tracking-wider">Tasa de conversión: </span>
-                                <span class="text-lg font-bold text-cj-morado-profundo font-mono">
-                                    1 PEN = <span x-text="selectedRate.toFixed(2)">0.00</span> VES
-                                </span>
                             </div>
                         </div>
                     </div>
 
                     <!-- SECCIÓN 2: RECEPTOR EN VENEZUELA -->
                     <div class="bg-gradient-to-r from-cj-rosa/5 to-cj-morado-medio/5 rounded-xl p-6 border border-pink-200"
-                         x-data="{ opType: '{{ old('operation_type', 'transferencia') }}' }">
+                         x-data="{ opType: '{{ old('operation_type', $transaction->operation_type ?? 'transferencia') }}', acctType: '{{ old('recipient_account_type', $transaction->recipient_account_type ?? 'ahorro') }}' }">
                         <h4 class="text-lg font-bold text-cj-morado-profundo mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
@@ -288,7 +367,7 @@
                             <div>
                                 <label for="recipient_dni" class="block text-sm font-medium text-cj-texto mb-2">Cédula del titular *</label>
                                 <input type="text" name="recipient_dni" id="recipient_dni"
-                                    value="{{ old('recipient_dni') }}" required
+                                    value="{{ old('recipient_dni', $transaction->recipient_dni ?? '') }}" required
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
                                     placeholder="V-12345678">
                                 @error('recipient_dni')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
@@ -301,7 +380,7 @@
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
                                     <option value="">Selecciona banco</option>
                                     @foreach(['Banco de Venezuela','Banesco','Banco Mercantil','BBVA Provincial','Banco Nacional de Crédito (BNC)','Banco Bicentenario','Banco del Tesoro','Banco Exterior','Corp Banca','Banco Caroni','Sofitasa','Bangente','Bancrecer'] as $b)
-                                        <option value="{{ $b }}" {{ old('recipient_bank') == $b ? 'selected' : '' }}>{{ $b }}</option>
+                                        <option value="{{ $b }}" {{ old('recipient_bank', $transaction->recipient_bank ?? '') == $b ? 'selected' : '' }}>{{ $b }}</option>
                                     @endforeach
                                 </select>
                                 @error('recipient_bank')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
@@ -311,7 +390,7 @@
                             <div>
                                 <label for="recipient_phone" class="block text-sm font-medium text-cj-texto mb-2">Teléfono del titular *</label>
                                 <input type="tel" name="recipient_phone" id="recipient_phone"
-                                    value="{{ old('recipient_phone') }}" required
+                                    value="{{ old('recipient_phone', $transaction->recipient_phone ?? '') }}" required
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
                                     placeholder="0412-1234567">
                                 @error('recipient_phone')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
@@ -323,7 +402,7 @@
                                     Número de cuenta *
                                 </label>
                                 <input type="text" name="recipient_account_number" id="recipient_account_number"
-                                    value="{{ old('recipient_account_number') }}"
+                                    value="{{ old('recipient_account_number', $transaction->recipient_account_number ?? '') }}"
                                     :required="opType === 'transferencia'"
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
                                     placeholder="0102-0000-00-0000123456">
@@ -337,16 +416,18 @@
                                 </label>
                                 <div class="flex gap-3 mt-1">
                                     <label class="flex-1 flex items-center gap-2 border-2 rounded-xl p-3 cursor-pointer transition-all"
-                                           :class="$refs.actype?.value === 'ahorro' ? 'border-cj-turquesa bg-cj-turquesa/5' : 'border-gray-200'">
-                                        <input type="radio" name="recipient_account_type" value="ahorro" x-ref="actype"
-                                               {{ old('recipient_account_type', 'ahorro') === 'ahorro' ? 'checked' : '' }}
+                                           :class="acctType === 'ahorro' ? 'border-cj-turquesa bg-cj-turquesa/5' : 'border-gray-200'">
+                                        <input type="radio" name="recipient_account_type" value="ahorro"
+                                               @change="acctType = 'ahorro'"
+                                               :checked="acctType === 'ahorro'"
                                                class="text-cj-turquesa">
                                         <span class="text-sm font-medium">Ahorro</span>
                                     </label>
                                     <label class="flex-1 flex items-center gap-2 border-2 rounded-xl p-3 cursor-pointer transition-all"
-                                           :class="$refs.actype?.value === 'corriente' ? 'border-cj-turquesa bg-cj-turquesa/5' : 'border-gray-200'">
+                                           :class="acctType === 'corriente' ? 'border-cj-turquesa bg-cj-turquesa/5' : 'border-gray-200'">
                                         <input type="radio" name="recipient_account_type" value="corriente"
-                                               {{ old('recipient_account_type') === 'corriente' ? 'checked' : '' }}
+                                               @change="acctType = 'corriente'"
+                                               :checked="acctType === 'corriente'"
                                                class="text-cj-turquesa">
                                         <span class="text-sm font-medium">Corriente</span>
                                     </label>
@@ -370,7 +451,7 @@
                             <div>
                                 <label for="sender_dni" class="block text-sm font-medium text-cj-texto mb-2">DNI del titular que transfiere *</label>
                                 <input type="text" name="sender_dni" id="sender_dni"
-                                    value="{{ old('sender_dni') }}" required
+                                    value="{{ old('sender_dni', $transaction->sender_dni ?? '') }}" required
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
                                     placeholder="12345678">
                                 @error('sender_dni')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
@@ -383,7 +464,7 @@
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
                                     <option value="">Selecciona banco</option>
                                     @foreach(['BCP — Banco de Crédito del Perú','Interbank','BBVA Perú','Scotiabank Perú','Banco de la Nación','BanBif','Mibanco','Banco Pichincha','Banco GNB','Banco Falabella Perú','Banco Ripley','Caja Metropolitana'] as $b)
-                                        <option value="{{ $b }}" {{ old('sender_bank') == $b ? 'selected' : '' }}>{{ $b }}</option>
+                                        <option value="{{ $b }}" {{ old('sender_bank', $transaction->sender_bank ?? '') == $b ? 'selected' : '' }}>{{ $b }}</option>
                                     @endforeach
                                 </select>
                                 @error('sender_bank')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
@@ -395,7 +476,7 @@
                                     Nº de cuenta origen <span class="text-cj-texto-claro font-normal">(opcional)</span>
                                 </label>
                                 <input type="text" name="sender_account_number" id="sender_account_number"
-                                    value="{{ old('sender_account_number') }}"
+                                    value="{{ old('sender_account_number', $transaction->sender_account_number ?? '') }}"
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
                                     placeholder="000-000000-0-00">
                                 @error('sender_account_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
@@ -485,7 +566,7 @@
                             id="notes"
                             rows="3"
                             class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
-                            placeholder="Información adicional sobre el envío...">{{ old('notes') }}</textarea>
+                            placeholder="Información adicional sobre el envío...">{{ old('notes', $transaction->notes ?? '') }}</textarea>
                         @error('notes')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -507,11 +588,12 @@
 
                     <!-- Botones -->
                     <div class="flex gap-4 pt-4">
-                        <a href="{{ route('dashboard') }}" class="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl text-cj-texto font-semibold hover:bg-gray-50 transition-all text-center">
+                        <a href="{{ isset($transaction) ? route('transactions.index') : route('dashboard') }}"
+                           class="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl text-cj-texto font-semibold hover:bg-gray-50 transition-all text-center">
                             Cancelar
                         </a>
                         <button type="submit" class="flex-1 px-6 py-3 bg-gradient-to-r from-cj-morado-profundo to-cj-morado-medio text-white rounded-xl font-bold hover:shadow-2xl transform hover:-translate-y-1 transition-all shadow-lg">
-                            Enviar Solicitud
+                            {{ isset($transaction) ? '✏️ Guardar y reenviar al vendedor' : 'Enviar Solicitud' }}
                         </button>
                     </div>
                 </form>
@@ -524,15 +606,40 @@
     function transactionForm() {
         return {
             // Datos principales
-            amountPen: 0,
-            selectedRateId: '',
+            amountPen: {{ old('amount_pen', $transaction->amount_pen ?? 0) }},
+            selectedRateId: '{{ old('exchange_rate_id', $transaction->exchange_rate_id ?? '') }}',
             selectedRate: 0,
             amountVes: 0,
+            vesWithoutBonus: 0,
             usdBcvRate: 0,
             eurBcvRate: 0,
 
+            // Moneda activa del par seleccionado
+            fromName: '',
+            fromSymbol: '',
+            fromCode: '',
+            fromCountryId: null,
+            toName: '',
+            toSymbol: '',
+            toCode: '',
+
+            // Cuentas del vendedor (reactivas al par de divisa)
+            sellerCode: '{{ $seller->code ?? '' }}',
+            sellerAccountsDisplay: @json(
+                $sellerAccounts->map(fn($a) => [
+                    'id'             => $a->id,
+                    'alias'          => $a->alias,
+                    'bank_name'      => $a->bank->name ?? '—',
+                    'account_number' => $a->account_number,
+                    'account_type'   => ucfirst($a->account_type),
+                    'account_holder' => $a->account_holder,
+                    'dni_ruc'        => $a->dni_ruc,
+                ])->values()
+            ),
+            loadingAccounts: false,
+
             // Bono activo (cargado desde backend)
-            bonusPen: {{ $bonusPreview['bonus_pen'] ?? 0 }},
+            bonusRules: @json($bonusPreview['rules'] ?? []),
             bonusAmountPen: 0,
 
             // Inputs de cotización
@@ -548,8 +655,15 @@
             sellerError: '',
 
             init() {
-                // Intentar cargar datos del simulador
-                this.loadSimulatorData();
+                // Modo edición: monto pre-cargado → leer tasa del select y recalcular
+                if (this.amountPen > 0) {
+                    this.$nextTick(() => {
+                        this.onRateChange();      // carga selectedRate desde el <select> pre-seleccionado
+                        this.calculateFromPEN();  // calcula VES con la tasa correcta
+                    });
+                } else {
+                    this.loadSimulatorData();
+                }
             },
 
             async searchSeller() {
@@ -631,10 +745,33 @@
                 const option = select.options[select.selectedIndex];
 
                 if (option && option.dataset.rate) {
-                    this.selectedRate = parseFloat(option.dataset.rate);
-                    this.usdBcvRate = parseFloat(option.dataset.usd);
-                    this.eurBcvRate = parseFloat(option.dataset.eur);
+                    this.selectedRate    = parseFloat(option.dataset.rate);
+                    this.usdBcvRate      = parseFloat(option.dataset.usd);
+                    this.eurBcvRate      = parseFloat(option.dataset.eur);
+                    this.fromName        = option.dataset.fromName     || '';
+                    this.fromSymbol      = option.dataset.fromSymbol   || '';
+                    this.fromCode        = option.dataset.fromCode     || '';
+                    this.fromCountryId   = option.dataset.fromCountryId || null;
+                    this.toName          = option.dataset.toName       || '';
+                    this.toSymbol        = option.dataset.toSymbol     || '';
+                    this.toCode          = option.dataset.toCode       || '';
                     this.recalculate();
+                    this.fetchSellerAccounts(select.value);
+                }
+            },
+
+            async fetchSellerAccounts(exchangeRateId) {
+                if (!this.sellerCode || !exchangeRateId) return;
+                this.loadingAccounts = true;
+                try {
+                    const url = `/transactions/seller-accounts?seller_code=${encodeURIComponent(this.sellerCode)}&exchange_rate_id=${exchangeRateId}`;
+                    const res  = await fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+                    const data = await res.json();
+                    this.sellerAccountsDisplay = data.accounts || [];
+                } catch (e) {
+                    console.error('Error fetching seller accounts:', e);
+                } finally {
+                    this.loadingAccounts = false;
                 }
             },
 
@@ -686,12 +823,30 @@
                 }
             },
 
+            // Calcula el bono de una regla específica para el monto actual
+            calcularBonusRegla(rule, monto) {
+                if (!monto || monto <= 0) return 0;
+                if (rule.value_type === 'fixed') return rule.value;
+                if (rule.value_type === 'percentage') return Math.round(monto * rule.value / 100 * 100) / 100;
+                return 0;
+            },
+
+            // Suma todos los bonos para el monto dado
+            calcularBonusTotal(monto) {
+                if (!monto || monto <= 0 || !this.bonusRules.length) return 0;
+                return Math.round(
+                    this.bonusRules.reduce((sum, rule) => sum + this.calcularBonusRegla(rule, monto), 0) * 100
+                ) / 100;
+            },
+
             // Recalcular VES basado en PEN (incluye bono)
             recalculate() {
                 const pen = parseFloat(this.amountPen) || 0;
                 const rate = parseFloat(this.selectedRate) || 0;
-                this.bonusAmountPen = this.bonusPen;
-                this.amountVes = this.round((pen + this.bonusPen) * rate);
+                const bonus = this.calcularBonusTotal(pen);
+                this.bonusAmountPen = bonus;
+                this.vesWithoutBonus = this.round(pen * rate);
+                this.amountVes = this.round((pen + bonus) * rate);
             },
 
             // Formatear montos

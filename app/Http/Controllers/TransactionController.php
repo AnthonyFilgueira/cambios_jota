@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ExchangeRate;
+use App\Models\Seller;
 use App\Models\Transaction;
 use App\Models\TransactionLog;
 use App\Services\IncentiveService;
@@ -20,7 +22,12 @@ class TransactionController extends Controller
             $statusFilter = 'all';
         }
 
-        $query = Transaction::with(['seller', 'exchangeRate', 'logs'])
+        $query = Transaction::with([
+                'seller',
+                'exchangeRate.currencyPair.fromCurrency',
+                'exchangeRate.currencyPair.toCurrency',
+                'logs',
+            ])
             ->where('user_id', auth()->id())
             ->orderBy('created_at', 'desc');
 
@@ -84,19 +91,29 @@ class TransactionController extends Controller
      */
     private function getCurrencyPairs()
     {
-        return \App\Models\ExchangeRate::with(['currencyPair.fromCurrency', 'currencyPair.toCurrency'])
+        return \App\Models\ExchangeRate::with([
+            'currencyPair.fromCurrency.originCountry',
+            'currencyPair.toCurrency',
+        ])
             ->whereNotNull('currency_pair_id')
             ->where('is_active', true)
             ->get()
-            ->map(function($rate) {
+            ->map(function ($rate) {
+                $from = $rate->currencyPair->fromCurrency;
+                $to   = $rate->currencyPair->toCurrency;
+
                 return [
-                    'id' => $rate->id,
-                    'from_code' => $rate->currencyPair->fromCurrency->code ?? 'N/A',
-                    'from_name' => $rate->currencyPair->fromCurrency->name ?? 'N/A',
-                    'from_symbol' => $rate->currencyPair->fromCurrency->symbol ?? '$',
-                    'ves_rate' => $rate->ves_rate ?? 0,
-                    'usd_rate' => $rate->usd_rate ?? 0,
-                    'eur_rate' => $rate->eur_rate ?? 0,
+                    'id'              => $rate->id,
+                    'from_code'       => $from->code ?? 'N/A',
+                    'from_name'       => $from->name ?? 'N/A',
+                    'from_symbol'     => $from->symbol ?? '$',
+                    'from_country_id' => $from->country_id,
+                    'to_code'         => $to->code ?? 'VES',
+                    'to_name'         => $to->name ?? 'Bolívar Digital',
+                    'to_symbol'       => $to->symbol ?? 'Bs.',
+                    'ves_rate'        => $rate->ves_rate ?? 0,
+                    'usd_rate'        => $rate->usd_rate ?? 0,
+                    'eur_rate'        => $rate->eur_rate ?? 0,
                 ];
             });
     }
@@ -117,6 +134,43 @@ class TransactionController extends Controller
         $bonusPreview = app(IncentiveService::class)->getReceptorPreview($user, 0);
 
         return view('transactions.create', compact('pairs', 'seller', 'sellerAccounts', 'bonusPreview'));
+    }
+
+    /**
+     * AJAX: Return seller accounts filtered by the origin country of the selected exchange rate.
+     */
+    public function getSellerAccounts(Request $request)
+    {
+        $sellerCode     = strtoupper(trim($request->get('seller_code', '')));
+        $exchangeRateId = $request->get('exchange_rate_id');
+
+        $seller = Seller::where('code', $sellerCode)->first();
+        if (!$seller) {
+            return response()->json(['accounts' => [], 'error' => 'Vendedor no encontrado'], 404);
+        }
+
+        $exchangeRate = ExchangeRate::with('currencyPair.fromCurrency')->find($exchangeRateId);
+        $fromCountryId = $exchangeRate?->currencyPair?->fromCurrency?->country_id;
+
+        $accounts = $seller->businessAccounts()
+            ->with('bank')
+            ->where('active', true)
+            ->when($fromCountryId, fn ($q) => $q->where('country_id', $fromCountryId))
+            ->get()
+            ->map(fn ($account) => [
+                'id'             => $account->id,
+                'alias'          => $account->alias,
+                'bank_name'      => $account->bank->name ?? '—',
+                'account_number' => $account->account_number,
+                'account_type'   => ucfirst($account->account_type),
+                'account_holder' => $account->account_holder,
+                'dni_ruc'        => $account->dni_ruc,
+            ]);
+
+        return response()->json([
+            'accounts'   => $accounts,
+            'country_id' => $fromCountryId,
+        ]);
     }
 
     /**
@@ -193,6 +247,9 @@ class TransactionController extends Controller
             $seller->user->notify(new \App\Notifications\NewTransactionForSeller($transaction));
         }
 
+        // Notificar al dueño/admin
+        $this->notifyOwners($transaction, 'created');
+
         return redirect()->route('transactions.confirmacion', $transaction)
             ->with('success', '¡Solicitud enviada! El vendedor ' . $seller->name . ' revisará tu comprobante.');
     }
@@ -201,22 +258,6 @@ class TransactionController extends Controller
      * Display the specified resource.
      */
     public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
     {
         //
     }
@@ -287,6 +328,9 @@ class TransactionController extends Controller
             );
         }
 
+        // Notificar al dueño/admin
+        $this->notifyOwners($transaction, 'completed');
+
         return redirect()->back()->with('success', '¡Transacción #' . $transaction->id . ' completada! El cliente y el vendedor han sido notificados.');
     }
 
@@ -321,6 +365,9 @@ class TransactionController extends Controller
             // Notificar al usuario
             $transaction->user->notify(new \App\Notifications\TransactionObserved($transaction));
 
+            // Notificar al dueño/admin
+            $this->notifyOwners($transaction, 'observed', $validated['observation']);
+
             return redirect()->back()->with('success', 'Transacción marcada como observada. El cliente ha sido notificado.');
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
@@ -354,6 +401,9 @@ class TransactionController extends Controller
             // Notificar al usuario
             $transaction->user->notify(new \App\Notifications\TransactionProcessed($transaction));
 
+            // Notificar al dueño/admin
+            $this->notifyOwners($transaction, 'processing');
+
             return redirect()->back()->with('success', 'Transacción marcada como en proceso. El cliente ha sido notificado.');
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
@@ -386,6 +436,9 @@ class TransactionController extends Controller
 
             // Notificar al usuario
             $transaction->user->notify(new \App\Notifications\TransactionCompleted($transaction));
+
+            // Notificar al dueño/admin
+            $this->notifyOwners($transaction, 'completed');
 
             return redirect()->back()->with('success', 'Transacción completada exitosamente. El cliente ha sido notificado.');
         } catch (\Exception $e) {
@@ -426,4 +479,100 @@ class TransactionController extends Controller
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
     }
+
+    /**
+     * Formulario de edición para transacciones observadas (cliente corrige)
+     */
+    public function edit(Transaction $transaction)
+    {
+        if ($transaction->user_id !== auth()->id()) {
+            abort(403, 'No autorizado');
+        }
+        if ($transaction->status !== 'observed') {
+            abort(403, 'Solo puedes editar solicitudes con observaciones pendientes.');
+        }
+
+        $user   = auth()->user()->load('assignedSeller.businessAccounts.bank');
+        $seller = $user->assignedSeller;
+        $pairs  = $this->getCurrencyPairs();
+
+        $sellerAccounts = $seller
+            ? $seller->businessAccounts->where('active', true)->values()
+            : collect();
+
+        $bonusPreview = app(IncentiveService::class)->getReceptorPreview($user, 0);
+
+        return view('transactions.create', compact('pairs', 'seller', 'sellerAccounts', 'bonusPreview', 'transaction'));
+    }
+
+    /**
+     * Actualiza una transacción observada (cliente corrige y reenvía)
+     */
+    public function update(Request $request, Transaction $transaction)
+    {
+        if ($transaction->user_id !== auth()->id()) {
+            abort(403, 'No autorizado');
+        }
+        if ($transaction->status !== 'observed') {
+            abort(403, 'Solo puedes editar solicitudes con observaciones pendientes.');
+        }
+
+        $operationType = $request->input('operation_type', 'transferencia');
+
+        $validated = $request->validate([
+            'amount_pen'       => 'required|numeric|min:1',
+            'amount_ves'       => 'required|numeric|min:1',
+            'exchange_rate_id' => 'required|exists:exchange_rates,id',
+            'operation_type'   => 'required|in:transferencia,pago_movil',
+            'notes'            => 'nullable|string|max:500',
+            'usd_bcv_rate'     => 'nullable|numeric',
+            'eur_bcv_rate'     => 'nullable|numeric',
+            'recipient_bank'   => 'required|string|max:255',
+            'recipient_dni'    => 'required|string|max:30',
+            'recipient_phone'  => 'required|string|max:30',
+            'recipient_account_number' => 'required_if:operation_type,transferencia|nullable|string|max:255',
+            'recipient_account_type'   => 'required_if:operation_type,transferencia|nullable|in:ahorro,corriente',
+            'sender_bank'       => 'required|string|max:255',
+            'sender_account_number' => 'nullable|string|max:255',
+            'sender_dni'        => 'required|string|max:30',
+            'bonus_amount_pen'  => 'nullable|numeric|min:0',
+            'voucher'           => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        // Actualizar comprobante solo si se sube uno nuevo
+        if ($request->hasFile('voucher')) {
+            $validated['voucher'] = $request->file('voucher')->store('vouchers', 'public');
+        } else {
+            unset($validated['voucher']);
+        }
+
+        // Volver a pendiente y limpiar observación
+        $validated['status']      = 'pending';
+        $validated['observation'] = null;
+
+        $transaction->update($validated);
+
+        // Recalcular incentivos
+        app(IncentiveService::class)->applyToTransaction($transaction);
+
+        // Notificar al vendedor
+        if ($transaction->seller && $transaction->seller->user) {
+            $transaction->seller->user->notify(
+                new \App\Notifications\NewTransactionForSeller($transaction)
+            );
+        }
+
+        \App\Models\TransactionLog::create([
+            'transaction_id' => $transaction->id,
+            'user_id'        => auth()->id(),
+            'action'         => 'corrected_by_client',
+            'old_status'     => 'observed',
+            'new_status'     => 'pending',
+            'comment'        => 'Cliente corrigió y reenvió la solicitud.',
+        ]);
+
+        return redirect()->route('transactions.index')
+            ->with('success', '¡Solicitud corregida y reenviada al vendedor!');
+    }
+
 }

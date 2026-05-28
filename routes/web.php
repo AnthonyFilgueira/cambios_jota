@@ -32,25 +32,35 @@ use App\Http\Controllers\SettingController;
 Route::get('/', function () {
     $rates = ExchangeRate::getActive();
 
-    $pairs = \App\Models\ExchangeRate::with(['currencyPair.fromCurrency', 'currencyPair.toCurrency'])
+    $pairs = \App\Models\ExchangeRate::with([
+            'currencyPair.fromCurrency.originCountry',
+            'currencyPair.toCurrency',
+        ])
         ->whereNotNull('currency_pair_id')
         ->get()
         ->map(function ($rate) {
+            $from = $rate->currencyPair->fromCurrency;
+            $to   = $rate->currencyPair->toCurrency;
+
             return [
-                'id'           => $rate->id,
-                'from_code'    => $rate->currencyPair->fromCurrency->code,
-                'from_name'    => $rate->currencyPair->fromCurrency->name,
-                'from_country' => $rate->currencyPair->fromCurrency->country,
-                'from_symbol'  => $rate->currencyPair->fromCurrency->symbol,
-                'flag'         => $rate->currencyPair->fromCurrency->flag_emoji,
-                'ves_rate'     => $rate->ves_rate,
-                'usd_rate'     => $rate->usd_rate,
-                'eur_rate'     => $rate->eur_rate,
-                'is_active'    => $rate->is_active,
+                'id'              => $rate->id,
+                'from_code'       => $from->code,
+                'from_name'       => $from->name,
+                'from_country'    => $from->country,
+                'from_symbol'     => $from->symbol,
+                'from_country_id' => $from->country_id,
+                'flag'            => $from->flag_emoji,
+                'to_code'         => $to->code     ?? 'VES',
+                'to_name'         => $to->name     ?? 'Bolívar Digital',
+                'to_symbol'       => $to->symbol   ?? 'Bs.',
+                'ves_rate'        => $rate->ves_rate,
+                'usd_rate'        => $rate->usd_rate,
+                'eur_rate'        => $rate->eur_rate,
+                'is_active'       => $rate->is_active,
             ];
         });
 
-    $bonusPreview = app(\App\Services\IncentiveService::class)->getReceptorPreview(null, 0);
+    $bonusPreview = app(\App\Services\IncentiveService::class)->getReceptorPreview(auth()->user(), 0);
 
     return view('welcome', compact('rates', 'pairs', 'bonusPreview'));
 });
@@ -135,6 +145,7 @@ Route::middleware('auth')->group(function () {
 
     // Transacciones (cliente crea, admin/vendedor gestiona)
     Route::get('/transactions',                           [TransactionController::class, 'index'])->name('transactions.index');
+    Route::get('/transactions/seller-accounts',           [TransactionController::class, 'getSellerAccounts'])->name('transactions.sellerAccounts');
     Route::get('/transactions/create',                    [TransactionController::class, 'create'])->name('transactions.create');
     Route::post('/transactions',                          [TransactionController::class, 'store'])->name('transactions.store');
     Route::get('/transactions/manage',                    [TransactionController::class, 'manage'])->name('transactions.manage');
@@ -144,6 +155,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/transactions/{transaction}/upload-final-voucher', [TransactionController::class, 'uploadFinalVoucher'])->name('transactions.uploadFinalVoucher');
     Route::get('/transactions/{transaction}/confirmacion',          [TransactionController::class, 'confirmacion'])->name('transactions.confirmacion');
     Route::post('/transactions/{transaction}/cancel',               [TransactionController::class, 'cancel'])->name('transactions.cancel');
+    Route::get('/transactions/{transaction}/edit',                  [TransactionController::class, 'edit'])->name('transactions.edit');
+    Route::post('/transactions/{transaction}/update',               [TransactionController::class, 'update'])->name('transactions.update');
 
     // Ventas (vendedor registra, admin aprueba)
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');

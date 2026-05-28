@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\WalletTransaction;
 
 class Transaction extends Model
 {
@@ -108,6 +109,24 @@ class Transaction extends Model
             $this->status = 'completed';
             $this->save();
 
+            // Acreditar comisión base del vendedor
+            $seller = $this->seller;
+            if ($seller && $seller->seller_commission > 0) {
+                $baseCommission = round((float) $this->amount_pen * ($seller->seller_commission / 100), 2);
+                if ($baseCommission > 0) {
+                    WalletTransaction::create([
+                        'seller_id'      => $seller->id,
+                        'type'           => 'commission',
+                        'amount'         => $baseCommission,
+                        'balance_after'  => $seller->walletBalance() + $baseCommission,
+                        'description'    => "Comisión base {$seller->seller_commission}% — Transacción #{$this->id}",
+                        'reference_id'   => $this->id,
+                        'reference_type' => 'Transaction',
+                    ]);
+                }
+            }
+
+            // Acreditar bonos de incentivo extra_comision
             app(\App\Services\IncentiveService::class)->applySellerBonusOnComplete($this);
 
             return true;

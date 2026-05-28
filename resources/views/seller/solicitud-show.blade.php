@@ -209,7 +209,6 @@
             @endif
 
         </div>
-    </div>
 
     <!-- MODAL APROBAR -->
     <div x-show="modalAccion === 'aprobar'" x-cloak
@@ -334,5 +333,6 @@
             </form>
         </div>
     </div>
+    </div>{{-- cierre del x-data (py-6) que envuelve todo el contenido y las modales --}}
 
 </x-app-layout>
