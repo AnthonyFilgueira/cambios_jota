@@ -32,21 +32,31 @@ use App\Http\Controllers\SettingController;
 Route::get('/', function () {
     $rates = ExchangeRate::getActive();
 
-    $pairs = \App\Models\ExchangeRate::with(['currencyPair.fromCurrency', 'currencyPair.toCurrency'])
+    $pairs = \App\Models\ExchangeRate::with([
+            'currencyPair.fromCurrency.originCountry',
+            'currencyPair.toCurrency',
+        ])
         ->whereNotNull('currency_pair_id')
         ->get()
         ->map(function ($rate) {
+            $from = $rate->currencyPair->fromCurrency;
+            $to   = $rate->currencyPair->toCurrency;
+
             return [
-                'id'           => $rate->id,
-                'from_code'    => $rate->currencyPair->fromCurrency->code,
-                'from_name'    => $rate->currencyPair->fromCurrency->name,
-                'from_country' => $rate->currencyPair->fromCurrency->country,
-                'from_symbol'  => $rate->currencyPair->fromCurrency->symbol,
-                'flag'         => $rate->currencyPair->fromCurrency->flag_emoji,
-                'ves_rate'     => $rate->ves_rate,
-                'usd_rate'     => $rate->usd_rate,
-                'eur_rate'     => $rate->eur_rate,
-                'is_active'    => $rate->is_active,
+                'id'              => $rate->id,
+                'from_code'       => $from->code,
+                'from_name'       => $from->name,
+                'from_country'    => $from->country,
+                'from_symbol'     => $from->symbol,
+                'from_country_id' => $from->country_id,
+                'flag'            => $from->flag_emoji,
+                'to_code'         => $to->code     ?? 'VES',
+                'to_name'         => $to->name     ?? 'Bolívar Digital',
+                'to_symbol'       => $to->symbol   ?? 'Bs.',
+                'ves_rate'        => $rate->ves_rate,
+                'usd_rate'        => $rate->usd_rate,
+                'eur_rate'        => $rate->eur_rate,
+                'is_active'       => $rate->is_active,
             ];
         });
 
