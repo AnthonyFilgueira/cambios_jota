@@ -200,9 +200,7 @@ class TransactionController extends Controller
             ? $seller->businessAccounts->where('active', true)->values()
             : collect();
 
-        $bonusPreview = app(IncentiveService::class)->getReceptorPreview($user, 0);
-
-        return view('transactions.create', compact('seller', 'sellerAccounts', 'bonusPreview'));
+        return view('transactions.create', compact('seller', 'sellerAccounts'));
     }
 
     /**
@@ -574,9 +572,7 @@ class TransactionController extends Controller
             ? $seller->businessAccounts->where('active', true)->values()
             : collect();
 
-        $bonusPreview = app(IncentiveService::class)->getReceptorPreview($user, 0);
-
-        return view('transactions.create', compact('seller', 'sellerAccounts', 'bonusPreview', 'transaction'));
+        return view('transactions.create', compact('seller', 'sellerAccounts', 'transaction'));
     }
 
     /**

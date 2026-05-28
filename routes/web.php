@@ -30,9 +30,7 @@ use App\Http\Controllers\SettingController;
 
 // Simulador público
 Route::get('/', function () {
-    $bonusPreview = app(\App\Services\IncentiveService::class)->getReceptorPreview(auth()->user(), 0);
-
-    return view('welcome', compact('bonusPreview'));
+    return view('welcome');
 });
 
 // Endpoint público de pares de cambio activos (consumido via Axios)

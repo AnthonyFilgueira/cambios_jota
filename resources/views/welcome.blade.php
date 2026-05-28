@@ -386,8 +386,7 @@
                     montoEnviar: 0,
                     vesRecibir: 0,
 
-                    // Reglas de bonos con tipo y valor para recalcular en el cliente
-                    bonusRules: @json($bonusPreview['rules'] ?? []),
+                    bonusRules: [],
                     bonusModalShown: false,
 
                     // Computed: bono total según el monto actual
@@ -397,6 +396,14 @@
 
                     init() {
                         this.loadExchangeRates();
+                        this.loadBonusRules();
+                    },
+
+                    async loadBonusRules() {
+                        try {
+                            const resp = await axios.get('/api/incentives/bonus-preview');
+                            this.bonusRules = resp.data;
+                        } catch (e) { this.bonusRules = []; }
                     },
 
                     async loadExchangeRates() {

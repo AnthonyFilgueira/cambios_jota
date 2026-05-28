@@ -749,8 +749,7 @@
             toCountryId: null,
             paymentMethods: [],
 
-            // Bono activo (cargado desde backend)
-            bonusRules: @json($bonusPreview['rules'] ?? []),
+            bonusRules: [],
             bonusAmountPen: 0,
 
             // Inputs de cotización
@@ -782,7 +781,7 @@
             loadingAccounts: false,
 
             async init() {
-                await this.loadExchangeRates();
+                await Promise.all([this.loadExchangeRates(), this.loadBonusRules()]);
                 if (this.amountPen > 0) {
                     this.$nextTick(() => {
                         this.onRateChange();
@@ -797,6 +796,13 @@
                 const resp = await axios.get('/exchange-rates');
                 this.pairs = resp.data;
                 this.loadingPairs = false;
+            },
+
+            async loadBonusRules() {
+                try {
+                    const resp = await axios.get('/api/incentives/bonus-preview');
+                    this.bonusRules = resp.data;
+                } catch (e) { this.bonusRules = []; }
             },
 
             formatPairLabel(pair) {
