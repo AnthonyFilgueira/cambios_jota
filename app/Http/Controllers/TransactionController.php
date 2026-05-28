@@ -164,12 +164,28 @@ class TransactionController extends Controller
             return response()->json([]);
         }
 
-        $banks = \App\Models\Bank::where('country_id', $countryId)
-            ->where('active', true)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        return response()->json(
+            \App\Models\Bank::where('country_id', $countryId)
+                ->where('active', true)
+                ->orderBy('name')
+                ->get(['id', 'name'])
+        );
+    }
 
-        return response()->json($banks);
+    public function getRecipientBanks(Request $request)
+    {
+        $countryId = $request->input('country_id');
+
+        if (!$countryId) {
+            return response()->json([]);
+        }
+
+        return response()->json(
+            \App\Models\Bank::where('country_id', $countryId)
+                ->where('active', true)
+                ->orderBy('name')
+                ->get(['id', 'name'])
+        );
     }
 
     /**

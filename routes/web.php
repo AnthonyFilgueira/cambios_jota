@@ -149,6 +149,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions/document-types',            [TransactionController::class, 'getDocumentTypes'])->name('transactions.documentTypes');
     Route::get('/transactions/payment-methods',           [TransactionController::class, 'getPaymentMethods'])->name('transactions.paymentMethods');
     Route::get('/transactions/sender-banks',              [TransactionController::class, 'getSenderBanks'])->name('transactions.senderBanks');
+    Route::get('/transactions/recipient-banks',           [TransactionController::class, 'getRecipientBanks'])->name('transactions.recipientBanks');
     Route::get('/transactions',                           [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/create',                    [TransactionController::class, 'create'])->name('transactions.create');
     Route::post('/transactions',                          [TransactionController::class, 'store'])->name('transactions.store');
