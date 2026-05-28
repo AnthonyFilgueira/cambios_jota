@@ -6,8 +6,11 @@ use App\Models\ExchangeRate;
 use App\Models\Seller;
 use App\Models\Transaction;
 use App\Models\TransactionLog;
+use App\Models\User;
+use App\Notifications\NewTransactionForOwner;
 use App\Services\IncentiveService;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Notification;
 
 class TransactionController extends Controller
 {
@@ -247,6 +250,9 @@ class TransactionController extends Controller
             $seller->user->notify(new \App\Notifications\NewTransactionForSeller($transaction));
         }
 
+        // Notificar al dueño/admin
+        $this->notifyOwners($transaction, 'created');
+
         return redirect()->route('transactions.confirmacion', $transaction)
             ->with('success', '¡Solicitud enviada! El vendedor ' . $seller->name . ' revisará tu comprobante.');
     }
@@ -325,6 +331,9 @@ class TransactionController extends Controller
             );
         }
 
+        // Notificar al dueño/admin
+        $this->notifyOwners($transaction, 'completed');
+
         return redirect()->back()->with('success', '¡Transacción #' . $transaction->id . ' completada! El cliente y el vendedor han sido notificados.');
     }
 
@@ -359,6 +368,9 @@ class TransactionController extends Controller
             // Notificar al usuario
             $transaction->user->notify(new \App\Notifications\TransactionObserved($transaction));
 
+            // Notificar al dueño/admin
+            $this->notifyOwners($transaction, 'observed', $validated['observation']);
+
             return redirect()->back()->with('success', 'Transacción marcada como observada. El cliente ha sido notificado.');
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
@@ -392,6 +404,9 @@ class TransactionController extends Controller
             // Notificar al usuario
             $transaction->user->notify(new \App\Notifications\TransactionProcessed($transaction));
 
+            // Notificar al dueño/admin
+            $this->notifyOwners($transaction, 'processing');
+
             return redirect()->back()->with('success', 'Transacción marcada como en proceso. El cliente ha sido notificado.');
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
@@ -424,6 +439,9 @@ class TransactionController extends Controller
 
             // Notificar al usuario
             $transaction->user->notify(new \App\Notifications\TransactionCompleted($transaction));
+
+            // Notificar al dueño/admin
+            $this->notifyOwners($transaction, 'completed');
 
             return redirect()->back()->with('success', 'Transacción completada exitosamente. El cliente ha sido notificado.');
         } catch (\Exception $e) {
@@ -558,5 +576,15 @@ class TransactionController extends Controller
 
         return redirect()->route('transactions.index')
             ->with('success', '¡Solicitud corregida y reenviada al vendedor!');
+    }
+
+    /**
+     * Notify all admin and super-admin users about a transaction event.
+     */
+    private function notifyOwners(Transaction $transaction, string $event, ?string $detail = null): void
+    {
+        User::role(['admin', 'super-admin'])->get()->each(
+            fn (User $owner) => $owner->notify(new NewTransactionForOwner($transaction, $event, $detail))
+        );
     }
 }
