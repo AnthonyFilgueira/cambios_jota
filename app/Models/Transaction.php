@@ -21,9 +21,10 @@ class Transaction extends Model
         'notes',
         'observation',
 
-        // Comprobantes
+        // Comprobantes y referencia de operación
         'voucher',
         'final_voucher',
+        'operation_number',
 
         // Datos bancarios del receptor (Venezuela)
         'recipient_bank',
