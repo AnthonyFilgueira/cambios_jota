@@ -48,6 +48,11 @@
                 class="px-4 py-2 rounded-lg text-sm font-bold transition-all">
                 💳 Métodos de pago
             </button>
+            <button @click="tab='tipos-cuenta'"
+                :class="tab==='tipos-cuenta' ? 'bg-white/20 text-white' : 'text-purple-300 hover:text-white'"
+                class="px-4 py-2 rounded-lg text-sm font-bold transition-all">
+                🏦 Tipos de cuenta
+            </button>
         </div>
     </div>
 
@@ -543,6 +548,110 @@
         @endif
     </div>
 
+    {{-- ==================== TAB TIPOS DE CUENTA ==================== --}}
+    <div x-show="tab==='tipos-cuenta'" x-cloak>
+
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-bold text-cj-morado-profundo">🏦 Tipos de cuenta</h3>
+            <button @click="formCuentaTipoOpen=!formCuentaTipoOpen"
+                    :class="formCuentaTipoOpen ? 'bg-cj-morado-profundo text-white' : 'bg-white text-cj-morado-profundo border border-cj-morado-profundo/30'"
+                    class="px-4 py-2 rounded-xl text-sm font-bold transition-all">
+                + Agregar tipo
+            </button>
+        </div>
+
+        <div x-show="formCuentaTipoOpen" x-cloak class="bg-white/90 rounded-2xl shadow border border-white/50 p-5 mb-4">
+            <form action="{{ route('account-types.store', $country) }}" method="POST"
+                  class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                @csrf
+                <div>
+                    <label class="block text-xs font-semibold text-cj-texto-claro mb-1 uppercase tracking-wider">Nombre *</label>
+                    <input type="text" name="name" required placeholder="Ej: Cuenta de Ahorros"
+                           class="w-full p-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-cj-texto-claro mb-1 uppercase tracking-wider">Código *</label>
+                    <input type="text" name="code" required placeholder="Ej: ahorro"
+                           class="w-full p-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                </div>
+                <div>
+                    <button type="submit" class="w-full px-4 py-2.5 bg-cj-morado-profundo text-white rounded-xl font-semibold text-sm hover:bg-cj-morado-medio transition-all">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        @if($activeAccountTypes->isEmpty() && $inactiveAccountTypes->isEmpty())
+        <div class="bg-white/60 rounded-2xl p-8 text-center text-cj-texto-claro">
+            No hay tipos de cuenta para este país.
+        </div>
+        @else
+        <div class="space-y-2">
+            @foreach($activeAccountTypes as $at)
+            <div class="bg-white/90 rounded-2xl shadow border border-white/50 px-5 py-4 flex items-center justify-between gap-4"
+                 x-data="{ editAt: false }">
+                <div class="flex items-center gap-4 flex-1 min-w-0" x-show="!editAt">
+                    <span class="inline-flex items-center justify-center px-3 py-1.5 bg-teal-50 rounded-xl font-bold font-mono text-cj-turquesa text-xs">
+                        {{ $at->code }}
+                    </span>
+                    <p class="font-semibold text-cj-texto">{{ $at->name }}</p>
+                </div>
+
+                <div x-show="editAt" x-cloak class="flex-1">
+                    <form action="{{ route('account-types.update', [$country, $at]) }}" method="POST"
+                          class="flex gap-3 items-center">
+                        @csrf @method('PUT')
+                        <input type="text" name="name" value="{{ $at->name }}" placeholder="Nombre"
+                               class="flex-1 p-2 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                        <button type="submit" class="px-3 py-2 bg-cj-morado-profundo text-white rounded-xl text-sm font-semibold">Guardar</button>
+                        <button type="button" @click="editAt=false" class="px-3 py-2 bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold">✕</button>
+                    </form>
+                </div>
+
+                <div x-show="!editAt" class="flex items-center gap-2 flex-shrink-0">
+                    <button type="button" @click="editAt=true"
+                            class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition-all">
+                        Editar
+                    </button>
+                    <form action="{{ route('account-types.toggle', [$country, $at]) }}" method="POST">
+                        @csrf @method('PATCH')
+                        <button type="submit" class="relative w-11 h-6 rounded-full transition-colors bg-cj-turquesa focus:outline-none">
+                            <span class="absolute top-0.5 translate-x-5 h-5 w-5 rounded-full bg-white shadow transition-transform"></span>
+                        </button>
+                    </form>
+                    <form action="{{ route('account-types.destroy', [$country, $at]) }}" method="POST"
+                          onsubmit="return confirm('¿Eliminar este tipo de cuenta?')">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="px-2 py-1.5 text-red-400 hover:text-red-600 transition-all text-xs">✕</button>
+                    </form>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
+
+        @if($inactiveAccountTypes->count())
+            <p class="text-xs font-bold uppercase tracking-widest text-gray-400 mt-6 mb-3">Inactivos</p>
+            <div class="space-y-2 opacity-50">
+                @foreach($inactiveAccountTypes as $at)
+                    <div class="bg-white/70 rounded-xl px-4 py-3 flex items-center justify-between shadow border border-white/30">
+                        <div>
+                            <span class="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded mr-2">{{ $at->code }}</span>
+                            <span class="text-sm font-semibold text-gray-600">{{ $at->name }}</span>
+                        </div>
+                        <form action="{{ route('account-types.toggle', [$country, $at]) }}" method="POST">
+                            @csrf @method('PATCH')
+                            <button type="submit" class="relative w-11 h-6 rounded-full bg-gray-200 focus:outline-none">
+                                <span class="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow"></span>
+                            </button>
+                        </form>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+
     {{-- ==================== TAB MÉTODOS DE PAGO ==================== --}}
     <div x-show="tab==='pagos'" x-cloak>
 
@@ -557,7 +666,7 @@
 
         <div x-show="formPagoOpen" x-cloak class="bg-white/90 rounded-2xl shadow border border-white/50 p-5 mb-4">
             <form action="{{ route('payment-methods.store', $country) }}" method="POST"
-                  class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                  class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
                 @csrf
                 <div>
                     <label class="block text-xs font-semibold text-cj-texto-claro mb-1 uppercase tracking-wider">Nombre *</label>
@@ -568,6 +677,14 @@
                     <label class="block text-xs font-semibold text-cj-texto-claro mb-1 uppercase tracking-wider">Código *</label>
                     <input type="text" name="code" required placeholder="Ej: transferencia_bancaria"
                            class="w-full p-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-cj-texto-claro mb-1 uppercase tracking-wider">Lado *</label>
+                    <select name="side" required class="w-full p-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                        <option value="sender">Remitente (envía)</option>
+                        <option value="recipient">Beneficiario (recibe)</option>
+                        <option value="both">Ambos</option>
+                    </select>
                 </div>
                 <div>
                     <button type="submit" class="w-full px-4 py-2.5 bg-cj-morado-profundo text-white rounded-xl font-semibold text-sm hover:bg-cj-morado-medio transition-all">
@@ -586,11 +703,18 @@
             @foreach($paymentMethods as $pm)
             <div class="bg-white/90 rounded-2xl shadow border border-white/50 px-5 py-4 flex items-center justify-between gap-4"
                  x-data="{ editPago: false }">
-                <div class="flex items-center gap-4 flex-1 min-w-0" x-show="!editPago">
+                <div class="flex items-center gap-3 flex-1 min-w-0" x-show="!editPago">
                     <span class="inline-flex items-center justify-center px-3 py-1.5 bg-cj-morado-claro rounded-xl font-bold font-mono text-cj-morado-profundo text-xs">
                         {{ $pm->code }}
                     </span>
                     <p class="font-semibold text-cj-texto">{{ $pm->name }}</p>
+                    @if($pm->side === 'sender')
+                        <span class="text-xs bg-blue-100 text-blue-700 font-bold rounded-full px-2 py-0.5">Remitente</span>
+                    @elseif($pm->side === 'recipient')
+                        <span class="text-xs bg-green-100 text-green-700 font-bold rounded-full px-2 py-0.5">Beneficiario</span>
+                    @else
+                        <span class="text-xs bg-gray-100 text-gray-600 font-bold rounded-full px-2 py-0.5">Ambos</span>
+                    @endif
                 </div>
 
                 <div x-show="editPago" x-cloak class="flex-1">
@@ -599,6 +723,11 @@
                         @csrf @method('PUT')
                         <input type="text" name="name" value="{{ $pm->name }}" placeholder="Nombre"
                                class="flex-1 p-2 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                        <select name="side" class="p-2 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                            <option value="sender" {{ $pm->side === 'sender' ? 'selected' : '' }}>Remitente</option>
+                            <option value="recipient" {{ $pm->side === 'recipient' ? 'selected' : '' }}>Beneficiario</option>
+                            <option value="both" {{ $pm->side === 'both' ? 'selected' : '' }}>Ambos</option>
+                        </select>
                         <button type="submit" class="px-3 py-2 bg-cj-morado-profundo text-white rounded-xl text-sm font-semibold">Guardar</button>
                         <button type="button" @click="editPago=false" class="px-3 py-2 bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold">✕</button>
                     </form>
@@ -637,6 +766,7 @@ function paisDetalle() {
         formCuentaOpen: false,
         formDocOpen: false,
         formPagoOpen: false,
+        formCuentaTipoOpen: false,
     }
 }
 
