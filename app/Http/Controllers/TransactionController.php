@@ -195,7 +195,6 @@ class TransactionController extends Controller
     {
         $user   = auth()->user()->load('assignedSeller.businessAccounts.bank');
         $seller = $user->assignedSeller;
-        $pairs  = $this->getCurrencyPairs();
 
         $sellerAccounts = $seller
             ? $seller->businessAccounts->where('active', true)->values()
@@ -203,7 +202,7 @@ class TransactionController extends Controller
 
         $bonusPreview = app(IncentiveService::class)->getReceptorPreview($user, 0);
 
-        return view('transactions.create', compact('pairs', 'seller', 'sellerAccounts', 'bonusPreview'));
+        return view('transactions.create', compact('seller', 'sellerAccounts', 'bonusPreview'));
     }
 
     /**
@@ -570,7 +569,6 @@ class TransactionController extends Controller
 
         $user   = auth()->user()->load('assignedSeller.businessAccounts.bank');
         $seller = $user->assignedSeller;
-        $pairs  = $this->getCurrencyPairs();
 
         $sellerAccounts = $seller
             ? $seller->businessAccounts->where('active', true)->values()
@@ -578,7 +576,7 @@ class TransactionController extends Controller
 
         $bonusPreview = app(IncentiveService::class)->getReceptorPreview($user, 0);
 
-        return view('transactions.create', compact('pairs', 'seller', 'sellerAccounts', 'bonusPreview', 'transaction'));
+        return view('transactions.create', compact('seller', 'sellerAccounts', 'bonusPreview', 'transaction'));
     }
 
     /**
