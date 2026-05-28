@@ -136,6 +136,7 @@ Route::middleware('auth')->group(function () {
     // Transacciones (cliente crea, admin/vendedor gestiona)
     Route::get('/transactions/seller-accounts',           [TransactionController::class, 'getSellerAccounts'])->name('transactions.sellerAccounts');
     Route::get('/transactions/document-types',            [TransactionController::class, 'getDocumentTypes'])->name('transactions.documentTypes');
+    Route::get('/transactions/payment-methods',           [TransactionController::class, 'getPaymentMethods'])->name('transactions.paymentMethods');
     Route::get('/transactions',                           [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/create',                    [TransactionController::class, 'create'])->name('transactions.create');
     Route::post('/transactions',                          [TransactionController::class, 'store'])->name('transactions.store');

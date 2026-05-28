@@ -312,34 +312,52 @@
                             🇻🇪 Receptor en Venezuela
                         </h4>
 
-                        <!-- Tipo de operación -->
+                        <!-- Tipo de operación (cargado dinámicamente por país destino) -->
                         <div class="mb-6">
                             <label class="block text-sm font-semibold text-cj-texto mb-3">Tipo de operación *</label>
                             <input type="hidden" name="operation_type" :value="opType">
-                            <div class="grid grid-cols-2 gap-3">
-                                <button type="button"
-                                        @click="opType = 'transferencia'"
-                                        :class="opType === 'transferencia'
-                                            ? 'border-cj-morado-profundo bg-cj-morado-profundo text-white shadow-lg'
-                                            : 'border-gray-200 bg-white text-cj-texto hover:border-cj-morado-profundo'"
-                                        class="flex flex-col items-center gap-2 p-4 border-2 rounded-xl transition-all">
-                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                                    </svg>
-                                    <span class="text-sm font-semibold">Transferencia Bancaria</span>
-                                </button>
-                                <button type="button"
-                                        @click="opType = 'pago_movil'"
-                                        :class="opType === 'pago_movil'
-                                            ? 'border-cj-turquesa bg-cj-turquesa text-white shadow-lg'
-                                            : 'border-gray-200 bg-white text-cj-texto hover:border-cj-turquesa'"
-                                        class="flex flex-col items-center gap-2 p-4 border-2 rounded-xl transition-all">
-                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                                    </svg>
-                                    <span class="text-sm font-semibold">Pago Móvil</span>
-                                </button>
-                            </div>
+
+                            {{-- Métodos dinámicos (cuando hay paymentMethods cargados) --}}
+                            <template x-if="paymentMethods.length > 0">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <template x-for="pm in paymentMethods" :key="pm.id">
+                                        <button type="button"
+                                                @click="opType = pm.code"
+                                                :class="opType === pm.code
+                                                    ? 'border-cj-morado-profundo bg-cj-morado-profundo text-white shadow-lg'
+                                                    : 'border-gray-200 bg-white text-cj-texto hover:border-cj-morado-profundo'"
+                                                class="flex flex-col items-center gap-2 p-4 border-2 rounded-xl transition-all">
+                                            <span class="text-2xl" x-text="pm.code === 'pago_movil' ? '📱' : '🏦'"></span>
+                                            <span class="text-sm font-semibold" x-text="pm.name"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </template>
+
+                            {{-- Fallback hardcodeado (sin país seleccionado o sin métodos configurados) --}}
+                            <template x-if="paymentMethods.length === 0">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button type="button"
+                                            @click="opType = 'transferencia'"
+                                            :class="opType === 'transferencia'
+                                                ? 'border-cj-morado-profundo bg-cj-morado-profundo text-white shadow-lg'
+                                                : 'border-gray-200 bg-white text-cj-texto hover:border-cj-morado-profundo'"
+                                            class="flex flex-col items-center gap-2 p-4 border-2 rounded-xl transition-all">
+                                        <span class="text-2xl">🏦</span>
+                                        <span class="text-sm font-semibold">Transferencia Bancaria</span>
+                                    </button>
+                                    <button type="button"
+                                            @click="opType = 'pago_movil'"
+                                            :class="opType === 'pago_movil'
+                                                ? 'border-cj-turquesa bg-cj-turquesa text-white shadow-lg'
+                                                : 'border-gray-200 bg-white text-cj-texto hover:border-cj-turquesa'"
+                                            class="flex flex-col items-center gap-2 p-4 border-2 rounded-xl transition-all">
+                                        <span class="text-2xl">📱</span>
+                                        <span class="text-sm font-semibold">Pago Móvil</span>
+                                    </button>
+                                </div>
+                            </template>
+
                             <p x-show="opType === 'pago_movil'" class="mt-2 text-xs text-cj-turquesa font-medium">
                                 Solo necesitas cédula, banco y teléfono — sin número de cuenta.
                             </p>
@@ -682,9 +700,10 @@
             opType: '{{ old('operation_type', $transaction->operation_type ?? 'transferencia') }}',
             acctType: '{{ old('recipient_account_type', $transaction->recipient_account_type ?? 'ahorro') }}',
 
-            // Países activos del par seleccionado (para cargar tipos de documento)
+            // Países activos del par seleccionado (para cargar tipos de documento y métodos de pago)
             fromCountryId: null,
             toCountryId: null,
+            paymentMethods: [],
 
             // Búsqueda de vendedor
             sellerCode: '',
@@ -791,6 +810,11 @@
                     this.fromCountryId = option.dataset.fromCountryId || null;
                     this.toCountryId   = option.dataset.toCountryId   || null;
                     this.recalculate();
+                    if (this.toCountryId) {
+                        fetch('/transactions/payment-methods?country_id=' + this.toCountryId)
+                            .then(r => r.json())
+                            .then(data => { this.paymentMethods = data; });
+                    }
                 }
             },
 

@@ -164,6 +164,22 @@ class TransactionController extends Controller
         return response()->json($types);
     }
 
+    public function getPaymentMethods(Request $request)
+    {
+        $countryId = $request->input('country_id');
+
+        if (!$countryId) {
+            return response()->json([]);
+        }
+
+        $methods = \App\Models\PaymentMethod::where('country_id', $countryId)
+            ->where('active', true)
+            ->orderBy('name')
+            ->get(['id', 'code', 'name']);
+
+        return response()->json($methods);
+    }
+
     /**
      * Show the form for creating a new resource.
      */
