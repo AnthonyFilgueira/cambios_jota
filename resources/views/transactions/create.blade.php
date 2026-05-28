@@ -75,6 +75,7 @@
                                         data-rate="{{ $pair['ves_rate'] }}"
                                         data-usd="{{ $pair['usd_rate'] }}"
                                         data-eur="{{ $pair['eur_rate'] }}"
+                                        data-from-currency-id="{{ $pair['from_currency_id'] ?? '' }}"
                                         data-from-country-id="{{ $pair['from_country_id'] ?? '' }}"
                                         data-to-country-id="{{ $pair['to_country_id'] ?? '' }}"
                                         data-from-symbol="{{ $pair['from_symbol'] ?? 'S/' }}"
@@ -700,7 +701,8 @@
             opType: '{{ old('operation_type', $transaction->operation_type ?? 'transferencia') }}',
             acctType: '{{ old('recipient_account_type', $transaction->recipient_account_type ?? 'ahorro') }}',
 
-            // Países activos del par seleccionado (para cargar tipos de documento y métodos de pago)
+            // Moneda y países del par seleccionado (para incentivos y métodos de pago)
+            fromCurrencyId: null,
             fromCountryId: null,
             toCountryId: null,
             paymentMethods: [],
@@ -804,11 +806,12 @@
                 const option = select.options[select.selectedIndex];
 
                 if (option && option.dataset.rate) {
-                    this.selectedRate = parseFloat(option.dataset.rate);
-                    this.usdBcvRate = parseFloat(option.dataset.usd);
-                    this.eurBcvRate = parseFloat(option.dataset.eur);
-                    this.fromCountryId = option.dataset.fromCountryId || null;
-                    this.toCountryId   = option.dataset.toCountryId   || null;
+                    this.selectedRate    = parseFloat(option.dataset.rate);
+                    this.usdBcvRate      = parseFloat(option.dataset.usd);
+                    this.eurBcvRate      = parseFloat(option.dataset.eur);
+                    this.fromCurrencyId  = option.dataset.fromCurrencyId ? parseInt(option.dataset.fromCurrencyId) : null;
+                    this.fromCountryId   = option.dataset.fromCountryId || null;
+                    this.toCountryId     = option.dataset.toCountryId   || null;
                     this.recalculate();
                     if (this.toCountryId) {
                         fetch('/transactions/payment-methods?country_id=' + this.toCountryId)
@@ -874,11 +877,14 @@
                 return 0;
             },
 
-            // Suma todos los bonos para el monto dado
+            // Suma todos los bonos para el monto dado, filtrado por moneda del par seleccionado
             calcularBonusTotal(monto) {
                 if (!monto || monto <= 0 || !this.bonusRules.length) return 0;
+                const applicable = this.bonusRules.filter(rule =>
+                    rule.currency_id === null || rule.currency_id === this.fromCurrencyId
+                );
                 return Math.round(
-                    this.bonusRules.reduce((sum, rule) => sum + this.calcularBonusRegla(rule, monto), 0) * 100
+                    applicable.reduce((sum, rule) => sum + this.calcularBonusRegla(rule, monto), 0) * 100
                 ) / 100;
             },
 

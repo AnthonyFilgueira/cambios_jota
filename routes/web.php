@@ -37,16 +37,17 @@ Route::get('/', function () {
         ->get()
         ->map(function ($rate) {
             return [
-                'id'           => $rate->id,
-                'from_code'    => $rate->currencyPair->fromCurrency->code,
-                'from_name'    => $rate->currencyPair->fromCurrency->name,
-                'from_country' => $rate->currencyPair->fromCurrency->country,
-                'from_symbol'  => $rate->currencyPair->fromCurrency->symbol,
-                'flag'         => $rate->currencyPair->fromCurrency->flag_emoji,
-                'ves_rate'     => $rate->ves_rate,
-                'usd_rate'     => $rate->usd_rate,
-                'eur_rate'     => $rate->eur_rate,
-                'is_active'    => $rate->is_active,
+                'id'              => $rate->id,
+                'from_currency_id'=> $rate->currencyPair->fromCurrency->id ?? null,
+                'from_code'       => $rate->currencyPair->fromCurrency->code,
+                'from_name'       => $rate->currencyPair->fromCurrency->name,
+                'from_country'    => $rate->currencyPair->fromCurrency->country,
+                'from_symbol'     => $rate->currencyPair->fromCurrency->symbol,
+                'flag'            => $rate->currencyPair->fromCurrency->flag_emoji,
+                'ves_rate'        => $rate->ves_rate,
+                'usd_rate'        => $rate->usd_rate,
+                'eur_rate'        => $rate->eur_rate,
+                'is_active'       => $rate->is_active,
             ];
         });
 

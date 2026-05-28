@@ -96,18 +96,19 @@ class TransactionController extends Controller
                 $to   = $rate->currencyPair->toCurrency   ?? null;
 
                 return [
-                    'id'              => $rate->id,
-                    'from_code'       => $from?->code    ?? 'N/A',
-                    'from_name'       => $from?->name    ?? 'N/A',
-                    'from_symbol'     => $from?->symbol  ?? '$',
-                    'from_country_id' => $from?->originCountry?->id ?? $from?->country_id ?? null,
-                    'to_code'         => $to?->code      ?? 'N/A',
-                    'to_name'         => $to?->name      ?? 'N/A',
-                    'to_symbol'       => $to?->symbol    ?? 'Bs.',
-                    'to_country_id'   => $to?->originCountry?->id ?? $to?->country_id ?? null,
-                    'ves_rate'        => $rate->ves_rate  ?? 0,
-                    'usd_rate'        => $rate->usd_rate  ?? 0,
-                    'eur_rate'        => $rate->eur_rate  ?? 0,
+                    'id'               => $rate->id,
+                    'from_currency_id' => $from?->id ?? null,
+                    'from_code'        => $from?->code    ?? 'N/A',
+                    'from_name'        => $from?->name    ?? 'N/A',
+                    'from_symbol'      => $from?->symbol  ?? '$',
+                    'from_country_id'  => $from?->originCountry?->id ?? $from?->country_id ?? null,
+                    'to_code'          => $to?->code      ?? 'N/A',
+                    'to_name'          => $to?->name      ?? 'N/A',
+                    'to_symbol'        => $to?->symbol    ?? 'Bs.',
+                    'to_country_id'    => $to?->originCountry?->id ?? $to?->country_id ?? null,
+                    'ves_rate'         => $rate->ves_rate  ?? 0,
+                    'usd_rate'         => $rate->usd_rate  ?? 0,
+                    'eur_rate'         => $rate->eur_rate  ?? 0,
                 ];
             });
     }

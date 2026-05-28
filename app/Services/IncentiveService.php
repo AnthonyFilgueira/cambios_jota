@@ -45,11 +45,12 @@ class IncentiveService
             'bonus_pen'     => round($bonusPen, 2),
             'effective_pen' => round($amountPen + $bonusPen, 2),
             'rules'         => $rules->values()->map(fn ($r) => [
-                'name'       => $r->name,
-                'value_label'=> $r->valueLabel(),
-                'type_icon'  => $r->typeIcon(),
-                'value_type' => $r->value_type,
-                'value'      => (float) $r->value,
+                'name'        => $r->name,
+                'value_label' => $r->valueLabel(),
+                'type_icon'   => $r->typeIcon(),
+                'value_type'  => $r->value_type,
+                'value'       => (float) $r->value,
+                'currency_id' => $r->currency_id,
             ]),
         ];
     }
