@@ -30,10 +30,15 @@ use App\Http\Controllers\SettingController;
 
 // Simulador público
 Route::get('/', function () {
-    $rates = ExchangeRate::getActive();
+    $bonusPreview = app(\App\Services\IncentiveService::class)->getReceptorPreview(auth()->user(), 0);
 
+    return view('welcome', compact('bonusPreview'));
+});
+
+// Endpoint público de pares de cambio activos (consumido via Axios)
+Route::get('/exchange-rates', function () {
     $pairs = \App\Models\ExchangeRate::with([
-            'currencyPair.fromCurrency.originCountry',
+            'currencyPair.fromCurrency',
             'currencyPair.toCurrency',
         ])
         ->whereNotNull('currency_pair_id')
@@ -42,32 +47,29 @@ Route::get('/', function () {
         ->map(function ($rate) {
             $from = $rate->currencyPair->fromCurrency;
             $to   = $rate->currencyPair->toCurrency;
-
             return [
                 'id'               => $rate->id,
-                'from_currency_id' => $from->id ?? null,
-                'from_code'        => $from->code,
-                'from_name'        => $from->name,
-                'from_country'     => $from->country,
-                'from_symbol'      => $from->symbol,
-                'from_country_id'  => $from->country_id,
-                'flag'             => $from->flag_emoji,
-                'to_code'          => $to->code       ?? 'VES',
-                'to_name'          => $to->name       ?? 'Bolívar Digital',
-                'to_symbol'        => $to->symbol     ?? 'Bs.',
-                'to_country'       => $to->country    ?? 'Venezuela',
-                'to_flag'          => $to->flag_emoji ?? '🇻🇪',
+                'from_currency_id' => $from?->id,
+                'from_code'        => $from?->code,
+                'from_name'        => $from?->name,
+                'from_symbol'      => $from?->symbol,
+                'from_flag'        => $from?->flag_emoji ?? '🏳',
+                'from_country'     => $from?->country    ?? '',
+                'from_country_id'  => $from?->country_id,
+                'to_code'          => $to?->code         ?? 'VES',
+                'to_name'          => $to?->name         ?? 'Bolívar Digital',
+                'to_symbol'        => $to?->symbol       ?? 'Bs.',
+                'to_flag'          => $to?->flag_emoji   ?? '🏳',
+                'to_country'       => $to?->country      ?? '',
+                'to_country_id'    => $to?->country_id,
                 'ves_rate'         => $rate->ves_rate,
                 'usd_rate'         => $rate->usd_rate,
                 'eur_rate'         => $rate->eur_rate,
                 'is_active'        => $rate->is_active,
             ];
         });
-
-    $bonusPreview = app(\App\Services\IncentiveService::class)->getReceptorPreview(auth()->user(), 0);
-
-    return view('welcome', compact('rates', 'pairs', 'bonusPreview'));
-});
+    return response()->json($pairs);
+})->name('exchange-rates');
 
 // API pública: buscar vendedor por código (usada en el formulario de transacción)
 Route::get('/api/sellers/search/{code}', function ($code) {
