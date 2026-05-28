@@ -147,8 +147,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions/{transaction}/edit',                  [TransactionController::class, 'edit'])->name('transactions.edit');
     Route::post('/transactions/{transaction}/update',               [TransactionController::class, 'update'])->name('transactions.update');
 
-    // Ventas (vendedor registra, admin aprueba)
+    // Reportes
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/conciliation', [ReportController::class, 'conciliation'])->name('reports.conciliation');
+    Route::get('reports/export/transactions', [ReportController::class, 'exportTransactions'])->name('reports.export.transactions');
+    Route::get('reports/export/conciliation', [ReportController::class, 'exportConciliation'])->name('reports.export.conciliation');
+
+    // Ventas (vendedor registra, admin aprueba)
     Route::resource('sales', SaleController::class);
     Route::get('sales-bulk',                              [SaleController::class, 'bulkCreate'])->name('sales.bulk.create');
     Route::post('sales/bulk',                             [SaleController::class, 'bulkStore'])->name('sales.bulk.store');
