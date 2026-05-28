@@ -37,6 +37,7 @@ Route::get('/', function () {
             'currencyPair.toCurrency',
         ])
         ->whereNotNull('currency_pair_id')
+        ->where('is_active', true)
         ->get()
         ->map(function ($rate) {
             $from = $rate->currencyPair->fromCurrency;
@@ -51,13 +52,15 @@ Route::get('/', function () {
                 'from_symbol'      => $from->symbol,
                 'from_country_id'  => $from->country_id,
                 'flag'             => $from->flag_emoji,
-                'to_code'          => $to->code     ?? 'VES',
-                'to_name'          => $to->name     ?? 'Bolívar Digital',
-                'to_symbol'        => $to->symbol   ?? 'Bs.',
+                'to_code'          => $to->code       ?? 'VES',
+                'to_name'          => $to->name       ?? 'Bolívar Digital',
+                'to_symbol'        => $to->symbol     ?? 'Bs.',
+                'to_country'       => $to->country    ?? 'Venezuela',
+                'to_flag'          => $to->flag_emoji ?? '🇻🇪',
                 'ves_rate'         => $rate->ves_rate,
-                'usd_rate'        => $rate->usd_rate,
-                'eur_rate'        => $rate->eur_rate,
-                'is_active'       => $rate->is_active,
+                'usd_rate'         => $rate->usd_rate,
+                'eur_rate'         => $rate->eur_rate,
+                'is_active'        => $rate->is_active,
             ];
         });
 

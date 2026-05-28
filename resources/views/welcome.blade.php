@@ -31,7 +31,7 @@
                         </div>
                         <div>
                             <h1 class="text-lg font-bold text-cj-texto">Cambios Jotta</h1>
-                            <p class="text-xs text-cj-texto-claro hidden sm:block">Envíos Perú - Venezuela</p>
+                            <p class="text-xs text-cj-texto-claro hidden sm:block">Envíos Internacionales</p>
                         </div>
                     </div>
 
@@ -118,8 +118,8 @@
                         <span x-text="currentPair.flag" class="text-2xl"></span>
                         <span x-text="currentPair.from_country" class="font-semibold text-cj-texto"></span>
                         <span class="text-cj-morado-profundo text-xl font-bold">→</span>
-                        <span class="font-semibold text-cj-texto">Venezuela</span>
-                        <span class="text-2xl">🇻🇪</span>
+                        <span class="font-semibold text-cj-texto" x-text="currentPair.to_country || 'Venezuela'"></span>
+                        <span class="text-2xl" x-text="currentPair.to_flag || '🇻🇪'"></span>
                     </div>
                 </div>
 
