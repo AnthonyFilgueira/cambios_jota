@@ -179,6 +179,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions/seller-accounts',           [TransactionController::class, 'getSellerAccounts'])->name('transactions.sellerAccounts');
     Route::get('/transactions/document-types',            [TransactionController::class, 'getDocumentTypes'])->name('transactions.documentTypes');
     Route::get('/transactions/payment-methods',           [TransactionController::class, 'getPaymentMethods'])->name('transactions.paymentMethods');
+    Route::get('/transactions/account-types',             [TransactionController::class, 'getAccountTypes'])->name('transactions.accountTypes');
     Route::get('/transactions/sender-banks',              [TransactionController::class, 'getSenderBanks'])->name('transactions.senderBanks');
     Route::get('/transactions/recipient-banks',           [TransactionController::class, 'getRecipientBanks'])->name('transactions.recipientBanks');
     Route::get('/transactions',                           [TransactionController::class, 'index'])->name('transactions.index');
@@ -249,6 +250,10 @@ Route::middleware('auth')->group(function () {
     Route::put('countries/{country}/payment-methods/{paymentMethod}',              [CountryController::class, 'updatePaymentMethod'])->name('payment-methods.update');
     Route::patch('countries/{country}/payment-methods/{paymentMethod}/toggle',     [CountryController::class, 'togglePaymentMethod'])->name('payment-methods.toggle');
     Route::delete('countries/{country}/payment-methods/{paymentMethod}',           [CountryController::class, 'destroyPaymentMethod'])->name('payment-methods.destroy');
+    Route::post('countries/{country}/account-types',                              [CountryController::class, 'storeAccountType'])->name('account-types.store');
+    Route::put('countries/{country}/account-types/{accountType}',                [CountryController::class, 'updateAccountType'])->name('account-types.update');
+    Route::patch('countries/{country}/account-types/{accountType}/toggle',       [CountryController::class, 'toggleAccountType'])->name('account-types.toggle');
+    Route::delete('countries/{country}/account-types/{accountType}',             [CountryController::class, 'destroyAccountType'])->name('account-types.destroy');
     Route::post('countries/{country}/document-types',                             [CountryController::class, 'storeDocumentType'])->name('document-types.store');
     Route::put('countries/{country}/document-types/{documentType}',              [CountryController::class, 'updateDocumentType'])->name('document-types.update');
     Route::patch('countries/{country}/document-types/{documentType}/toggle',     [CountryController::class, 'toggleDocumentType'])->name('document-types.toggle');

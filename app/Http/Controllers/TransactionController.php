@@ -143,17 +143,39 @@ class TransactionController extends Controller
     public function getPaymentMethods(Request $request)
     {
         $countryId = $request->input('country_id');
+        $side      = $request->input('side'); // 'sender' | 'recipient' | null (all)
 
-        if (!$countryId) {
+        if (! $countryId) {
             return response()->json([]);
         }
 
-        $methods = \App\Models\PaymentMethod::where('country_id', $countryId)
+        $query = \App\Models\PaymentMethod::where('country_id', $countryId)
             ->where('active', true)
-            ->orderBy('name')
-            ->get(['id', 'code', 'name']);
+            ->orderBy('name');
 
-        return response()->json($methods);
+        if ($side) {
+            $query->whereIn('side', [$side, 'both']);
+        }
+
+        return response()->json(
+            $query->get(['id', 'code', 'name', 'side', 'fields_required'])
+        );
+    }
+
+    public function getAccountTypes(Request $request)
+    {
+        $countryId = $request->input('country_id');
+
+        if (! $countryId) {
+            return response()->json([]);
+        }
+
+        return response()->json(
+            \App\Models\AccountType::where('country_id', $countryId)
+                ->where('active', true)
+                ->orderBy('name')
+                ->get(['id', 'code', 'name'])
+        );
     }
 
     public function getSenderBanks(Request $request)
