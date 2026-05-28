@@ -31,12 +31,16 @@ class Transaction extends Model
         'recipient_account_number',
         'recipient_account_type',
         'recipient_dni',
+        'recipient_document_type',
+        'recipient_document_number',
         'recipient_phone',
 
         // Datos de transferencia desde Perú
         'sender_bank',
         'sender_account_number',
         'sender_dni',
+        'sender_document_type',
+        'sender_document_number',
 
         // Tasas BCV (snapshot para historicidad)
         'usd_bcv_rate',
