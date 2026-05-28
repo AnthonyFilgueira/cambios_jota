@@ -130,8 +130,12 @@
                                 </div>
                                 <div>
                                     <p class="text-xs text-cj-texto-claro">{{ $transaction->created_at->format('d/m/Y H:i') }}</p>
-                                    <p class="text-lg font-bold text-cj-morado-profundo">S/ {{ number_format($transaction->amount_pen, 2) }}</p>
-                                    <p class="text-sm text-cj-turquesa font-semibold">→ Bs. {{ number_format($transaction->amount_ves, 2) }}</p>
+                                    @php
+                                        $fromSymbol = $transaction->exchangeRate?->currencyPair?->fromCurrency?->symbol ?? 'S/';
+                                        $toSymbol   = $transaction->exchangeRate?->currencyPair?->toCurrency?->symbol ?? 'Bs.';
+                                    @endphp
+                                    <p class="text-lg font-bold text-cj-morado-profundo">{{ $fromSymbol }} {{ number_format($transaction->amount_pen, 2) }}</p>
+                                    <p class="text-sm text-cj-turquesa font-semibold">→ {{ $toSymbol }} {{ number_format($transaction->amount_ves, 2) }}</p>
                                 </div>
                             </div>
                             <div class="text-right">

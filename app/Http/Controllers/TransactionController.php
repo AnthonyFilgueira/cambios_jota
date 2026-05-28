@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ExchangeRate;
+use App\Models\Seller;
 use App\Models\Transaction;
 use App\Models\TransactionLog;
 use App\Services\IncentiveService;
@@ -20,7 +22,12 @@ class TransactionController extends Controller
             $statusFilter = 'all';
         }
 
-        $query = Transaction::with(['seller', 'exchangeRate', 'logs'])
+        $query = Transaction::with([
+                'seller',
+                'exchangeRate.currencyPair.fromCurrency',
+                'exchangeRate.currencyPair.toCurrency',
+                'logs',
+            ])
             ->where('user_id', auth()->id())
             ->orderBy('created_at', 'desc');
 
@@ -91,20 +98,20 @@ class TransactionController extends Controller
             ->whereNotNull('currency_pair_id')
             ->where('is_active', true)
             ->get()
-            ->map(function($rate) {
+            ->map(function ($rate) {
                 $from = $rate->currencyPair->fromCurrency ?? null;
                 $to   = $rate->currencyPair->toCurrency   ?? null;
 
                 return [
                     'id'               => $rate->id,
                     'from_currency_id' => $from?->id ?? null,
-                    'from_code'        => $from?->code    ?? 'N/A',
-                    'from_name'        => $from?->name    ?? 'N/A',
-                    'from_symbol'      => $from?->symbol  ?? '$',
+                    'from_code'        => $from?->code   ?? 'N/A',
+                    'from_name'        => $from?->name   ?? 'N/A',
+                    'from_symbol'      => $from?->symbol ?? '$',
                     'from_country_id'  => $from?->originCountry?->id ?? $from?->country_id ?? null,
-                    'to_code'          => $to?->code      ?? 'N/A',
-                    'to_name'          => $to?->name      ?? 'N/A',
-                    'to_symbol'        => $to?->symbol    ?? 'Bs.',
+                    'to_code'          => $to?->code     ?? 'VES',
+                    'to_name'          => $to?->name     ?? 'Bolívar Digital',
+                    'to_symbol'        => $to?->symbol   ?? 'Bs.',
                     'to_country_id'    => $to?->originCountry?->id ?? $to?->country_id ?? null,
                     'ves_rate'         => $rate->ves_rate  ?? 0,
                     'usd_rate'         => $rate->usd_rate  ?? 0,
@@ -200,6 +207,43 @@ class TransactionController extends Controller
     }
 
     /**
+     * AJAX: Return seller accounts filtered by the origin country of the selected exchange rate.
+     */
+    public function getSellerAccounts(Request $request)
+    {
+        $sellerCode     = strtoupper(trim($request->get('seller_code', '')));
+        $exchangeRateId = $request->get('exchange_rate_id');
+
+        $seller = Seller::where('code', $sellerCode)->first();
+        if (!$seller) {
+            return response()->json(['accounts' => [], 'error' => 'Vendedor no encontrado'], 404);
+        }
+
+        $exchangeRate = ExchangeRate::with('currencyPair.fromCurrency')->find($exchangeRateId);
+        $fromCountryId = $exchangeRate?->currencyPair?->fromCurrency?->country_id;
+
+        $accounts = $seller->businessAccounts()
+            ->with('bank')
+            ->where('active', true)
+            ->when($fromCountryId, fn ($q) => $q->where('country_id', $fromCountryId))
+            ->get()
+            ->map(fn ($account) => [
+                'id'             => $account->id,
+                'alias'          => $account->alias,
+                'bank_name'      => $account->bank->name ?? '—',
+                'account_number' => $account->account_number,
+                'account_type'   => ucfirst($account->account_type),
+                'account_holder' => $account->account_holder,
+                'dni_ruc'        => $account->dni_ruc,
+            ]);
+
+        return response()->json([
+            'accounts'   => $accounts,
+            'country_id' => $fromCountryId,
+        ]);
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -272,6 +316,9 @@ class TransactionController extends Controller
         if ($seller->user) {
             $seller->user->notify(new \App\Notifications\NewTransactionForSeller($transaction));
         }
+
+        // Notificar al dueño/admin
+        $this->notifyOwners($transaction, 'created');
 
         return redirect()->route('transactions.confirmacion', $transaction)
             ->with('success', '¡Solicitud enviada! El vendedor ' . $seller->name . ' revisará tu comprobante.');
@@ -351,6 +398,9 @@ class TransactionController extends Controller
             );
         }
 
+        // Notificar al dueño/admin
+        $this->notifyOwners($transaction, 'completed');
+
         return redirect()->back()->with('success', '¡Transacción #' . $transaction->id . ' completada! El cliente y el vendedor han sido notificados.');
     }
 
@@ -385,6 +435,9 @@ class TransactionController extends Controller
             // Notificar al usuario
             $transaction->user->notify(new \App\Notifications\TransactionObserved($transaction));
 
+            // Notificar al dueño/admin
+            $this->notifyOwners($transaction, 'observed', $validated['observation']);
+
             return redirect()->back()->with('success', 'Transacción marcada como observada. El cliente ha sido notificado.');
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
@@ -418,6 +471,9 @@ class TransactionController extends Controller
             // Notificar al usuario
             $transaction->user->notify(new \App\Notifications\TransactionProcessed($transaction));
 
+            // Notificar al dueño/admin
+            $this->notifyOwners($transaction, 'processing');
+
             return redirect()->back()->with('success', 'Transacción marcada como en proceso. El cliente ha sido notificado.');
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
@@ -450,6 +506,9 @@ class TransactionController extends Controller
 
             // Notificar al usuario
             $transaction->user->notify(new \App\Notifications\TransactionCompleted($transaction));
+
+            // Notificar al dueño/admin
+            $this->notifyOwners($transaction, 'completed');
 
             return redirect()->back()->with('success', 'Transacción completada exitosamente. El cliente ha sido notificado.');
         } catch (\Exception $e) {
@@ -585,4 +644,5 @@ class TransactionController extends Controller
         return redirect()->route('transactions.index')
             ->with('success', '¡Solicitud corregida y reenviada al vendedor!');
     }
+
 }

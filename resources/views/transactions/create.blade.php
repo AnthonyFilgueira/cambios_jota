@@ -76,12 +76,14 @@
                                         data-usd="{{ $pair['usd_rate'] }}"
                                         data-eur="{{ $pair['eur_rate'] }}"
                                         data-from-currency-id="{{ $pair['from_currency_id'] ?? '' }}"
-                                        data-from-country-id="{{ $pair['from_country_id'] ?? '' }}"
-                                        data-to-country-id="{{ $pair['to_country_id'] ?? '' }}"
+                                        data-from-name="{{ $pair['from_name'] ?? '' }}"
                                         data-from-symbol="{{ $pair['from_symbol'] ?? 'S/' }}"
-                                        data-to-symbol="{{ $pair['to_symbol'] ?? 'Bs.' }}"
                                         data-from-code="{{ $pair['from_code'] }}"
-                                        data-to-code="{{ $pair['to_code'] ?? 'VES' }}">
+                                        data-from-country-id="{{ $pair['from_country_id'] ?? '' }}"
+                                        data-to-name="{{ $pair['to_name'] ?? '' }}"
+                                        data-to-symbol="{{ $pair['to_symbol'] ?? 'Bs.' }}"
+                                        data-to-code="{{ $pair['to_code'] ?? 'VES' }}"
+                                        data-to-country-id="{{ $pair['to_country_id'] ?? '' }}">
                                         {{ $pair['from_code'] }} → {{ $pair['to_code'] ?? 'VES' }} (1 {{ $pair['from_code'] }} = {{ number_format($pair['ves_rate'], 2) }} {{ $pair['to_symbol'] ?? 'Bs.' }})
                                     </option>
                                 @endforeach
@@ -115,53 +117,67 @@
                             <p class="text-xs text-cj-texto-claro mt-2">Tu vendedor fue asignado al registrarte y es permanente.</p>
                         </div>
 
-                        <!-- Cuentas del vendedor para depositar -->
-                        @if($sellerAccounts->isNotEmpty())
-                        <div class="mb-6 bg-green-50 border-2 border-green-300 rounded-xl p-5">
-                            <h5 class="text-sm font-bold text-green-800 mb-3 flex items-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                        <!-- Cuentas del vendedor para depositar (Alpine.js — se actualiza al cambiar el par) -->
+                        <div class="mb-6">
+                            <!-- Estado de carga -->
+                            <div x-show="loadingAccounts" class="flex items-center justify-center gap-2 py-6 text-cj-texto-claro">
+                                <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
                                 </svg>
-                                Cuentas habilitadas para tu depósito
-                            </h5>
-                            @foreach($sellerAccounts as $i => $account)
-                            <div class="bg-white rounded-xl p-4 mb-3 border border-green-200">
-                                <p class="text-xs uppercase tracking-wider text-green-700 font-bold mb-2">
-                                    {{ $i === 0 ? 'Cuenta Principal' : 'Cuenta Alternativa ' . $i }}
-                                </p>
-                                <div class="grid grid-cols-2 gap-3 text-sm">
-                                    <div>
-                                        <span class="text-gray-400 text-xs">Banco</span>
-                                        <p class="font-bold text-gray-900">{{ $account->bank->name ?? '—' }}</p>
-                                    </div>
-                                    <div>
-                                        <span class="text-gray-400 text-xs">Tipo</span>
-                                        <p class="font-semibold text-gray-900">{{ ucfirst($account->account_type ?? '—') }}</p>
-                                    </div>
-                                    <div class="col-span-2">
-                                        <span class="text-gray-400 text-xs">Nº de Cuenta</span>
-                                        <p class="font-mono font-bold text-lg text-green-700">{{ $account->account_number }}</p>
-                                    </div>
-                                    <div>
-                                        <span class="text-gray-400 text-xs">Titular</span>
-                                        <p class="font-semibold text-gray-900">{{ $account->account_holder }}</p>
+                                <span class="text-sm">Cargando cuentas...</span>
+                            </div>
+
+                            <!-- Cuentas disponibles -->
+                            <template x-if="!loadingAccounts && sellerAccountsDisplay.length > 0">
+                                <div class="bg-green-50 border-2 border-green-300 rounded-xl p-5">
+                                    <h5 class="text-sm font-bold text-green-800 mb-3 flex items-center gap-2">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                        </svg>
+                                        Cuentas habilitadas para tu depósito
+                                    </h5>
+                                    <template x-for="(account, i) in sellerAccountsDisplay" :key="account.id">
+                                        <div class="bg-white rounded-xl p-4 mb-3 border border-green-200">
+                                            <p class="text-xs uppercase tracking-wider text-green-700 font-bold mb-2"
+                                               x-text="i === 0 ? 'Cuenta Principal' : 'Cuenta Alternativa ' + i"></p>
+                                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                                <div>
+                                                    <span class="text-gray-400 text-xs">Banco</span>
+                                                    <p class="font-bold text-gray-900" x-text="account.bank_name || '—'"></p>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-400 text-xs">Tipo</span>
+                                                    <p class="font-semibold text-gray-900" x-text="account.account_type || '—'"></p>
+                                                </div>
+                                                <div class="col-span-2">
+                                                    <span class="text-gray-400 text-xs">Nº de Cuenta</span>
+                                                    <p class="font-mono font-bold text-lg text-green-700" x-text="account.account_number"></p>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-400 text-xs">Titular</span>
+                                                    <p class="font-semibold text-gray-900" x-text="account.account_holder"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-3">
+                                        <p class="text-xs text-yellow-800">
+                                            <strong>Importante:</strong> Deposita el monto exacto a una de estas cuentas y sube el comprobante más abajo.
+                                        </p>
                                     </div>
                                 </div>
-                            </div>
-                            @endforeach
-                            <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-3">
-                                <p class="text-xs text-yellow-800">
-                                    <strong>Importante:</strong> Deposita el monto exacto a una de estas cuentas y sube el comprobante más abajo.
-                                </p>
-                            </div>
+                            </template>
+
+                            <!-- Sin cuentas para este par -->
+                            <template x-if="!loadingAccounts && sellerAccountsDisplay.length === 0">
+                                <div class="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4">
+                                    <p class="text-sm text-yellow-800 font-medium">
+                                        ⚠️ Tu vendedor no tiene cuentas habilitadas para la divisa seleccionada. Contáctalo directamente.
+                                    </p>
+                                </div>
+                            </template>
                         </div>
-                        @else
-                        <div class="mb-6 bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4">
-                            <p class="text-sm text-yellow-800 font-medium">
-                                ⚠️ Tu vendedor aún no tiene cuentas asignadas. Contáctalo directamente.
-                            </p>
-                        </div>
-                        @endif
                         @else
                         <div class="mb-6 bg-red-50 border-2 border-red-300 rounded-xl p-4">
                             <p class="text-sm text-red-700 font-medium">
@@ -208,13 +224,14 @@
                                     </div>
                                 </div>
 
-                                <!-- Monto directo en PEN -->
+                                <!-- Monto directo en moneda de origen -->
                                 <div>
-                                    <label class="block text-xs uppercase tracking-wider font-semibold text-cj-texto-claro mb-2">
+                                    <label class="block text-xs uppercase tracking-wider font-semibold text-cj-texto-claro mb-2"
+                                           x-text="fromCode ? ('En ' + fromName + ' (' + fromCode + ') *') : 'Selecciona una tasa *'">
                                         En Soles (PEN) *
                                     </label>
                                     <div class="relative">
-                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-cj-texto-claro font-medium">S/.</span>
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-cj-texto-claro font-medium" x-text="fromSymbol || 'S/.'"></span>
                                         <input
                                             type="number"
                                             step="0.01"
@@ -240,7 +257,7 @@
                             <div class="bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio text-white rounded-xl p-5">
                                 <div class="text-xs uppercase tracking-widest opacity-90 mb-2 font-semibold">Tú envías</div>
                                 <div class="flex items-center gap-3 flex-wrap">
-                                    <span class="text-3xl font-bold">S/. <span x-text="formatMoney(amountPen)">0.00</span></span>
+                                    <span class="text-3xl font-bold"><span x-text="fromSymbol || 'S/.'"></span> <span x-text="formatMoney(amountPen)">0.00</span></span>
                                     <!-- Badge animado de bono -->
                                     <span x-show="bonusAmountPen > 0 && amountPen > 0"
                                           x-transition:enter="transition ease-out duration-300"
@@ -248,16 +265,16 @@
                                           x-transition:enter-end="opacity-100 scale-100"
                                           class="flex items-center gap-1.5 bg-yellow-400 text-yellow-900 font-black text-sm px-3 py-1.5 rounded-full shadow-lg animate-bounce">
                                         <span>🎁</span>
-                                        <span>+S/ <span x-text="bonusAmountPen.toFixed(2)"></span> BONO</span>
+                                        <span>+<span x-text="fromSymbol || 'S/'"></span> <span x-text="bonusAmountPen.toFixed(2)"></span> BONO</span>
                                     </span>
                                 </div>
-                                <div class="text-xs opacity-75 mt-1">Soles peruanos</div>
+                                <div class="text-xs opacity-75 mt-1" x-text="fromName || 'Moneda de origen'">Soles peruanos</div>
                                 <!-- Lista de bonos individuales -->
                                 <div x-show="bonusAmountPen > 0 && amountPen > 0" class="mt-3 space-y-1.5">
                                     <template x-for="rule in bonusRules" :key="rule.name">
                                         <div class="text-xs bg-white/15 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
                                             <span>🎁</span>
-                                            <span x-text="rule.name + ': +S/ ' + calcularBonusRegla(rule, amountPen).toFixed(2)"></span>
+                                            <span x-text="rule.name + ': +' + (fromSymbol || 'S/') + ' ' + calcularBonusRegla(rule, amountPen).toFixed(2)"></span>
                                         </div>
                                     </template>
                                 </div>
@@ -268,17 +285,17 @@
                                 <template x-if="bonusAmountPen <= 0 || amountPen <= 0">
                                     <div>
                                         <span class="text-xs text-cj-texto-claro uppercase tracking-wider">Tasa de conversión: </span>
-                                        <span class="text-base font-bold text-cj-morado-profundo font-mono">1 PEN = <span x-text="selectedRate.toFixed(2)">0.00</span> VES</span>
+                                        <span class="text-base font-bold text-cj-morado-profundo font-mono">1 <span x-text="fromCode || 'PEN'"></span> = <span x-text="selectedRate.toFixed(2)">0.00</span> <span x-text="toCode || 'VES'"></span></span>
                                     </div>
                                 </template>
                                 <template x-if="bonusAmountPen > 0 && amountPen > 0">
                                     <div class="space-y-1">
                                         <div class="text-sm font-medium text-cj-morado-profundo">
-                                            Base S/.<span x-text="formatMoney(amountPen)"></span>
-                                            + <span class="text-yellow-600 font-bold">🎁 S/.<span x-text="bonusAmountPen.toFixed(2)"></span> bono</span>
-                                            = <span class="font-black text-cj-turquesa">S/.<span x-text="formatMoney(amountPen + bonusAmountPen)"></span> efectivo</span>
+                                            Base <span x-text="fromSymbol || 'S/.'"></span><span x-text="formatMoney(amountPen)"></span>
+                                            + <span class="text-yellow-600 font-bold">🎁 <span x-text="fromSymbol || 'S/.'"></span><span x-text="bonusAmountPen.toFixed(2)"></span> bono</span>
+                                            = <span class="font-black text-cj-turquesa"><span x-text="fromSymbol || 'S/.'"></span><span x-text="formatMoney(amountPen + bonusAmountPen)"></span> efectivo</span>
                                         </div>
-                                        <div class="text-xs text-cj-texto-claro">1 PEN = <span x-text="selectedRate.toFixed(2)"></span> VES</div>
+                                        <div class="text-xs text-cj-texto-claro">1 <span x-text="fromCode || 'PEN'"></span> = <span x-text="selectedRate.toFixed(2)"></span> <span x-text="toCode || 'VES'"></span></div>
                                     </div>
                                 </template>
                             </div>
@@ -287,17 +304,17 @@
                             <div class="bg-gradient-to-br from-cj-turquesa to-cj-rosa text-white rounded-xl p-5">
                                 <div class="text-xs uppercase tracking-widest opacity-90 mb-2 font-semibold">Tu familiar recibe</div>
                                 <div class="text-3xl font-bold">
-                                    Bs. <span x-text="formatMoney(amountVes)">0.00</span>
+                                    <span x-text="toSymbol || 'Bs.'"></span> <span x-text="formatMoney(amountVes)">0.00</span>
                                 </div>
-                                <div class="text-xs opacity-90 mt-1">Bolívares venezolanos 🇻🇪</div>
+                                <div class="text-xs opacity-90 mt-1" x-text="toName || 'Bolívar Digital'">Bolívares venezolanos 🇻🇪</div>
                                 <!-- Comparativa sin bono / con bono -->
                                 <div x-show="bonusAmountPen > 0 && amountPen > 0"
                                      x-transition:enter="transition ease-out duration-500"
                                      x-transition:enter-start="opacity-0 translate-y-2"
                                      x-transition:enter-end="opacity-100 translate-y-0"
                                      class="mt-3 bg-white/15 rounded-xl px-4 py-3 space-y-1">
-                                    <div class="text-xs opacity-75 line-through">Sin bono: Bs. <span x-text="formatMoney(vesWithoutBonus)"></span></div>
-                                    <div class="text-sm font-black text-yellow-300">🎁 +Bs. <span x-text="formatMoney(Math.round(bonusAmountPen * selectedRate))"></span> extra gracias al bono</div>
+                                    <div class="text-xs opacity-75 line-through">Sin bono: <span x-text="toSymbol || 'Bs.'"></span> <span x-text="formatMoney(vesWithoutBonus)"></span></div>
+                                    <div class="text-sm font-black text-yellow-300">🎁 +<span x-text="toSymbol || 'Bs.'"></span> <span x-text="formatMoney(Math.round(bonusAmountPen * selectedRate))"></span> extra gracias al bono</div>
                                 </div>
                             </div>
                         </div>
@@ -689,6 +706,30 @@
             usdBcvRate: 0,
             eurBcvRate: 0,
 
+            // Moneda activa del par seleccionado
+            fromName: '',
+            fromSymbol: '',
+            fromCode: '',
+            fromCountryId: null,
+            toName: '',
+            toSymbol: '',
+            toCode: '',
+
+            // Cuentas del vendedor (reactivas al par de divisa)
+            sellerCode: '{{ $seller->code ?? '' }}',
+            sellerAccountsDisplay: @json(
+                $sellerAccounts->map(fn($a) => [
+                    'id'             => $a->id,
+                    'alias'          => $a->alias,
+                    'bank_name'      => $a->bank->name ?? '—',
+                    'account_number' => $a->account_number,
+                    'account_type'   => ucfirst($a->account_type),
+                    'account_holder' => $a->account_holder,
+                    'dni_ruc'        => $a->dni_ruc,
+                ])->values()
+            ),
+            loadingAccounts: false,
+
             // Bono activo (cargado desde backend)
             bonusRules: @json($bonusPreview['rules'] ?? []),
             bonusAmountPen: 0,
@@ -810,14 +851,36 @@
                     this.usdBcvRate      = parseFloat(option.dataset.usd);
                     this.eurBcvRate      = parseFloat(option.dataset.eur);
                     this.fromCurrencyId  = option.dataset.fromCurrencyId ? parseInt(option.dataset.fromCurrencyId) : null;
+                    this.fromName        = option.dataset.fromName      || '';
+                    this.fromSymbol      = option.dataset.fromSymbol    || '';
+                    this.fromCode        = option.dataset.fromCode      || '';
                     this.fromCountryId   = option.dataset.fromCountryId || null;
+                    this.toName          = option.dataset.toName        || '';
+                    this.toSymbol        = option.dataset.toSymbol      || '';
+                    this.toCode          = option.dataset.toCode        || '';
                     this.toCountryId     = option.dataset.toCountryId   || null;
                     this.recalculate();
+                    this.fetchSellerAccounts(select.value);
                     if (this.toCountryId) {
                         fetch('/transactions/payment-methods?country_id=' + this.toCountryId)
                             .then(r => r.json())
                             .then(data => { this.paymentMethods = data; });
                     }
+                }
+            },
+
+            async fetchSellerAccounts(exchangeRateId) {
+                if (!this.sellerCode || !exchangeRateId) return;
+                this.loadingAccounts = true;
+                try {
+                    const url = `/transactions/seller-accounts?seller_code=${encodeURIComponent(this.sellerCode)}&exchange_rate_id=${exchangeRateId}`;
+                    const res  = await fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+                    const data = await res.json();
+                    this.sellerAccountsDisplay = data.accounts || [];
+                } catch (e) {
+                    console.error('Error fetching seller accounts:', e);
+                } finally {
+                    this.loadingAccounts = false;
                 }
             },
 

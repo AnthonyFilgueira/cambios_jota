@@ -213,7 +213,7 @@
                 <div class="bg-cj-morado-medio text-white text-center py-3">
                     <div class="text-xs uppercase tracking-wider opacity-90 mb-1">Tasa de conversión</div>
                     <div class="font-mono text-lg font-bold">
-                        1 <span x-text="currentPair.from_code"></span> = <span x-text="currentPair.ves_rate.toFixed(2)">0.00</span> VES
+                        1 <span x-text="currentPair.from_code"></span> = <span x-text="currentPair.ves_rate.toFixed(2)">0.00</span> <span x-text="currentPair.to_code || 'VES'"></span>
                     </div>
                     <div x-show="bonusTotal > 0 && montoEnviar > 0" class="text-xs mt-1 opacity-80">
                         Base <span x-text="formatearMonto(montoEnviar)"></span> + 🎁 <span x-text="formatearMonto(bonusTotal)"></span> bono = <span x-text="formatearMonto(montoEnviar + bonusTotal)"></span> efectivo
@@ -224,17 +224,17 @@
                 <div class="bg-gradient-to-br from-cj-turquesa to-cj-rosa text-white p-6">
                     <div class="text-xs uppercase tracking-widest opacity-95 mb-2 font-semibold">Tu familiar recibe</div>
                     <div class="text-4xl font-bold flex items-center gap-2">
-                        Bs. <span x-text="formatearMonto(vesRecibir)">0.00</span>
+                        <span x-text="currentPair.to_symbol || 'Bs.'"></span> <span x-text="formatearMonto(vesRecibir)">0.00</span>
                         <span class="text-2xl">🇻🇪</span>
                     </div>
                     <!-- Comparativa con/sin bono -->
                     <div x-show="bonusTotal > 0 && montoEnviar > 0" class="mt-3">
                         <div class="flex items-center justify-between text-xs bg-black/20 rounded-xl px-3 py-2">
-                            <span class="opacity-80 line-through">Sin bono: Bs. <span x-text="formatearMonto(round(montoEnviar * currentPair.ves_rate))"></span></span>
-                            <span class="font-black text-yellow-300 text-sm">🎁 +Bs. <span x-text="formatearMonto(round(bonusTotal * currentPair.ves_rate))"></span> extra</span>
+                            <span class="opacity-80 line-through">Sin bono: <span x-text="currentPair.to_symbol || 'Bs.'"></span> <span x-text="formatearMonto(round(montoEnviar * currentPair.ves_rate))"></span></span>
+                            <span class="font-black text-yellow-300 text-sm">🎁 +<span x-text="currentPair.to_symbol || 'Bs.'"></span> <span x-text="formatearMonto(round(bonusTotal * currentPair.ves_rate))"></span> extra</span>
                         </div>
                     </div>
-                    <div class="text-xs opacity-90 mt-2">Bolívares venezolanos</div>
+                    <div class="text-xs opacity-90 mt-2" x-text="currentPair.to_name || 'Bolívar Digital'">Bolívares venezolanos</div>
                 </div>
 
                 <!-- Botón CTA -->
@@ -359,7 +359,7 @@
             document.addEventListener('alpine:init', () => {
                 Alpine.store('bonusModal', {
                     show: false,
-                    symbol: 'S/',
+                    symbol: '',
                     montoBase: '0.00',
                     rules: [],
                     vesConBono: '0.00',

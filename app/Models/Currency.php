@@ -14,6 +14,7 @@ class Currency extends Model
         'name',
         'symbol',
         'country',
+        'country_id',
         'is_active',
         'flag_emoji',
     ];
@@ -29,6 +30,11 @@ class Currency extends Model
     }
 
     // Relaciones
+    public function originCountry(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'country_id');
+    }
+
     public function pairsAsOrigin()
     {
         return $this->hasMany(CurrencyPair::class, 'from_currency_id');
