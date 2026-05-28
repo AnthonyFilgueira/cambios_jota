@@ -17,12 +17,12 @@ class PaymentMethodSeeder extends Seeder
             ->keyBy('code_iso');
 
         $methods = [
-            // ─── PERÚ (sender side) ───────────────────────────────────────
+            // ─── PERÚ (sender/recipient — es tanto origen como destino) ────
             'PE' => [
                 [
                     'code'            => 'transferencia_bancaria',
                     'name'            => 'Transferencia Bancaria',
-                    'side'            => 'sender',
+                    'side'            => 'both',
                     'fields_required' => ['bank', 'account_number', 'account_type'],
                 ],
                 [
@@ -34,13 +34,13 @@ class PaymentMethodSeeder extends Seeder
                 [
                     'code'            => 'yape',
                     'name'            => 'Yape',
-                    'side'            => 'sender',
+                    'side'            => 'both',
                     'fields_required' => ['phone'],
                 ],
                 [
                     'code'            => 'plin',
                     'name'            => 'Plin',
-                    'side'            => 'sender',
+                    'side'            => 'both',
                     'fields_required' => ['phone'],
                 ],
             ],
