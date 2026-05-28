@@ -350,7 +350,7 @@
                                 <div class="grid grid-cols-2 gap-3">
                                     <template x-for="pm in paymentMethods" :key="pm.id">
                                         <button type="button"
-                                                @click="opType = pm.code"
+                                                @click="selectRecipientMethod(pm)"
                                                 :class="opType === pm.code
                                                     ? 'border-cj-morado-profundo bg-cj-morado-profundo text-white shadow-lg'
                                                     : 'border-gray-200 bg-white text-cj-texto hover:border-cj-morado-profundo'"
@@ -362,36 +362,24 @@
                                 </div>
                             </template>
 
-                            {{-- Fallback hardcodeado (sin país seleccionado o sin métodos configurados) --}}
+                            {{-- Placeholder mientras cargan --}}
                             <template x-if="paymentMethods.length === 0">
-                                <div class="grid grid-cols-2 gap-3">
-                                    <button type="button"
-                                            @click="opType = 'transferencia'"
-                                            :class="opType === 'transferencia'
-                                                ? 'border-cj-morado-profundo bg-cj-morado-profundo text-white shadow-lg'
-                                                : 'border-gray-200 bg-white text-cj-texto hover:border-cj-morado-profundo'"
-                                            class="flex flex-col items-center gap-2 p-4 border-2 rounded-xl transition-all">
-                                        <span class="text-2xl">🏦</span>
-                                        <span class="text-sm font-semibold">Transferencia Bancaria</span>
-                                    </button>
-                                    <button type="button"
-                                            @click="opType = 'pago_movil'"
-                                            :class="opType === 'pago_movil'
-                                                ? 'border-cj-turquesa bg-cj-turquesa text-white shadow-lg'
-                                                : 'border-gray-200 bg-white text-cj-texto hover:border-cj-turquesa'"
-                                            class="flex flex-col items-center gap-2 p-4 border-2 rounded-xl transition-all">
-                                        <span class="text-2xl">📱</span>
-                                        <span class="text-sm font-semibold">Pago Móvil</span>
-                                    </button>
-                                </div>
+                                <p class="text-sm text-gray-400">Selecciona una tasa de cambio para ver los métodos de cobro disponibles.</p>
                             </template>
-
-                            <p x-show="opType === 'pago_movil'" class="mt-2 text-xs text-cj-turquesa font-medium">
-                                Solo necesitas cédula, banco y teléfono — sin número de cuenta.
-                            </p>
                         </div>
 
                         <div class="grid md:grid-cols-2 gap-6">
+                            <!-- Nombre completo del beneficiario (UNIVERSAL) -->
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-cj-texto mb-2">Nombre completo del beneficiario *</label>
+                                <input type="text" name="recipient_name"
+                                    value="{{ old('recipient_name', $transaction->recipient_name ?? '') }}"
+                                    required
+                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                    placeholder="Nombre completo del titular de la cuenta">
+                                @error('recipient_name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
                             <!-- Documento del titular receptor -->
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
@@ -418,15 +406,16 @@
                                         value="{{ old('recipient_document_number', $transaction->recipient_document_number ?? $transaction->recipient_dni ?? '') }}"
                                         required
                                         class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
-                                        placeholder="V-12345678">
+                                        placeholder="Número de documento">
                                     @error('recipient_document_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                                 </div>
                             </div>
 
-                            <!-- Banco receptor (dinámico según país destino) -->
-                            <div>
+                            <!-- Banco receptor (condicional: recipientFields incluye 'bank') -->
+                            <div x-show="recipientFields.includes('bank')">
                                 <label for="recipient_bank" class="block text-sm font-medium text-cj-texto mb-2">Banco receptor *</label>
-                                <select name="recipient_bank" id="recipient_bank" required
+                                <select name="recipient_bank" id="recipient_bank"
+                                    :required="recipientFields.includes('bank')"
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
                                     :disabled="loadingRecipientBanks">
                                     <option value="">Selecciona banco</option>
@@ -443,51 +432,44 @@
                                 @error('recipient_bank')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
-                            <!-- Teléfono del titular -->
-                            <div>
+                            <!-- Teléfono del titular (condicional: recipientFields incluye 'phone') -->
+                            <div x-show="recipientFields.includes('phone')">
                                 <label for="recipient_phone" class="block text-sm font-medium text-cj-texto mb-2">Teléfono del titular *</label>
                                 <input type="tel" name="recipient_phone" id="recipient_phone"
-                                    value="{{ old('recipient_phone', $transaction->recipient_phone ?? '') }}" required
+                                    value="{{ old('recipient_phone', $transaction->recipient_phone ?? '') }}"
+                                    :required="recipientFields.includes('phone')"
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
-                                    placeholder="0412-1234567">
+                                    placeholder="Teléfono del titular">
                                 @error('recipient_phone')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
-                            <!-- Número de cuenta (solo Transferencia) -->
-                            <div x-show="opType === 'transferencia'" x-cloak>
+                            <!-- Número de cuenta (condicional: recipientFields incluye 'account_number') -->
+                            <div x-show="recipientFields.includes('account_number')">
                                 <label for="recipient_account_number" class="block text-sm font-medium text-cj-texto mb-2">
                                     Número de cuenta *
                                 </label>
                                 <input type="text" name="recipient_account_number" id="recipient_account_number"
                                     value="{{ old('recipient_account_number', $transaction->recipient_account_number ?? '') }}"
-                                    :required="opType === 'transferencia'"
+                                    :required="recipientFields.includes('account_number')"
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
-                                    placeholder="0102-0000-00-0000123456">
+                                    placeholder="Número de cuenta">
                                 @error('recipient_account_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
-                            <!-- Tipo de cuenta (solo Transferencia) -->
-                            <div x-show="opType === 'transferencia'" x-cloak>
-                                <label for="recipient_account_type" class="block text-sm font-medium text-cj-texto mb-2">
-                                    Tipo de cuenta *
-                                </label>
+                            <!-- Tipo de cuenta DINÁMICO (condicional: recipientFields incluye 'account_type') -->
+                            <div x-show="recipientFields.includes('account_type') && accountTypes.length > 0">
+                                <label class="block text-sm font-medium text-cj-texto mb-2">Tipo de cuenta *</label>
                                 <div class="flex gap-3 mt-1">
-                                    <label class="flex-1 flex items-center gap-2 border-2 rounded-xl p-3 cursor-pointer transition-all"
-                                           :class="acctType === 'ahorro' ? 'border-cj-turquesa bg-cj-turquesa/5' : 'border-gray-200'">
-                                        <input type="radio" name="recipient_account_type" value="ahorro"
-                                               @change="acctType = 'ahorro'"
-                                               :checked="acctType === 'ahorro'"
-                                               class="text-cj-turquesa">
-                                        <span class="text-sm font-medium">Ahorro</span>
-                                    </label>
-                                    <label class="flex-1 flex items-center gap-2 border-2 rounded-xl p-3 cursor-pointer transition-all"
-                                           :class="acctType === 'corriente' ? 'border-cj-turquesa bg-cj-turquesa/5' : 'border-gray-200'">
-                                        <input type="radio" name="recipient_account_type" value="corriente"
-                                               @change="acctType = 'corriente'"
-                                               :checked="acctType === 'corriente'"
-                                               class="text-cj-turquesa">
-                                        <span class="text-sm font-medium">Corriente</span>
-                                    </label>
+                                    <template x-for="at in accountTypes" :key="at.code">
+                                        <label class="flex-1 flex items-center gap-2 border-2 rounded-xl p-3 cursor-pointer transition-all"
+                                               :class="acctType === at.code ? 'border-cj-turquesa bg-cj-turquesa/5' : 'border-gray-200'">
+                                            <input type="radio" name="recipient_account_type" :value="at.code"
+                                                   @change="acctType = at.code"
+                                                   :checked="acctType === at.code"
+                                                   class="text-cj-turquesa">
+                                            <span class="text-sm font-medium" x-text="at.name"></span>
+                                        </label>
+                                    </template>
                                 </div>
                                 @error('recipient_account_type')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
@@ -507,8 +489,26 @@
                             <span x-text="fromFlag || '🌍'"></span> Tu transferencia desde <span x-text="fromCountry || fromCode || 'origen'">Perú</span>
                         </h4>
 
+                        <!-- Selector tipo de operación remitente -->
+                        <div class="mb-6" x-show="senderPaymentMethods.length > 0">
+                            <label class="block text-sm font-semibold text-cj-texto mb-3">¿Cómo vas a depositar? *</label>
+                            <input type="hidden" name="sender_operation_type" x-model="senderOpType">
+                            <div class="grid grid-cols-2 gap-3">
+                                <template x-for="pm in senderPaymentMethods" :key="pm.id">
+                                    <button type="button"
+                                            @click="selectSenderMethod(pm)"
+                                            :class="senderOpType === pm.code
+                                                ? 'border-cj-morado-profundo bg-cj-morado-profundo/10 text-cj-morado-profundo font-semibold'
+                                                : 'border-gray-200 text-gray-600 hover:border-cj-morado-profundo'"
+                                            class="border-2 rounded-xl p-3 text-sm transition-all text-center">
+                                        <span x-text="pm.name"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
                         <div class="grid md:grid-cols-2 gap-6">
-                            <!-- Documento del titular que transfiere -->
+                            <!-- Documento del titular que transfiere (UNIVERSAL) -->
                             <div class="md:col-span-2 grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-sm font-medium text-cj-texto mb-2">Tipo de documento *</label>
@@ -534,15 +534,27 @@
                                         value="{{ old('sender_document_number', $transaction->sender_document_number ?? $transaction->sender_dni ?? '') }}"
                                         required
                                         class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
-                                        placeholder="12345678">
+                                        placeholder="Número de documento">
                                     @error('sender_document_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                                 </div>
                             </div>
 
-                            <!-- Banco origen (dinámico según país de la moneda origen) -->
-                            <div>
-                                <label for="sender_bank" class="block text-sm font-medium text-cj-texto mb-2">Banco desde donde transferiste *</label>
-                                <select name="sender_bank" id="sender_bank" required
+                            <!-- Teléfono remitente (Yape/Plin/PIX — condicional) -->
+                            <div class="md:col-span-2" x-show="senderFields.includes('phone')">
+                                <label class="block text-sm font-medium text-cj-texto mb-2">Teléfono del remitente *</label>
+                                <input type="tel" name="sender_phone"
+                                    value="{{ old('sender_phone', $transaction->sender_phone ?? '') }}"
+                                    :required="senderFields.includes('phone')"
+                                    class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
+                                    placeholder="Teléfono del remitente">
+                                @error('sender_phone')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <!-- Banco origen (condicional: senderFields incluye 'bank') -->
+                            <div x-show="senderFields.includes('bank')">
+                                <label for="sender_bank" class="block text-sm font-medium text-cj-texto mb-2">Banco desde donde depositas *</label>
+                                <select name="sender_bank" id="sender_bank"
+                                    :required="senderFields.includes('bank')"
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
                                     :disabled="loadingSenderBanks">
                                     <option value="">Selecciona banco</option>
@@ -560,28 +572,28 @@
                                 @error('sender_bank')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
-                            <!-- Nº cuenta origen (opcional) -->
-                            <div>
+                            <!-- Nº cuenta origen (condicional: senderFields incluye 'account_number') -->
+                            <div x-show="senderFields.includes('account_number')">
                                 <label for="sender_account_number" class="block text-sm font-medium text-cj-texto mb-2">
-                                    Nº de cuenta origen <span class="text-cj-texto-claro font-normal">(opcional)</span>
+                                    Nº de cuenta origen
                                 </label>
                                 <input type="text" name="sender_account_number" id="sender_account_number"
                                     value="{{ old('sender_account_number', $transaction->sender_account_number ?? '') }}"
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
-                                    placeholder="000-000000-0-00">
+                                    placeholder="Número de cuenta">
                                 @error('sender_account_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
-                            <!-- Número de operación bancaria (solo transferencia) -->
-                            <div class="md:col-span-2" x-show="opType === 'transferencia'" x-cloak>
+                            <!-- Número de operación (UNIVERSAL — siempre visible) -->
+                            <div class="md:col-span-2">
                                 <label for="operation_number" class="block text-sm font-medium text-cj-texto mb-2">
-                                    Número de operación <span class="text-cj-texto-claro font-normal">(opcional)</span>
+                                    Número de operación
                                 </label>
                                 <input type="text" name="operation_number" id="operation_number"
                                     value="{{ old('operation_number', $transaction->operation_number ?? '') }}"
                                     class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all"
-                                    placeholder="Ej: 123456789">
-                                <p class="mt-1 text-xs text-cj-texto-claro">Número de referencia o constancia que te dio el banco</p>
+                                    placeholder="Número de referencia o constancia">
+                                <p class="mt-1 text-xs text-cj-texto-claro">Número que te dio el banco, app o agente al hacer el depósito</p>
                                 @error('operation_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
@@ -756,9 +768,18 @@
             inputUSD: '',
             inputEUR: '',
 
-            // Tipo de operación Venezuela
-            opType: '{{ old('operation_type', $transaction->operation_type ?? 'transferencia') }}',
-            acctType: '{{ old('recipient_account_type', $transaction->recipient_account_type ?? 'ahorro') }}',
+            // Tipo de operación receptor
+            opType: '{{ old('operation_type', $transaction->operation_type ?? '') }}',
+            acctType: '{{ old('recipient_account_type', $transaction->recipient_account_type ?? '') }}',
+            recipientFields: [],
+
+            // Tipo de operación remitente
+            senderOpType: '{{ old('sender_operation_type', $transaction->sender_operation_type ?? '') }}',
+            senderPaymentMethods: [],
+            senderFields: [],
+
+            // Tipos de cuenta dinámicos (país destino)
+            accountTypes: [],
 
             // Tipos de documento y bancos (cargados en onRateChange — scope padre)
             docTypes: [],
@@ -910,9 +931,19 @@
                 this.recalculate();
                 this.fetchSellerAccounts(this.selectedRateId);
                 if (this.toCountryId) {
-                    axios.get('/transactions/payment-methods?country_id=' + this.toCountryId)
-                        .then(r => { this.paymentMethods = r.data; });
+                    axios.get('/transactions/payment-methods?country_id=' + this.toCountryId + '&side=recipient')
+                        .then(r => {
+                            this.paymentMethods = r.data;
+                            const pm = r.data.find(p => p.code === this.opType);
+                            if (pm) {
+                                this.recipientFields = Array.isArray(pm.fields_required) ? pm.fields_required : [];
+                            } else if (r.data.length > 0) {
+                                this.selectRecipientMethod(r.data[0]);
+                            }
+                        });
                 }
+                this.fetchSenderPaymentMethods(this.fromCountryId);
+                this.fetchRecipientAccountTypes(this.toCountryId);
                 this.fetchSenderDocTypes(this.fromCountryId);
                 this.fetchRecipientDocTypes(this.toCountryId);
                 this.fetchSenderBanksData(this.fromCountryId);
@@ -945,6 +976,35 @@
                 this.loadingRecipientBanks = true;
                 this.recipientBanks = (await axios.get('/transactions/recipient-banks?country_id=' + countryId)).data;
                 this.loadingRecipientBanks = false;
+            },
+
+            selectRecipientMethod(pm) {
+                this.opType = pm.code;
+                this.recipientFields = Array.isArray(pm.fields_required) ? pm.fields_required : [];
+            },
+
+            selectSenderMethod(pm) {
+                this.senderOpType = pm.code;
+                this.senderFields = Array.isArray(pm.fields_required) ? pm.fields_required : [];
+            },
+
+            async fetchSenderPaymentMethods(countryId) {
+                if (!countryId) { this.senderPaymentMethods = []; this.senderFields = []; return; }
+                const r = await axios.get('/transactions/payment-methods?country_id=' + countryId + '&side=sender');
+                this.senderPaymentMethods = r.data;
+                if (this.senderOpType) {
+                    const pm = r.data.find(p => p.code === this.senderOpType);
+                    if (pm) this.senderFields = Array.isArray(pm.fields_required) ? pm.fields_required : [];
+                } else if (r.data.length === 1) {
+                    this.selectSenderMethod(r.data[0]);
+                }
+            },
+
+            async fetchRecipientAccountTypes(countryId) {
+                if (!countryId) { this.accountTypes = []; return; }
+                const r = await axios.get('/transactions/account-types?country_id=' + countryId);
+                this.accountTypes = r.data;
+                if (r.data.length > 0 && !this.acctType) this.acctType = r.data[0].code;
             },
 
             async fetchSellerAccounts(exchangeRateId) {
