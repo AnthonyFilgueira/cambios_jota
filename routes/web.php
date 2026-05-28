@@ -200,6 +200,10 @@ Route::middleware('auth')->group(function () {
     Route::get('countries/{country}',                                  [CountryController::class, 'show'])->name('countries.show');
     Route::put('countries/{country}',                                  [CountryController::class, 'update'])->name('countries.update');
     Route::patch('countries/{country}/toggle-active',                  [CountryController::class, 'toggleActive'])->name('countries.toggleActive');
+    Route::post('countries/{country}/payment-methods',                             [CountryController::class, 'storePaymentMethod'])->name('payment-methods.store');
+    Route::put('countries/{country}/payment-methods/{paymentMethod}',              [CountryController::class, 'updatePaymentMethod'])->name('payment-methods.update');
+    Route::patch('countries/{country}/payment-methods/{paymentMethod}/toggle',     [CountryController::class, 'togglePaymentMethod'])->name('payment-methods.toggle');
+    Route::delete('countries/{country}/payment-methods/{paymentMethod}',           [CountryController::class, 'destroyPaymentMethod'])->name('payment-methods.destroy');
     Route::post('countries/{country}/document-types',                             [CountryController::class, 'storeDocumentType'])->name('document-types.store');
     Route::put('countries/{country}/document-types/{documentType}',              [CountryController::class, 'updateDocumentType'])->name('document-types.update');
     Route::patch('countries/{country}/document-types/{documentType}/toggle',     [CountryController::class, 'toggleDocumentType'])->name('document-types.toggle');

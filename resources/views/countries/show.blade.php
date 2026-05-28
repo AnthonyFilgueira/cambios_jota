@@ -43,6 +43,11 @@
                 class="px-4 py-2 rounded-lg text-sm font-bold transition-all">
                 🪪 Tipos de documento
             </button>
+            <button @click="tab='pagos'"
+                :class="tab==='pagos' ? 'bg-white/20 text-white' : 'text-purple-300 hover:text-white'"
+                class="px-4 py-2 rounded-lg text-sm font-bold transition-all">
+                💳 Métodos de pago
+            </button>
         </div>
     </div>
 
@@ -535,6 +540,90 @@
         @endif
     </div>
 
+    {{-- ==================== TAB MÉTODOS DE PAGO ==================== --}}
+    <div x-show="tab==='pagos'" x-cloak>
+
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-bold text-cj-morado-profundo">💳 Métodos de pago</h3>
+            <button @click="formPagoOpen=!formPagoOpen"
+                    :class="formPagoOpen ? 'bg-cj-morado-profundo text-white' : 'bg-white text-cj-morado-profundo border border-cj-morado-profundo/30'"
+                    class="px-4 py-2 rounded-xl text-sm font-bold transition-all">
+                + Agregar método
+            </button>
+        </div>
+
+        <div x-show="formPagoOpen" x-cloak class="bg-white/90 rounded-2xl shadow border border-white/50 p-5 mb-4">
+            <form action="{{ route('payment-methods.store', $country) }}" method="POST"
+                  class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                @csrf
+                <div>
+                    <label class="block text-xs font-semibold text-cj-texto-claro mb-1 uppercase tracking-wider">Nombre *</label>
+                    <input type="text" name="name" required placeholder="Ej: Transferencia Bancaria"
+                           class="w-full p-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-cj-texto-claro mb-1 uppercase tracking-wider">Código *</label>
+                    <input type="text" name="code" required placeholder="Ej: transferencia_bancaria"
+                           class="w-full p-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                </div>
+                <div>
+                    <button type="submit" class="w-full px-4 py-2.5 bg-cj-morado-profundo text-white rounded-xl font-semibold text-sm hover:bg-cj-morado-medio transition-all">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        @if($paymentMethods->isEmpty())
+        <div class="bg-white/60 rounded-2xl p-8 text-center text-cj-texto-claro">
+            No hay métodos de pago para este país.
+        </div>
+        @else
+        <div class="space-y-2">
+            @foreach($paymentMethods as $pm)
+            <div class="bg-white/90 rounded-2xl shadow border border-white/50 px-5 py-4 flex items-center justify-between gap-4"
+                 x-data="{ editPago: false }">
+                <div class="flex items-center gap-4 flex-1 min-w-0" x-show="!editPago">
+                    <span class="inline-flex items-center justify-center px-3 py-1.5 bg-cj-morado-claro rounded-xl font-bold font-mono text-cj-morado-profundo text-xs">
+                        {{ $pm->code }}
+                    </span>
+                    <p class="font-semibold text-cj-texto">{{ $pm->name }}</p>
+                </div>
+
+                <div x-show="editPago" x-cloak class="flex-1">
+                    <form action="{{ route('payment-methods.update', [$country, $pm]) }}" method="POST"
+                          class="flex gap-3 items-center">
+                        @csrf @method('PUT')
+                        <input type="text" name="name" value="{{ $pm->name }}" placeholder="Nombre"
+                               class="flex-1 p-2 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                        <button type="submit" class="px-3 py-2 bg-cj-morado-profundo text-white rounded-xl text-sm font-semibold">Guardar</button>
+                        <button type="button" @click="editPago=false" class="px-3 py-2 bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold">✕</button>
+                    </form>
+                </div>
+
+                <div x-show="!editPago" class="flex items-center gap-2 flex-shrink-0">
+                    <button type="button" @click="editPago=true"
+                            class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition-all">
+                        Editar
+                    </button>
+                    <form action="{{ route('payment-methods.toggle', [$country, $pm]) }}" method="POST">
+                        @csrf @method('PATCH')
+                        <button type="submit" class="relative w-11 h-6 rounded-full transition-colors {{ $pm->active ? 'bg-cj-turquesa' : 'bg-gray-200' }} focus:outline-none">
+                            <span class="absolute top-0.5 transition-transform {{ $pm->active ? 'translate-x-5' : 'translate-x-0.5' }} h-5 w-5 rounded-full bg-white shadow"></span>
+                        </button>
+                    </form>
+                    <form action="{{ route('payment-methods.destroy', [$country, $pm]) }}" method="POST"
+                          onsubmit="return confirm('¿Eliminar este método de pago?')">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="px-2 py-1.5 text-red-400 hover:text-red-600 transition-all text-xs">✕</button>
+                    </form>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
+    </div>
+
 </div>
 
 <script>
@@ -544,6 +633,7 @@ function paisDetalle() {
         formBancoOpen: false,
         formCuentaOpen: false,
         formDocOpen: false,
+        formPagoOpen: false,
     }
 }
 
