@@ -198,6 +198,10 @@ Route::middleware('auth')->group(function () {
     Route::get('countries/{country}',                                  [CountryController::class, 'show'])->name('countries.show');
     Route::put('countries/{country}',                                  [CountryController::class, 'update'])->name('countries.update');
     Route::patch('countries/{country}/toggle-active',                  [CountryController::class, 'toggleActive'])->name('countries.toggleActive');
+    Route::post('countries/{country}/document-types',                             [CountryController::class, 'storeDocumentType'])->name('document-types.store');
+    Route::put('countries/{country}/document-types/{documentType}',              [CountryController::class, 'updateDocumentType'])->name('document-types.update');
+    Route::patch('countries/{country}/document-types/{documentType}/toggle',     [CountryController::class, 'toggleDocumentType'])->name('document-types.toggle');
+    Route::delete('countries/{country}/document-types/{documentType}',           [CountryController::class, 'destroyDocumentType'])->name('document-types.destroy');
     Route::post('countries/{country}/banks',                           [BankController::class, 'store'])->name('banks.store');
     Route::put('countries/{country}/banks/{bank}',                     [BankController::class, 'update'])->name('banks.update');
     Route::patch('countries/{country}/banks/{bank}/toggle-active',     [BankController::class, 'toggleActive'])->name('banks.toggleActive');
