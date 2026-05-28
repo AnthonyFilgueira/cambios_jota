@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ExchangeRate;
+use App\Models\Seller;
 use App\Models\Transaction;
 use App\Models\TransactionLog;
 use App\Services\IncentiveService;
@@ -132,6 +134,43 @@ class TransactionController extends Controller
         $bonusPreview = app(IncentiveService::class)->getReceptorPreview($user, 0);
 
         return view('transactions.create', compact('pairs', 'seller', 'sellerAccounts', 'bonusPreview'));
+    }
+
+    /**
+     * AJAX: Return seller accounts filtered by the origin country of the selected exchange rate.
+     */
+    public function getSellerAccounts(Request $request)
+    {
+        $sellerCode     = strtoupper(trim($request->get('seller_code', '')));
+        $exchangeRateId = $request->get('exchange_rate_id');
+
+        $seller = Seller::where('code', $sellerCode)->first();
+        if (!$seller) {
+            return response()->json(['accounts' => [], 'error' => 'Vendedor no encontrado'], 404);
+        }
+
+        $exchangeRate = ExchangeRate::with('currencyPair.fromCurrency')->find($exchangeRateId);
+        $fromCountryId = $exchangeRate?->currencyPair?->fromCurrency?->country_id;
+
+        $accounts = $seller->businessAccounts()
+            ->with('bank')
+            ->where('active', true)
+            ->when($fromCountryId, fn ($q) => $q->where('country_id', $fromCountryId))
+            ->get()
+            ->map(fn ($account) => [
+                'id'             => $account->id,
+                'alias'          => $account->alias,
+                'bank_name'      => $account->bank->name ?? '—',
+                'account_number' => $account->account_number,
+                'account_type'   => ucfirst($account->account_type),
+                'account_holder' => $account->account_holder,
+                'dni_ruc'        => $account->dni_ruc,
+            ]);
+
+        return response()->json([
+            'accounts'   => $accounts,
+            'country_id' => $fromCountryId,
+        ]);
     }
 
     /**
