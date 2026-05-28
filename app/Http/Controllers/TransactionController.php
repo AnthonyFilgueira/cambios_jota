@@ -84,19 +84,29 @@ class TransactionController extends Controller
      */
     private function getCurrencyPairs()
     {
-        return \App\Models\ExchangeRate::with(['currencyPair.fromCurrency', 'currencyPair.toCurrency'])
+        return \App\Models\ExchangeRate::with([
+            'currencyPair.fromCurrency.originCountry',
+            'currencyPair.toCurrency',
+        ])
             ->whereNotNull('currency_pair_id')
             ->where('is_active', true)
             ->get()
-            ->map(function($rate) {
+            ->map(function ($rate) {
+                $from = $rate->currencyPair->fromCurrency;
+                $to   = $rate->currencyPair->toCurrency;
+
                 return [
-                    'id' => $rate->id,
-                    'from_code' => $rate->currencyPair->fromCurrency->code ?? 'N/A',
-                    'from_name' => $rate->currencyPair->fromCurrency->name ?? 'N/A',
-                    'from_symbol' => $rate->currencyPair->fromCurrency->symbol ?? '$',
-                    'ves_rate' => $rate->ves_rate ?? 0,
-                    'usd_rate' => $rate->usd_rate ?? 0,
-                    'eur_rate' => $rate->eur_rate ?? 0,
+                    'id'              => $rate->id,
+                    'from_code'       => $from->code ?? 'N/A',
+                    'from_name'       => $from->name ?? 'N/A',
+                    'from_symbol'     => $from->symbol ?? '$',
+                    'from_country_id' => $from->country_id,
+                    'to_code'         => $to->code ?? 'VES',
+                    'to_name'         => $to->name ?? 'Bolívar Digital',
+                    'to_symbol'       => $to->symbol ?? 'Bs.',
+                    'ves_rate'        => $rate->ves_rate ?? 0,
+                    'usd_rate'        => $rate->usd_rate ?? 0,
+                    'eur_rate'        => $rate->eur_rate ?? 0,
                 ];
             });
     }
