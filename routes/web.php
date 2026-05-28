@@ -121,6 +121,34 @@ Route::get('/dashboard', function () {
     return redirect()->route('owner.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// ─── ENDPOINTS JSON (consumidos via Axios desde el frontend) ─────────────────
+
+Route::middleware('auth')->group(function () {
+
+    Route::get('/api/incentives/bonus-preview', function () {
+        $preview = app(\App\Services\IncentiveService::class)
+            ->getReceptorPreview(auth()->user(), 0);
+        return response()->json($preview['rules'] ?? []);
+    })->name('api.incentives.bonus-preview');
+
+    Route::get('/api/wallet/weekly-data', [WalletController::class, 'weeklyData'])
+        ->name('api.wallet.weeklyData');
+
+    Route::get('/api/currencies/active', function () {
+        return response()->json(
+            \App\Models\Currency::where('is_active', true)
+                ->orderBy('code')
+                ->get(['id', 'code', 'symbol', 'name'])
+        );
+    })->name('api.currencies.active');
+
+    Route::get('/api/business-accounts/{businessAccount}/assigned-sellers', function ($businessAccount) {
+        $account = \App\Models\BusinessAccount::with('sellers')->findOrFail($businessAccount);
+        return response()->json($account->sellers->pluck('id'));
+    })->name('api.businessAccounts.assignedSellers');
+
+});
+
 // ─── RUTAS AUTENTICADAS ───────────────────────────────────────────────────────
 
 Route::middleware('auth')->group(function () {
