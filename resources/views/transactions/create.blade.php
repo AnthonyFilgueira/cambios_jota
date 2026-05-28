@@ -74,29 +74,11 @@
                                 @change="onRateChange()"
                                 required
                                 class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all">
-                                <option value="">Seleccione una tasa</option>
-                                @foreach($pairs as $pair)
-                                    <option
-                                        value="{{ $pair['id'] }}"
-                                        data-rate="{{ $pair['ves_rate'] }}"
-                                        data-usd="{{ $pair['usd_rate'] }}"
-                                        data-eur="{{ $pair['eur_rate'] }}"
-                                        data-from-currency-id="{{ $pair['from_currency_id'] ?? '' }}"
-                                        data-from-name="{{ $pair['from_name'] ?? '' }}"
-                                        data-from-symbol="{{ $pair['from_symbol'] ?? 'S/' }}"
-                                        data-from-code="{{ $pair['from_code'] }}"
-                                        data-from-flag="{{ $pair['from_flag'] ?? '🏳' }}"
-                                        data-from-country="{{ $pair['from_country'] ?? '' }}"
-                                        data-from-country-id="{{ $pair['from_country_id'] ?? '' }}"
-                                        data-to-name="{{ $pair['to_name'] ?? '' }}"
-                                        data-to-symbol="{{ $pair['to_symbol'] ?? 'Bs.' }}"
-                                        data-to-code="{{ $pair['to_code'] ?? 'VES' }}"
-                                        data-to-flag="{{ $pair['to_flag'] ?? '🏳' }}"
-                                        data-to-country="{{ $pair['to_country'] ?? '' }}"
-                                        data-to-country-id="{{ $pair['to_country_id'] ?? '' }}">
-                                        {{ $pair['from_code'] }} → {{ $pair['to_code'] ?? 'VES' }} (1 {{ $pair['from_code'] }} = {{ $pair['ves_rate'] >= 1 ? number_format($pair['ves_rate'], 2) : number_format($pair['ves_rate'], 6) }} {{ $pair['to_symbol'] ?? 'Bs.' }})
-                                    </option>
-                                @endforeach
+                                <option value="" x-show="loadingPairs">Cargando tasas...</option>
+                                <option value="" x-show="!loadingPairs">Seleccione una tasa</option>
+                                <template x-for="pair in pairs" :key="pair.id">
+                                    <option :value="pair.id" x-text="formatPairLabel(pair)"></option>
+                                </template>
                             </select>
                             @error('exchange_rate_id')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -741,6 +723,8 @@
     function transactionForm() {
         return {
             // Datos principales
+            pairs: [],
+            loadingPairs: true,
             amountPen: {{ old('amount_pen', $transaction->amount_pen ?? 0) }},
             selectedRateId: '{{ old('exchange_rate_id', $transaction->exchange_rate_id ?? '') }}',
             selectedRate: 0,
@@ -797,16 +781,29 @@
             sellerAccountsDisplay: [],
             loadingAccounts: false,
 
-            init() {
-                // Modo edición: monto pre-cargado → leer tasa del select y recalcular
+            async init() {
+                await this.loadExchangeRates();
                 if (this.amountPen > 0) {
                     this.$nextTick(() => {
-                        this.onRateChange();      // carga selectedRate desde el <select> pre-seleccionado
-                        this.calculateFromPEN();  // calcula VES con la tasa correcta
+                        this.onRateChange();
+                        this.calculateFromPEN();
                     });
                 } else {
                     this.loadSimulatorData();
                 }
+            },
+
+            async loadExchangeRates() {
+                const resp = await axios.get('/exchange-rates');
+                this.pairs = resp.data;
+                this.loadingPairs = false;
+            },
+
+            formatPairLabel(pair) {
+                const rate = pair.ves_rate >= 1
+                    ? pair.ves_rate.toFixed(2)
+                    : pair.ves_rate.toFixed(6);
+                return `${pair.from_flag} ${pair.from_code} → ${pair.to_code} ${pair.to_flag}  (1 ${pair.from_code} = ${rate} ${pair.to_symbol})`;
             },
 
             async searchSeller() {
@@ -884,65 +881,63 @@
             },
 
             onRateChange() {
-                const select = document.getElementById('exchange_rate_id');
-                const option = select.options[select.selectedIndex];
+                const pair = this.pairs.find(p => p.id == this.selectedRateId);
+                if (!pair) return;
 
-                if (option && option.dataset.rate) {
-                    this.selectedRate    = parseFloat(option.dataset.rate);
-                    this.usdBcvRate      = parseFloat(option.dataset.usd);
-                    this.eurBcvRate      = parseFloat(option.dataset.eur);
-                    this.fromCurrencyId  = option.dataset.fromCurrencyId ? parseInt(option.dataset.fromCurrencyId) : null;
-                    this.fromName        = option.dataset.fromName      || '';
-                    this.fromSymbol      = option.dataset.fromSymbol    || '';
-                    this.fromCode        = option.dataset.fromCode      || '';
-                    this.fromFlag        = option.dataset.fromFlag      || '';
-                    this.fromCountry     = option.dataset.fromCountry   || '';
-                    this.fromCountryId   = option.dataset.fromCountryId ? parseInt(option.dataset.fromCountryId) : null;
-                    this.toName          = option.dataset.toName        || '';
-                    this.toSymbol        = option.dataset.toSymbol      || '';
-                    this.toCode          = option.dataset.toCode        || '';
-                    this.toFlag          = option.dataset.toFlag        || '';
-                    this.toCountry       = option.dataset.toCountry     || '';
-                    this.toCountryId     = option.dataset.toCountryId   ? parseInt(option.dataset.toCountryId)   : null;
-                    this.recalculate();
-                    this.fetchSellerAccounts(select.value);
-                    if (this.toCountryId) {
-                        fetch('/transactions/payment-methods?country_id=' + this.toCountryId)
-                            .then(r => r.json())
-                            .then(data => { this.paymentMethods = data; });
-                    }
-                    this.fetchSenderDocTypes(this.fromCountryId);
-                    this.fetchRecipientDocTypes(this.toCountryId);
-                    this.fetchSenderBanksData(this.fromCountryId);
-                    this.fetchRecipientBanks(this.toCountryId);
+                this.selectedRate   = parseFloat(pair.ves_rate);
+                this.usdBcvRate     = parseFloat(pair.usd_rate);
+                this.eurBcvRate     = parseFloat(pair.eur_rate);
+                this.fromCurrencyId = pair.from_currency_id;
+                this.fromName       = pair.from_name;
+                this.fromSymbol     = pair.from_symbol;
+                this.fromCode       = pair.from_code;
+                this.fromFlag       = pair.from_flag;
+                this.fromCountry    = pair.from_country;
+                this.fromCountryId  = pair.from_country_id;
+                this.toName         = pair.to_name;
+                this.toSymbol       = pair.to_symbol;
+                this.toCode         = pair.to_code;
+                this.toFlag         = pair.to_flag;
+                this.toCountry      = pair.to_country;
+                this.toCountryId    = pair.to_country_id;
+
+                this.recalculate();
+                this.fetchSellerAccounts(this.selectedRateId);
+                if (this.toCountryId) {
+                    axios.get('/transactions/payment-methods?country_id=' + this.toCountryId)
+                        .then(r => { this.paymentMethods = r.data; });
                 }
+                this.fetchSenderDocTypes(this.fromCountryId);
+                this.fetchRecipientDocTypes(this.toCountryId);
+                this.fetchSenderBanksData(this.fromCountryId);
+                this.fetchRecipientBanks(this.toCountryId);
             },
 
             async fetchSenderDocTypes(countryId) {
                 if (!countryId) { this.docTypes = []; return; }
                 this.loadingDocTypes = true;
-                this.docTypes = await fetch('/transactions/document-types?country_id=' + countryId).then(r => r.json());
+                this.docTypes = (await axios.get('/transactions/document-types?country_id=' + countryId)).data;
                 this.loadingDocTypes = false;
             },
 
             async fetchRecipientDocTypes(countryId) {
                 if (!countryId) { this.recDocTypes = []; return; }
                 this.loadingRecDocTypes = true;
-                this.recDocTypes = await fetch('/transactions/document-types?country_id=' + countryId).then(r => r.json());
+                this.recDocTypes = (await axios.get('/transactions/document-types?country_id=' + countryId)).data;
                 this.loadingRecDocTypes = false;
             },
 
             async fetchSenderBanksData(countryId) {
                 if (!countryId) { this.senderBanks = []; return; }
                 this.loadingSenderBanks = true;
-                this.senderBanks = await fetch('/transactions/sender-banks?country_id=' + countryId).then(r => r.json());
+                this.senderBanks = (await axios.get('/transactions/sender-banks?country_id=' + countryId)).data;
                 this.loadingSenderBanks = false;
             },
 
             async fetchRecipientBanks(countryId) {
                 if (!countryId) { this.recipientBanks = []; return; }
                 this.loadingRecipientBanks = true;
-                this.recipientBanks = await fetch('/transactions/recipient-banks?country_id=' + countryId).then(r => r.json());
+                this.recipientBanks = (await axios.get('/transactions/recipient-banks?country_id=' + countryId)).data;
                 this.loadingRecipientBanks = false;
             },
 
@@ -951,9 +946,8 @@
                 this.loadingAccounts = true;
                 try {
                     const url = `/transactions/seller-accounts?seller_code=${encodeURIComponent(this.sellerCode)}&exchange_rate_id=${exchangeRateId}`;
-                    const res  = await fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
-                    const data = await res.json();
-                    this.sellerAccountsDisplay = data.accounts || [];
+                    const res  = await axios.get(url);
+                    this.sellerAccountsDisplay = res.data.accounts || [];
                 } catch (e) {
                     console.error('Error fetching seller accounts:', e);
                 } finally {
