@@ -694,6 +694,17 @@
         </div>
     </div>
 
+    @php
+        $sellerAccountsMapped = $sellerAccounts->map(fn($a) => [
+            'id'             => $a->id,
+            'alias'          => $a->alias,
+            'bank_name'      => $a->bank->name ?? '—',
+            'account_number' => $a->account_number,
+            'account_type'   => ucfirst($a->account_type),
+            'account_holder' => $a->account_holder,
+            'dni_ruc'        => $a->dni_ruc,
+        ])->values()->toArray();
+    @endphp
     <script>
     function transactionForm() {
         return {
@@ -706,7 +717,8 @@
             usdBcvRate: 0,
             eurBcvRate: 0,
 
-            // Moneda activa del par seleccionado
+            // Moneda activa del par seleccionado (para incentivos, cuentas y métodos de pago)
+            fromCurrencyId: null,
             fromName: '',
             fromSymbol: '',
             fromCode: '',
@@ -714,21 +726,8 @@
             toName: '',
             toSymbol: '',
             toCode: '',
-
-            // Cuentas del vendedor (reactivas al par de divisa)
-            sellerCode: '{{ $seller->code ?? '' }}',
-            sellerAccountsDisplay: @json(
-                $sellerAccounts->map(fn($a) => [
-                    'id'             => $a->id,
-                    'alias'          => $a->alias,
-                    'bank_name'      => $a->bank->name ?? '—',
-                    'account_number' => $a->account_number,
-                    'account_type'   => ucfirst($a->account_type),
-                    'account_holder' => $a->account_holder,
-                    'dni_ruc'        => $a->dni_ruc,
-                ])->values()
-            ),
-            loadingAccounts: false,
+            toCountryId: null,
+            paymentMethods: [],
 
             // Bono activo (cargado desde backend)
             bonusRules: @json($bonusPreview['rules'] ?? []),
@@ -742,19 +741,15 @@
             opType: '{{ old('operation_type', $transaction->operation_type ?? 'transferencia') }}',
             acctType: '{{ old('recipient_account_type', $transaction->recipient_account_type ?? 'ahorro') }}',
 
-            // Moneda y países del par seleccionado (para incentivos y métodos de pago)
-            fromCurrencyId: null,
-            fromCountryId: null,
-            toCountryId: null,
-            paymentMethods: [],
-
             // Búsqueda de vendedor
-            sellerCode: '',
+            sellerCode: '{{ $seller->code ?? "" }}',
             sellerData: null,
             sellerAccounts: [],
             sellerFound: false,
             sellerSearching: false,
             sellerError: '',
+            sellerAccountsDisplay: @json($sellerAccountsMapped),
+            loadingAccounts: false,
 
             init() {
                 // Modo edición: monto pre-cargado → leer tasa del select y recalcular
