@@ -28,13 +28,16 @@ class TransactionLog extends Model
     public function getActionInfoAttribute(): array
     {
         return match($this->action) {
-            'created'             => ['icon' => '📤', 'label' => 'Solicitud recibida',             'color' => 'blue'],
-            'observed'            => ['icon' => '⚠️', 'label' => 'Observación enviada al cliente', 'color' => 'orange'],
-            'processed'           => ['icon' => '✅', 'label' => 'Solicitud aprobada',              'color' => 'green'],
-            'completed'           => ['icon' => '💸', 'label' => 'Transferencia completada',        'color' => 'teal'],
-            'corrected_by_client' => ['icon' => '✏️', 'label' => 'Cliente envió corrección',        'color' => 'purple'],
-            'cancelled'           => ['icon' => '❌', 'label' => 'Solicitud cancelada',             'color' => 'red'],
-            default               => ['icon' => '📋', 'label' => ucfirst($this->action),            'color' => 'gray'],
+            'created'             => ['icon' => '📤', 'label' => 'Solicitud recibida',              'color' => 'blue'],
+            'observed'            => ['icon' => '⚠️', 'label' => 'Observación al cliente',          'color' => 'orange'],
+            'observed_by_seller'  => ['icon' => '⚠️', 'label' => 'Observación del vendedor',        'color' => 'orange'],
+            'processed'           => ['icon' => '✅', 'label' => 'Solicitud aprobada',               'color' => 'green'],
+            'approved_by_seller'  => ['icon' => '✅', 'label' => 'Aprobada por el vendedor',         'color' => 'green'],
+            'completed'           => ['icon' => '💸', 'label' => 'Transferencia completada',         'color' => 'teal'],
+            'corrected_by_client' => ['icon' => '✏️', 'label' => 'Cliente envió corrección',         'color' => 'purple'],
+            'cancelled'           => ['icon' => '❌', 'label' => 'Solicitud cancelada',              'color' => 'red'],
+            'denied_by_seller'    => ['icon' => '❌', 'label' => 'Denegada por el vendedor',         'color' => 'red'],
+            default               => ['icon' => '📋', 'label' => str_replace('_', ' ', ucfirst($this->action)), 'color' => 'gray'],
         };
     }
 
