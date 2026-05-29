@@ -61,8 +61,7 @@ class ReportController extends Controller
                 'exchangeRate.currencyPair.fromCurrency',
                 'exchangeRate.currencyPair.toCurrency',
             ])
-            ->whereIn('status', ['processing', 'completed'])
-            ->where('operation_type', 'transferencia')
+            ->where('status', 'completed')
             ->whereBetween('created_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
             ->orderByDesc('created_at')
             ->get();
