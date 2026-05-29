@@ -34,10 +34,10 @@
                 </x-nav-link>
 
                 {{-- Ventas dropdown --}}
-                <div class="relative" x-data="{ openVentas: false }" @mouseenter="openVentas=true" @mouseleave="openVentas=false">
-                    <button class="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-cj-morado-profundo rounded-lg hover:bg-purple-50 transition-all">
+                <div class="relative" x-data="{ openVentas: false }" @click.outside="openVentas=false">
+                    <button @click="openVentas = !openVentas" class="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-cj-morado-profundo rounded-lg hover:bg-purple-50 transition-all">
                         📋 Ventas
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <svg class="w-3 h-3 transition-transform" :class="openVentas ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="openVentas" x-cloak class="absolute top-full left-0 mt-1 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50">
                         <a href="{{ route('sales.index') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-cj-morado-profundo font-medium">📋 Todas las ventas</a>
@@ -54,10 +54,10 @@
                 </x-nav-link>
 
                 {{-- Gestión dropdown --}}
-                <div class="relative" x-data="{ openGestion: false }" @mouseenter="openGestion=true" @mouseleave="openGestion=false">
-                    <button class="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-cj-morado-profundo rounded-lg hover:bg-purple-50 transition-all">
+                <div class="relative" x-data="{ openGestion: false }" @click.outside="openGestion=false">
+                    <button @click="openGestion = !openGestion" class="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-cj-morado-profundo rounded-lg hover:bg-purple-50 transition-all">
                         👥 Gestión
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <svg class="w-3 h-3 transition-transform" :class="openGestion ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="openGestion" x-cloak class="absolute top-full left-0 mt-1 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50">
                         <a href="{{ route('sellers.index') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-cj-morado-profundo font-medium">👥 Vendedores</a>
@@ -68,10 +68,10 @@
                 </div>
 
                 {{-- Configuración dropdown --}}
-                <div class="relative" x-data="{ openConfig: false }" @mouseenter="openConfig=true" @mouseleave="openConfig=false">
-                    <button class="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-cj-morado-profundo rounded-lg hover:bg-purple-50 transition-all">
+                <div class="relative" x-data="{ openConfig: false }" @click.outside="openConfig=false">
+                    <button @click="openConfig = !openConfig" class="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-cj-morado-profundo rounded-lg hover:bg-purple-50 transition-all">
                         ⚙️ Config
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <svg class="w-3 h-3 transition-transform" :class="openConfig ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="openConfig" x-cloak class="absolute top-full left-0 mt-1 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50">
                         <p class="px-4 py-1 text-xs font-bold uppercase tracking-widest text-gray-400">Finanzas</p>
