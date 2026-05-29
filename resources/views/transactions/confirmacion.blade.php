@@ -28,14 +28,23 @@
                 </div>
 
                 <!-- Resumen de montos -->
+                @php
+                    $fromCurrency = $transaction->exchangeRate?->currencyPair?->fromCurrency;
+                    $toCurrency   = $transaction->exchangeRate?->currencyPair?->toCurrency;
+                    $fromSymbol   = $fromCurrency?->symbol ?? 'S/';
+                    $toSymbol     = $toCurrency?->symbol   ?? 'Bs.';
+                    $fromFlag     = $fromCurrency?->flag_emoji ?? '';
+                    $toFlag       = $toCurrency?->flag_emoji   ?? '';
+                    $toCountry    = $toCurrency?->country ?? 'destino';
+                @endphp
                 <div class="grid grid-cols-2 gap-3 mb-6">
                     <div class="bg-gradient-to-br from-cj-morado-profundo to-cj-morado-medio rounded-2xl p-4 text-white text-left">
-                        <p class="text-xs opacity-80 font-medium mb-1">Tú enviaste</p>
-                        <p class="text-xl font-bold font-mono">S/ {{ number_format($transaction->amount_pen, 2) }}</p>
+                        <p class="text-xs opacity-80 font-medium mb-1">{{ $fromFlag }} Tú enviaste</p>
+                        <p class="text-xl font-bold font-mono">{{ $fromSymbol }} {{ number_format($transaction->amount_pen, 2) }}</p>
                     </div>
                     <div class="bg-gradient-to-br from-cj-turquesa to-teal-400 rounded-2xl p-4 text-white text-left">
-                        <p class="text-xs opacity-80 font-medium mb-1">Tu familiar recibe</p>
-                        <p class="text-xl font-bold font-mono">Bs. {{ number_format($transaction->amount_ves, 2) }}</p>
+                        <p class="text-xs opacity-80 font-medium mb-1">{{ $toFlag }} Tu familiar recibe</p>
+                        <p class="text-xl font-bold font-mono">{{ $toSymbol }} {{ number_format($transaction->amount_ves, 2) }}</p>
                     </div>
                 </div>
 
@@ -84,11 +93,11 @@
 
                 @php
                 $steps = [
-                    ['icon' => '📤', 'title' => 'Solicitud enviada', 'desc' => 'Tu comprobante fue recibido.', 'done' => true],
-                    ['icon' => '🔍', 'title' => 'Revisión del vendedor', 'desc' => 'El vendedor verifica tu comprobante.', 'done' => false],
-                    ['icon' => '✅', 'title' => 'Aprobación', 'desc' => 'El dueño aprueba la operación.', 'done' => false],
-                    ['icon' => '💸', 'title' => 'Transferencia realizada', 'desc' => 'Se ejecuta el envío a Venezuela.', 'done' => false],
-                    ['icon' => '🎉', 'title' => 'Completado', 'desc' => 'Tu familiar recibe el dinero.', 'done' => false],
+                    ['icon' => '📤', 'title' => 'Solicitud enviada',       'desc' => 'Tu comprobante fue recibido.',                              'done' => true],
+                    ['icon' => '🔍', 'title' => 'Revisión del operador',   'desc' => 'El operador verifica tu comprobante.',                      'done' => false],
+                    ['icon' => '✅', 'title' => 'Aprobación',              'desc' => 'Se aprueba la operación.',                                  'done' => false],
+                    ['icon' => '💸', 'title' => 'Transferencia realizada', 'desc' => 'Se ejecuta el envío a ' . ucfirst($toCountry) . '.',        'done' => false],
+                    ['icon' => '🎉', 'title' => 'Completado',              'desc' => 'Tu familiar recibe el dinero ' . ($toFlag ? $toFlag : '') . '.', 'done' => false],
                 ];
                 @endphp
 

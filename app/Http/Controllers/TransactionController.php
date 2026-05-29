@@ -370,7 +370,7 @@ class TransactionController extends Controller
             abort(403);
         }
 
-        $transaction->load(['seller', 'exchangeRate']);
+        $transaction->load(['seller', 'exchangeRate.currencyPair.fromCurrency', 'exchangeRate.currencyPair.toCurrency']);
 
         return view('transactions.confirmacion', compact('transaction'));
     }
