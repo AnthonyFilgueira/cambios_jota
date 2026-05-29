@@ -2,8 +2,12 @@
     <div class="max-w-7xl mx-auto px-4 py-6">
         <!-- Encabezado con paleta Cambio J -->
         <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-800">Ventas Registradas</h1>
-            <p class="text-gray-600 mt-2">Historial completo de ventas del sistema</p>
+            <h1 class="text-3xl font-bold text-gray-800">
+                {{ auth()->user()->hasRole('vendedor') ? 'Mis Ventas' : 'Ventas Registradas' }}
+            </h1>
+            <p class="text-gray-600 mt-2">
+                {{ auth()->user()->hasRole('vendedor') ? 'Historial de tus ventas registradas' : 'Historial completo de ventas del sistema' }}
+            </p>
         </div>
 
         <!-- Tabla de ventas -->
@@ -85,12 +89,14 @@
                                                 Descargar
                                             </a>
                                         @endif
+                                        @unless(auth()->user()->hasRole('vendedor'))
                                         <form action="{{ route('sales.destroy', $sale) }}" method="POST" onsubmit="return confirm('¿Eliminar esta venta?')" class="inline">
                                             @csrf @method('DELETE')
                                             <button class="inline-flex items-center px-3 py-1 text-xs font-medium text-white bg-pink-500 hover:bg-pink-600 rounded-md transition-colors">
                                                 Eliminar
                                             </button>
                                         </form>
+                                        @endunless
                                     </div>
                                 </td>
                             </tr>

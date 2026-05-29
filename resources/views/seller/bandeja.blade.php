@@ -112,6 +112,8 @@
             <div class="space-y-3">
                 @foreach($transactions as $tx)
                 @php
+                    $fromSymbol = $tx->exchangeRate->currencyPair->fromCurrency->symbol ?? '';
+                    $toSymbol   = $tx->exchangeRate->currencyPair->toCurrency->symbol ?? '';
                     $statusStyles = [
                         'pending'    => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'dot' => 'bg-yellow-400', 'label' => 'Pendiente'],
                         'observed'   => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'dot' => 'bg-orange-400', 'label' => 'Observada'],
@@ -137,8 +139,8 @@
 
                         <!-- Montos -->
                         <div class="text-right flex-shrink-0">
-                            <p class="font-bold text-cj-morado-profundo">S/ {{ number_format($tx->amount_pen, 2) }}</p>
-                            <p class="text-xs text-cj-texto-claro">→ Bs. {{ number_format($tx->amount_ves, 2) }}</p>
+                            <p class="font-bold text-cj-morado-profundo">{{ $fromSymbol }} {{ number_format($tx->amount_pen, 2) }}</p>
+                            <p class="text-xs text-cj-texto-claro">→ {{ $toSymbol }} {{ number_format($tx->amount_ves, 2) }}</p>
                         </div>
 
                         <!-- Estado + flecha -->

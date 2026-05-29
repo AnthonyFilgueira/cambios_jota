@@ -22,7 +22,7 @@ class SellerTransactionController extends Controller
         $seller     = $this->getSellerOrAbort();
         $statusFilter = $request->input('status', 'all');
 
-        $query = Transaction::with(['user', 'exchangeRate', 'logs'])
+        $query = Transaction::with(['user', 'exchangeRate.currencyPair.fromCurrency', 'exchangeRate.currencyPair.toCurrency', 'logs'])
             ->where('seller_id', $seller->id)
             ->orderByRaw("FIELD(status,'pending','observed','processing','completed','cancelled')")
             ->orderBy('created_at', 'desc');
