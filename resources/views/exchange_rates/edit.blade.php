@@ -14,7 +14,7 @@
 
                 <!-- Referencias BCV -->
                 <div class="bg-cj-fondo rounded-lg p-4 border-l-4 border-cj-morado-profundo">
-                    <h3 class="text-sm font-semibold text-cj-texto mb-3">📊 Tasas de Referencia BCV (Venezuela)</h3>
+                    <h3 class="text-sm font-semibold text-cj-texto mb-3">📊 Tasas de Referencia BCV</h3>
                     <p class="text-xs text-cj-texto-claro mb-4">Estas tasas son iguales para todos los pares y solo sirven de referencia informativa</p>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -61,8 +61,11 @@
                     <h3 class="text-sm font-semibold text-cj-texto mb-3">💱 Tasa Específica del Par</h3>
 
                     <div>
+                        <p class="text-sm font-semibold text-cj-morado-profundo mb-1">
+                            Par: {{ $exchangeRate->pair_name }}
+                        </p>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
-                            Tasa VES (cuántos VES por 1 unidad de origen)
+                            Tasa de conversión (cuántas unidades destino por 1 unidad origen)
                         </label>
                         <input
                             type="number"
@@ -78,8 +81,9 @@
                         <p class="text-xs text-gray-500 mt-2">
                             <strong>Ejemplos:</strong><br>
                             • PEN→VES: 173.71 (1 PEN = 173.71 VES)<br>
-                            • ARS→VES: 2.50 (1 ARS = 2.50 VES)<br>
-                            • USD→VES: 479.78 (1 USD = 479.78 VES)
+                            • CLP→PEN: 0.0042 (1 CLP = 0.0042 PEN)<br>
+                            • ARS→PEN: 0.0035 (1 ARS = 0.0035 PEN)<br>
+                            • BRL→VES: 95.20 (1 BRL = 95.20 VES)
                         </p>
                     </div>
                 </div>

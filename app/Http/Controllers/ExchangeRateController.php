@@ -8,6 +8,14 @@ use Illuminate\Http\Request;
 
 class ExchangeRateController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-exchange-rates')->only(['index']);
+        $this->middleware('permission:create-exchange-rates')->only(['create', 'store']);
+        $this->middleware('permission:edit-exchange-rates')->only(['edit', 'update', 'destroy']);
+        $this->middleware('permission:activate-exchange-rates')->only(['activate']);
+    }
+
     public function index(Request $request)
     {
         // Query base: tasas con sus pares
@@ -44,14 +52,20 @@ class ExchangeRateController extends Controller
         }
 
         $rates = $query->get();
-        $activeRate = ExchangeRate::getActive();
+
+        $activeRates = ExchangeRate::with(['currencyPair.fromCurrency', 'currencyPair.toCurrency'])
+            ->where('is_active', true)
+            ->orderBy('currency_pair_id')
+            ->get();
+
+        $activeRate = $activeRates->first() ?? ExchangeRate::getDefault();
 
         // Divisas para filtros
         $currencies = \App\Models\Currency::where('is_active', true)
             ->orderBy('code')
             ->get();
 
-        return view('exchange_rates.index', compact('rates', 'activeRate', 'currencies'));
+        return view('exchange_rates.index', compact('rates', 'activeRate', 'activeRates', 'currencies'));
     }
 
     public function create()
