@@ -83,12 +83,15 @@ class SellerTransactionController extends Controller
         abort_if($transaction->seller_id !== $seller->id, 403);
         abort_if(!in_array($transaction->status, ['pending', 'observed']), 422, 'Esta solicitud no puede aprobarse en su estado actual.');
 
+        $oldStatus = $transaction->status;
         $transaction->update(['status' => 'processing']);
 
         TransactionLog::create([
             'transaction_id' => $transaction->id,
             'user_id'        => auth()->id(),
             'action'         => 'approved_by_seller',
+            'old_status'     => $oldStatus,
+            'new_status'     => 'processing',
             'comment'        => 'Solicitud aprobada por el vendedor. Escalada al dueño para ejecución.',
         ]);
 
@@ -118,6 +121,7 @@ class SellerTransactionController extends Controller
             'motivo.min'      => 'El motivo debe tener al menos 10 caracteres.',
         ]);
 
+        $oldStatus = $transaction->status;
         $transaction->update([
             'status'      => 'observed',
             'observation' => $request->motivo,
@@ -127,6 +131,8 @@ class SellerTransactionController extends Controller
             'transaction_id' => $transaction->id,
             'user_id'        => auth()->id(),
             'action'         => 'observed_by_seller',
+            'old_status'     => $oldStatus,
+            'new_status'     => 'observed',
             'comment'        => $request->motivo,
         ]);
 
@@ -156,6 +162,7 @@ class SellerTransactionController extends Controller
             'motivo.min'      => 'El motivo debe tener al menos 10 caracteres.',
         ]);
 
+        $oldStatus = $transaction->status;
         $transaction->update([
             'status'      => 'cancelled',
             'observation' => $request->motivo,
@@ -165,6 +172,8 @@ class SellerTransactionController extends Controller
             'transaction_id' => $transaction->id,
             'user_id'        => auth()->id(),
             'action'         => 'denied_by_seller',
+            'old_status'     => $oldStatus,
+            'new_status'     => 'cancelled',
             'comment'        => $request->motivo,
         ]);
 
