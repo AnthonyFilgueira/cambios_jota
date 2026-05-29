@@ -666,7 +666,7 @@
 
         <div x-show="formPagoOpen" x-cloak class="bg-white/90 rounded-2xl shadow border border-white/50 p-5 mb-4">
             <form action="{{ route('payment-methods.store', $country) }}" method="POST"
-                  class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                  class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 @csrf
                 <div>
                     <label class="block text-xs font-semibold text-cj-texto-claro mb-1 uppercase tracking-wider">Nombre *</label>
@@ -686,9 +686,23 @@
                         <option value="both">Ambos</option>
                     </select>
                 </div>
-                <div>
-                    <button type="submit" class="w-full px-4 py-2.5 bg-cj-morado-profundo text-white rounded-xl font-semibold text-sm hover:bg-cj-morado-medio transition-all">
-                        Guardar
+                <div class="sm:col-span-3">
+                    <label class="block text-xs font-semibold text-cj-texto-claro mb-2 uppercase tracking-wider">
+                        Campos requeridos
+                        <span class="normal-case font-normal text-gray-400 ml-1">(qué datos se pedirán en la transacción)</span>
+                    </label>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach(['bank' => 'Banco', 'account_number' => 'Nº Cuenta', 'account_type' => 'Tipo cuenta', 'phone' => 'Teléfono'] as $key => $label)
+                        <label class="flex items-center gap-2 px-3 py-1.5 border-2 border-gray-200 rounded-xl cursor-pointer hover:bg-purple-50 hover:border-cj-turquesa text-sm transition-all">
+                            <input type="checkbox" name="fields_required[]" value="{{ $key }}" class="rounded accent-cj-turquesa">
+                            {{ $label }}
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="sm:col-span-3 flex justify-end">
+                    <button type="submit" class="px-6 py-2.5 bg-cj-morado-profundo text-white rounded-xl font-semibold text-sm hover:bg-cj-morado-medio transition-all">
+                        Guardar método
                     </button>
                 </div>
             </form>
@@ -703,7 +717,7 @@
             @foreach($paymentMethods as $pm)
             <div class="bg-white/90 rounded-2xl shadow border border-white/50 px-5 py-4 flex items-center justify-between gap-4"
                  x-data="{ editPago: false }">
-                <div class="flex items-center gap-3 flex-1 min-w-0" x-show="!editPago">
+                <div class="flex items-center gap-3 flex-1 min-w-0 flex-wrap" x-show="!editPago">
                     <span class="inline-flex items-center justify-center px-3 py-1.5 bg-cj-morado-claro rounded-xl font-bold font-mono text-cj-morado-profundo text-xs">
                         {{ $pm->code }}
                     </span>
@@ -715,21 +729,39 @@
                     @else
                         <span class="text-xs bg-gray-100 text-gray-600 font-bold rounded-full px-2 py-0.5">Ambos</span>
                     @endif
+                    @foreach($pm->fields_required ?? [] as $field)
+                        <span class="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-medium">{{ $field }}</span>
+                    @endforeach
                 </div>
 
                 <div x-show="editPago" x-cloak class="flex-1">
                     <form action="{{ route('payment-methods.update', [$country, $pm]) }}" method="POST"
-                          class="flex gap-3 items-center">
+                          class="space-y-3">
                         @csrf @method('PUT')
-                        <input type="text" name="name" value="{{ $pm->name }}" placeholder="Nombre"
-                               class="flex-1 p-2 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
-                        <select name="side" class="p-2 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
-                            <option value="sender" {{ $pm->side === 'sender' ? 'selected' : '' }}>Remitente</option>
-                            <option value="recipient" {{ $pm->side === 'recipient' ? 'selected' : '' }}>Beneficiario</option>
-                            <option value="both" {{ $pm->side === 'both' ? 'selected' : '' }}>Ambos</option>
-                        </select>
-                        <button type="submit" class="px-3 py-2 bg-cj-morado-profundo text-white rounded-xl text-sm font-semibold">Guardar</button>
-                        <button type="button" @click="editPago=false" class="px-3 py-2 bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold">✕</button>
+                        <div class="flex gap-3 items-center">
+                            <input type="text" name="name" value="{{ $pm->name }}" placeholder="Nombre"
+                                   class="flex-1 p-2 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                            <select name="side" class="p-2 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                                <option value="sender" {{ $pm->side === 'sender' ? 'selected' : '' }}>Remitente</option>
+                                <option value="recipient" {{ $pm->side === 'recipient' ? 'selected' : '' }}>Beneficiario</option>
+                                <option value="both" {{ $pm->side === 'both' ? 'selected' : '' }}>Ambos</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <span class="text-xs font-semibold text-gray-500 mr-1">Campos:</span>
+                            @foreach(['bank' => 'Banco', 'account_number' => 'Nº Cuenta', 'account_type' => 'Tipo cuenta', 'phone' => 'Teléfono'] as $key => $label)
+                            <label class="flex items-center gap-1.5 px-2.5 py-1 border border-gray-200 rounded-lg cursor-pointer hover:bg-purple-50 text-xs transition-all">
+                                <input type="checkbox" name="fields_required[]" value="{{ $key }}"
+                                       {{ in_array($key, $pm->fields_required ?? []) ? 'checked' : '' }}
+                                       class="rounded accent-cj-turquesa">
+                                {{ $label }}
+                            </label>
+                            @endforeach
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="submit" class="px-3 py-2 bg-cj-morado-profundo text-white rounded-xl text-sm font-semibold">Guardar</button>
+                            <button type="button" @click="editPago=false" class="px-3 py-2 bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold">✕</button>
+                        </div>
                     </form>
                 </div>
 

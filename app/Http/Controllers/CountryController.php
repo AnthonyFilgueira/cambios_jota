@@ -124,12 +124,15 @@ class CountryController extends Controller
     public function storePaymentMethod(Request $request, Country $country)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100',
-            'code' => 'required|string|max:50',
-            'side' => 'required|in:sender,recipient,both',
+            'name'              => 'required|string|max:100',
+            'code'              => 'required|string|max:50',
+            'side'              => 'required|in:sender,recipient,both',
+            'fields_required'   => 'nullable|array',
+            'fields_required.*' => 'in:bank,account_number,account_type,phone',
         ]);
 
-        $validated['country_id'] = $country->id;
+        $validated['country_id']      = $country->id;
+        $validated['fields_required'] = $request->input('fields_required', []);
         PaymentMethod::create($validated);
 
         return redirect()->route('countries.show', $country)
@@ -139,10 +142,13 @@ class CountryController extends Controller
     public function updatePaymentMethod(Request $request, Country $country, PaymentMethod $paymentMethod)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100',
-            'side' => 'required|in:sender,recipient,both',
+            'name'              => 'required|string|max:100',
+            'side'              => 'required|in:sender,recipient,both',
+            'fields_required'   => 'nullable|array',
+            'fields_required.*' => 'in:bank,account_number,account_type,phone',
         ]);
 
+        $validated['fields_required'] = $request->input('fields_required', []);
         $paymentMethod->update($validated);
 
         return redirect()->route('countries.show', $country)
