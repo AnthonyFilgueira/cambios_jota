@@ -107,9 +107,6 @@
                 <x-nav-link :href="route('wallet.index')" :active="request()->routeIs('wallet.index')">
                     💰 Mi Monedero
                 </x-nav-link>
-                <x-nav-link :href="route('exchange_rates.index')" :active="request()->routeIs('exchange_rates.index')">
-                    💱 Tasas
-                </x-nav-link>
             </div>
             @endif
 
