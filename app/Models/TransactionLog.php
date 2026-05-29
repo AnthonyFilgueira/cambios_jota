@@ -38,8 +38,9 @@ class TransactionLog extends Model
         };
     }
 
-    public static function statusLabel(string $status): string
+    public static function statusLabel(?string $status): string
     {
+        if ($status === null) return '—';
         return match($status) {
             'pending'    => 'Pendiente de revisión',
             'observed'   => 'Con observaciones',
