@@ -52,7 +52,7 @@ class SellerTransactionController extends Controller
         $seller = $this->getSellerOrAbort();
         abort_if($transaction->seller_id !== $seller->id, 403);
 
-        $transaction->load(['user', 'exchangeRate', 'logs.user']);
+        $transaction->load(['user', 'exchangeRate.currencyPair.fromCurrency', 'exchangeRate.currencyPair.toCurrency', 'logs.user']);
 
         return view('seller.solicitud-show', compact('transaction', 'seller'));
     }
