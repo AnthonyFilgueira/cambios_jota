@@ -113,7 +113,7 @@
                                 {{ $role }}
                                 <span class="mx-1.5 text-gray-300">·</span>
                                 <span title="{{ $log->created_at->format('d/m/Y H:i:s') }}">
-                                    {{ $log->created_at->diffForHumans() }}
+                                    {{ $log->created_at->locale('es')->diffForHumans() }}
                                 </span>
                                 <span class="mx-1.5 text-gray-300">·</span>
                                 <span class="font-mono">{{ $log->created_at->format('d/m/Y H:i') }}</span>
@@ -166,7 +166,7 @@
                                             {{ \App\Models\AuditLog::fieldLabel($k) }}
                                         </span>
                                         <span class="text-red-900 break-all">
-                                            {{ is_array($v) ? json_encode($v, JSON_UNESCAPED_UNICODE) : ($v ?? '—') }}
+                                            {{ \App\Models\AuditLog::fieldValue($k, $v) }}
                                         </span>
                                     </div>
                                     @endforeach
@@ -190,7 +190,7 @@
                                             {{ \App\Models\AuditLog::fieldLabel($k) }}
                                         </span>
                                         <span class="text-green-900 break-all">
-                                            {{ is_array($v) ? json_encode($v, JSON_UNESCAPED_UNICODE) : ($v ?? '—') }}
+                                            {{ \App\Models\AuditLog::fieldValue($k, $v) }}
                                         </span>
                                     </div>
                                     @endforeach

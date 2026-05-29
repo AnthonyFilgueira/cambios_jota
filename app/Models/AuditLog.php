@@ -76,6 +76,43 @@ class AuditLog extends Model
         };
     }
 
+    public static function fieldValue(string $field, mixed $value): string
+    {
+        if ($value === null) return '—';
+        if (is_array($value)) return json_encode($value, JSON_UNESCAPED_UNICODE);
+
+        // Traducir valores de estado
+        if ($field === 'status') {
+            return match ((string) $value) {
+                'pending'        => 'Pendiente de revisión',
+                'observed'       => 'Con observaciones',
+                'processing'     => 'En proceso',
+                'completed'      => 'Completado',
+                'cancelled'      => 'Cancelado',
+                'pending_seller' => 'Pendiente vendedor',
+                'pending_admin'  => 'Pendiente admin',
+                'approved'       => 'Aprobado',
+                'rejected'       => 'Rechazado',
+                'active'         => 'Activo',
+                'inactive'       => 'Inactivo',
+                default          => (string) $value,
+            };
+        }
+
+        if (in_array($field, ['is_active', 'active'])) {
+            return $value ? 'Sí' : 'No';
+        }
+
+        // Formatear fechas ISO / datetime strings
+        if (is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/', $value)) {
+            try {
+                return \Carbon\Carbon::parse($value)->format('d/m/Y H:i:s');
+            } catch (\Exception) {}
+        }
+
+        return (string) $value;
+    }
+
     public static function fieldLabel(string $field): string
     {
         return match ($field) {
