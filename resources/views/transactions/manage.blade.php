@@ -315,33 +315,88 @@
                                         </div>
                                         @endif
 
-                                        <!-- Historial -->
+                                        <!-- Historial de auditoría -->
                                         @if($transaction->logs->isNotEmpty())
+                                        @php
+                                            $statusColors = [
+                                                'pending'    => 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                                                'observed'   => 'bg-orange-100 text-orange-800 border-orange-200',
+                                                'processing' => 'bg-blue-100 text-blue-800 border-blue-200',
+                                                'completed'  => 'bg-green-100 text-green-800 border-green-200',
+                                                'cancelled'  => 'bg-red-100 text-red-800 border-red-200',
+                                            ];
+                                            $actionCircles = [
+                                                'blue'   => 'bg-blue-100 text-blue-600 border-blue-200',
+                                                'orange' => 'bg-orange-100 text-orange-600 border-orange-200',
+                                                'green'  => 'bg-green-100 text-green-600 border-green-200',
+                                                'teal'   => 'bg-teal-100 text-teal-600 border-teal-200',
+                                                'purple' => 'bg-purple-100 text-purple-700 border-purple-200',
+                                                'red'    => 'bg-red-100 text-red-600 border-red-200',
+                                                'gray'   => 'bg-gray-100 text-gray-600 border-gray-200',
+                                            ];
+                                        @endphp
                                         <div class="sm:col-span-2 bg-white rounded-xl p-4 border border-gray-200">
-                                            <h5 class="font-bold text-sm text-cj-morado-profundo mb-3">Historial de cambios</h5>
-                                            <div class="space-y-2">
-                                                @foreach($transaction->logs as $log)
-                                                <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                                                    <div class="w-7 h-7 bg-cj-morado-profundo/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                        <span class="text-xs text-cj-morado-profundo font-bold">{{ strtoupper(substr($log->user->name, 0, 1)) }}</span>
-                                                    </div>
-                                                    <div class="flex-1 min-w-0">
-                                                        <div class="flex items-baseline justify-between gap-2">
-                                                            <span class="font-semibold text-sm text-cj-texto">{{ $log->user->name }}</span>
-                                                            <span class="text-xs text-gray-400 flex-shrink-0">{{ $log->created_at->diffForHumans() }}</span>
+                                            <h5 class="font-bold text-sm text-cj-morado-profundo mb-4 flex items-center gap-2">
+                                                📋 Historial de la operación
+                                                <span class="text-xs font-normal text-gray-400">({{ $transaction->logs->count() }} evento{{ $transaction->logs->count() > 1 ? 's' : '' }})</span>
+                                            </h5>
+                                            <div class="relative">
+                                                {{-- Línea vertical del timeline --}}
+                                                <div class="absolute left-5 top-5 bottom-5 w-px bg-gray-200"></div>
+
+                                                <div class="space-y-4">
+                                                    @foreach($transaction->logs->sortBy('created_at') as $log)
+                                                    @php
+                                                        $info        = $log->action_info;
+                                                        $circleClass = $actionCircles[$info['color']] ?? $actionCircles['gray'];
+                                                        $fromClass   = $statusColors[$log->old_status] ?? 'bg-gray-100 text-gray-700 border-gray-200';
+                                                        $toClass     = $statusColors[$log->new_status] ?? 'bg-gray-100 text-gray-700 border-gray-200';
+                                                    @endphp
+                                                    <div class="flex items-start gap-3 relative">
+                                                        {{-- Icono de acción --}}
+                                                        <div class="w-10 h-10 rounded-full border-2 flex items-center justify-center flex-shrink-0 bg-white z-10 text-base
+                                                                    {{ $circleClass }}">
+                                                            {{ $info['icon'] }}
                                                         </div>
-                                                        <p class="text-xs text-gray-500 mt-0.5">
-                                                            {{ ucfirst($log->action) }}:
-                                                            <span class="font-mono">{{ $log->old_status }}</span>
-                                                            →
-                                                            <span class="font-mono font-semibold">{{ $log->new_status }}</span>
-                                                        </p>
-                                                        @if($log->comment)
-                                                        <p class="text-xs text-gray-600 italic mt-1 bg-white rounded p-1.5 border border-gray-100">{{ $log->comment }}</p>
-                                                        @endif
+
+                                                        {{-- Contenido --}}
+                                                        <div class="flex-1 min-w-0 bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                                            <div class="flex items-start justify-between gap-2 flex-wrap">
+                                                                <span class="font-bold text-sm text-cj-texto">{{ $info['label'] }}</span>
+                                                                <div class="text-right flex-shrink-0">
+                                                                    <p class="text-xs text-gray-400">{{ $log->created_at->diffForHumans() }}</p>
+                                                                    <p class="text-xs text-gray-300">{{ $log->created_at->format('d/m/Y H:i') }}</p>
+                                                                </div>
+                                                            </div>
+
+                                                            {{-- Quién lo hizo --}}
+                                                            <p class="text-xs text-gray-500 mt-1">
+                                                                por <span class="font-semibold text-gray-600">{{ $log->user->name }}</span>
+                                                            </p>
+
+                                                            {{-- Transición de estado --}}
+                                                            <div class="flex items-center gap-2 mt-2 flex-wrap">
+                                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border {{ $fromClass }}">
+                                                                    {{ \App\Models\TransactionLog::statusLabel($log->old_status) }}
+                                                                </span>
+                                                                <svg class="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                                                </svg>
+                                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border {{ $toClass }}">
+                                                                    {{ \App\Models\TransactionLog::statusLabel($log->new_status) }}
+                                                                </span>
+                                                            </div>
+
+                                                            {{-- Comentario --}}
+                                                            @if($log->comment)
+                                                            <blockquote class="mt-2 border-l-2 border-gray-300 pl-3 text-xs text-gray-600 italic">
+                                                                "{{ $log->comment }}"
+                                                            </blockquote>
+                                                            @endif
+                                                        </div>
                                                     </div>
+                                                    @endforeach
                                                 </div>
-                                                @endforeach
                                             </div>
                                         </div>
                                         @endif
