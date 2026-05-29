@@ -14,7 +14,7 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased relative overflow-hidden">
+    <body class="font-sans antialiased relative overflow-x-hidden">
         <!-- Fondo principal con gradiente animado -->
         <div class="fixed inset-0 -z-20 bg-gradient-to-br from-purple-600 via-pink-500 to-teal-400 animate-gradient-shift"></div>
 
