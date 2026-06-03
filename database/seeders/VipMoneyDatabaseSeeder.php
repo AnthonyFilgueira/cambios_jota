@@ -11,27 +11,30 @@ use App\Models\CurrencyPair;
 use App\Models\ExchangeRate;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
-// VipMoney — todos los corredores activos, completamente autocontenido e idempotente
+// VipMoney — todos los corredores activos
 class VipMoneyDatabaseSeeder extends Seeder
 {
     public function run(): void
     {
         $this->command->info('🌱 [VipMoney] Seeding database...');
 
-        // 1. Roles y permisos
+        // 1. Limpiar toda la base de datos
+        $this->resetDatabase();
+
+        // 2. Roles y permisos
         $this->call([RolesAndPermissionsSeeder::class]);
 
-        // 2. Administrador VipMoney
-        $admin = User::updateOrCreate(
-            ['email' => 'admin@vipmoney.com'],
-            [
-                'name'              => 'Admin VipMoney',
-                'password'          => Hash::make('VipMoney2026!'),
-                'email_verified_at' => now(),
-            ]
-        );
+        // 3. Administrador VipMoney
+        $admin = User::create([
+            'email'             => 'admin@vipmoney.com',
+            'name'              => 'Admin VipMoney',
+            'password'          => Hash::make('VipMoney2026!'),
+            'email_verified_at' => now(),
+        ]);
         $admin->assignRole('super-admin');
 
         // 3. Divisas base (todas las monedas que usa el sistema)
@@ -178,5 +181,50 @@ class VipMoneyDatabaseSeeder extends Seeder
         ]);
 
         $this->command->info('✅ [VipMoney] Database seeding completed!');
+    }
+
+    private function resetDatabase(): void
+    {
+        $this->command->info('🗑️  Limpiando base de datos...');
+
+        Schema::disableForeignKeyConstraints();
+
+        DB::table('transaction_incentive_rules')->truncate();
+        DB::table('transaction_logs')->truncate();
+        DB::table('transactions')->truncate();
+        DB::table('wallet_transactions')->truncate();
+        DB::table('liquidations')->truncate();
+        DB::table('sale_logs')->truncate();
+        DB::table('sales')->truncate();
+        DB::table('audit_logs')->truncate();
+        DB::table('notifications')->truncate();
+        DB::table('business_account_seller')->truncate();
+        DB::table('business_accounts')->truncate();
+        DB::table('exchange_rate_history')->truncate();
+        DB::table('exchange_rates')->truncate();
+        DB::table('corridor_currency_pair')->truncate();
+        DB::table('currency_pairs')->truncate();
+        DB::table('incentive_rules')->truncate();
+        DB::table('commission_rules')->truncate();
+        DB::table('payment_methods')->truncate();
+        DB::table('account_types')->truncate();
+        DB::table('document_types')->truncate();
+        DB::table('banks')->truncate();
+        DB::table('countries')->truncate();
+        DB::table('currencies')->truncate();
+        DB::table('corridors')->truncate();
+        DB::table('sellers')->truncate();
+        DB::table('model_has_roles')->truncate();
+        DB::table('model_has_permissions')->truncate();
+        DB::table('role_has_permissions')->truncate();
+        DB::table('roles')->truncate();
+        DB::table('permissions')->truncate();
+        DB::table('users')->truncate();
+        DB::table('sessions')->truncate();
+        DB::table('settings')->truncate();
+
+        Schema::enableForeignKeyConstraints();
+
+        $this->command->info('✅ Base de datos limpia.');
     }
 }
