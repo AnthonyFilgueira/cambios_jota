@@ -44,7 +44,7 @@
 
             <!-- Footer -->
             <div class="mt-6 text-center text-xs text-cj-texto-claro">
-                <p>&copy; {{ date('Y') }} Cambios Jotta. Todos los derechos reservados.</p>
+                <p>&copy; {{ date('Y') }} {{ config('client.name') }}. Todos los derechos reservados.</p>
             </div>
         </div>
     </body>
