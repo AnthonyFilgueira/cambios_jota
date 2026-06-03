@@ -42,6 +42,30 @@
                         @error('name')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                     </div>
 
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Correo electrónico *</label>
+                        <input type="email" name="email" value="{{ old('email') }}" required
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                               placeholder="vendedor@ejemplo.com">
+                        @error('email')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Contraseña *</label>
+                            <input type="password" name="password" required
+                                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                                   placeholder="Mínimo 8 caracteres">
+                            @error('password')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Confirmar contraseña *</label>
+                            <input type="password" name="password_confirmation" required
+                                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                                   placeholder="Repite la contraseña">
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1.5">Comisión Vendedor (%)</label>

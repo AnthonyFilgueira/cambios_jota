@@ -63,6 +63,33 @@
                         @error('name')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                     </div>
 
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Correo electrónico *</label>
+                        <input type="email" name="email" value="{{ old('email', $seller->user?->email) }}" required
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all">
+                        @error('email')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                    </div>
+
+                    {{-- Cambio de contraseña (opcional) --}}
+                    <div class="border-2 border-dashed border-gray-200 rounded-xl p-4">
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🔑 Cambiar contraseña <span class="font-normal normal-case text-gray-400">(dejar vacío para mantener la actual)</span></p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-gray-600 mb-1.5">Nueva contraseña</label>
+                                <input type="password" name="password"
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                                       placeholder="Mínimo 8 caracteres">
+                                @error('password')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-600 mb-1.5">Confirmar contraseña</label>
+                                <input type="password" name="password_confirmation"
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                                       placeholder="Repite la nueva contraseña">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1.5">Comisión Vendedor (%)</label>

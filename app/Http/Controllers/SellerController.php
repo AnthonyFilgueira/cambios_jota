@@ -9,12 +9,13 @@ use App\Models\Seller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class SellerController extends Controller
 {
     public function index()
     {
-        $sellers = Seller::with(['businessAccounts.bank', 'businessAccounts.country'])
+        $sellers = Seller::with(['user', 'businessAccounts.bank', 'businessAccounts.country'])
             ->addSelect([
                 'clients_count' => User::selectRaw('count(*)')
                     ->whereColumn('assigned_seller_id', 'sellers.id'),
@@ -33,12 +34,29 @@ class SellerController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'               => 'required|string|max:255',
-            'seller_commission'  => 'required|numeric|min:0|max:100',
-            'boss_commission'    => 'required|numeric|min:0|max:100',
+            'name'              => 'required|string|max:255',
+            'email'             => 'required|email|unique:users,email',
+            'password'          => 'required|string|min:8|confirmed',
+            'seller_commission' => 'required|numeric|min:0|max:100',
+            'boss_commission'   => 'required|numeric|min:0|max:100',
         ]);
 
-        $seller = Seller::create($request->only('name', 'seller_commission', 'boss_commission'));
+        // Crear usuario y asignar rol vendedor
+        $user = User::create([
+            'name'              => $request->name,
+            'email'             => $request->email,
+            'password'          => Hash::make($request->password),
+            'email_verified_at' => now(),
+        ]);
+        $user->assignRole('vendedor');
+
+        // Crear vendedor vinculado al usuario
+        $seller = Seller::create([
+            'user_id'           => $user->id,
+            'name'              => $request->name,
+            'seller_commission' => $request->seller_commission,
+            'boss_commission'   => $request->boss_commission,
+        ]);
 
         $this->syncSellerAccounts($seller, $request->input('business_accounts', []));
 
@@ -47,6 +65,7 @@ class SellerController extends Controller
 
     public function edit(Seller $seller)
     {
+        $seller->load('user');
         [$businessAccounts, $countries] = $this->accountsByCountry();
         $assignedAccountIds = $seller->businessAccounts->pluck('id')->toArray();
 
@@ -55,8 +74,12 @@ class SellerController extends Controller
 
     public function update(Request $request, Seller $seller)
     {
+        $userId = $seller->user_id;
+
         $request->validate([
             'name'              => 'required|string|max:255',
+            'email'             => "required|email|unique:users,email,{$userId}",
+            'password'          => 'nullable|string|min:8|confirmed',
             'seller_commission' => 'required|numeric|min:0|max:100',
             'boss_commission'   => 'required|numeric|min:0|max:100',
         ]);
@@ -72,6 +95,15 @@ class SellerController extends Controller
         }
 
         $seller->update($request->only('name', 'seller_commission', 'boss_commission'));
+
+        // Actualizar usuario vinculado
+        if ($seller->user) {
+            $userData = ['name' => $request->name, 'email' => $request->email];
+            if ($request->filled('password')) {
+                $userData['password'] = Hash::make($request->password);
+            }
+            $seller->user->update($userData);
+        }
 
         $this->syncSellerAccounts($seller, $request->input('business_accounts', []));
 
@@ -118,8 +150,8 @@ class SellerController extends Controller
 
     private function accountsByCountry(): array
     {
-        $accounts  = BusinessAccount::with('bank', 'country')->where('active', true)->get();
-        $grouped   = $accounts->groupBy('country_id');
+        $accounts   = BusinessAccount::with('bank', 'country')->where('active', true)->get();
+        $grouped    = $accounts->groupBy('country_id');
         $countryIds = $grouped->keys()->filter()->all();
         $countries  = Country::whereIn('id', $countryIds)->get()->keyBy('id');
 
@@ -128,13 +160,11 @@ class SellerController extends Controller
 
     private function syncSellerAccounts(Seller $seller, array $selectedIds): void
     {
-        // Soft-delete all current active assignments
         DB::table('business_account_seller')
             ->where('seller_id', $seller->id)
             ->whereNull('unassigned_at')
             ->update(['unassigned_at' => now()]);
 
-        // Re-activate or create each selected account
         foreach ($selectedIds as $accountId) {
             DB::table('business_account_seller')->updateOrInsert(
                 ['seller_id' => $seller->id, 'business_account_id' => $accountId],
