@@ -189,42 +189,49 @@ class VipMoneyDatabaseSeeder extends Seeder
 
         Schema::disableForeignKeyConstraints();
 
-        DB::table('transaction_incentive_rules')->truncate();
-        DB::table('transaction_logs')->truncate();
-        DB::table('transactions')->truncate();
-        DB::table('wallet_transactions')->truncate();
-        DB::table('liquidations')->truncate();
-        DB::table('sale_logs')->truncate();
-        DB::table('sales')->truncate();
-        DB::table('audit_logs')->truncate();
-        DB::table('notifications')->truncate();
-        DB::table('business_account_seller')->truncate();
-        DB::table('business_accounts')->truncate();
-        DB::table('exchange_rate_history')->truncate();
-        DB::table('exchange_rates')->truncate();
-        DB::table('corridor_currency_pair')->truncate();
-        DB::table('currency_pairs')->truncate();
-        DB::table('incentive_rules')->truncate();
-        DB::table('commission_rules')->truncate();
-        DB::table('payment_methods')->truncate();
-        DB::table('account_types')->truncate();
-        DB::table('document_types')->truncate();
-        DB::table('banks')->truncate();
-        DB::table('countries')->truncate();
-        DB::table('currencies')->truncate();
-        DB::table('corridors')->truncate();
-        DB::table('sellers')->truncate();
-        DB::table('model_has_roles')->truncate();
-        DB::table('model_has_permissions')->truncate();
-        DB::table('role_has_permissions')->truncate();
-        DB::table('roles')->truncate();
-        DB::table('permissions')->truncate();
-        DB::table('users')->truncate();
-        DB::table('sessions')->truncate();
-        DB::table('settings')->truncate();
+        $this->safeTruncate('transaction_incentive_rules');
+        $this->safeTruncate('transaction_logs');
+        $this->safeTruncate('transactions');
+        $this->safeTruncate('wallet_transactions');
+        $this->safeTruncate('liquidations');
+        $this->safeTruncate('sale_logs');
+        $this->safeTruncate('sales');
+        $this->safeTruncate('audit_logs');
+        $this->safeTruncate('notifications');
+        $this->safeTruncate('business_account_seller');
+        $this->safeTruncate('business_accounts');
+        $this->safeTruncate('exchange_rate_history');
+        $this->safeTruncate('exchange_rates');
+        $this->safeTruncate('corridor_currency_pair');
+        $this->safeTruncate('currency_pairs');
+        $this->safeTruncate('incentive_rules');
+        $this->safeTruncate('commission_rules');
+        $this->safeTruncate('payment_methods');
+        $this->safeTruncate('account_types');
+        $this->safeTruncate('document_types');
+        $this->safeTruncate('banks');
+        $this->safeTruncate('countries');
+        $this->safeTruncate('currencies');
+        $this->safeTruncate('corridors');
+        $this->safeTruncate('sellers');
+        $this->safeTruncate('model_has_roles');
+        $this->safeTruncate('model_has_permissions');
+        $this->safeTruncate('role_has_permissions');
+        $this->safeTruncate('roles');
+        $this->safeTruncate('permissions');
+        $this->safeTruncate('users');
+        $this->safeTruncate('sessions');
+        $this->safeTruncate('settings');
 
         Schema::enableForeignKeyConstraints();
 
         $this->command->info('✅ Base de datos limpia.');
+    }
+
+    private function safeTruncate(string $table): void
+    {
+        if (Schema::hasTable($table)) {
+            DB::table($table)->truncate();
+        }
     }
 }
