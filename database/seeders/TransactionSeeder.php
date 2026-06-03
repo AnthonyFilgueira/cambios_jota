@@ -1,38 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
-use App\Models\User;
-use App\Models\Transaction;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class TransactionSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Obtener usuarios existentes o crear uno de prueba
-        $users = User::all();
+        $this->command->info('🗑️  Limpiando transacciones y ventas...');
 
-        if ($users->isEmpty()) {
-            $user = User::factory()->create([
-                'name' => 'Usuario de Prueba',
-                'email' => 'test@cambiosj.com',
-            ]);
-            $users = collect([$user]);
-        }
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        DB::table('transaction_incentive_rules')->truncate();
+        DB::table('transaction_logs')->truncate();
+        DB::table('transactions')->truncate();
+        DB::table('sale_logs')->truncate();
+        DB::table('wallet_transactions')->truncate();
+        DB::table('sales')->truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
-        // Crear 15 transacciones distribuidas entre los usuarios
-        foreach ($users as $user) {
-            Transaction::factory()
-                ->count(15)
-                ->create([
-                    'user_id' => $user->id
-                ]);
-        }
-
-        $this->command->info('15 transacciones creadas para cada usuario.');
+        $this->command->info('✅ Sistema limpio. Transacciones, ventas y monedero eliminados. Listo para pruebas desde cero.');
     }
 }

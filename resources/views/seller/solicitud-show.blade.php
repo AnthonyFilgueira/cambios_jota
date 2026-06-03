@@ -38,22 +38,37 @@
             </div>
 
             <!-- Card montos -->
+            @php
+                $fromCurrency = $transaction->exchangeRate?->currencyPair?->fromCurrency;
+                $toCurrency   = $transaction->exchangeRate?->currencyPair?->toCurrency;
+                $fromSymbol   = $fromCurrency?->symbol   ?? 'S/';
+                $toSymbol     = $toCurrency?->symbol     ?? 'Bs.';
+                $fromCode     = $fromCurrency?->code     ?? 'PEN';
+                $toCode       = $toCurrency?->code       ?? 'VES';
+                $fromFlag     = $fromCurrency?->flag_emoji ?? '🏳️';
+                $toFlag       = $toCurrency?->flag_emoji   ?? '🏳️';
+                $fromCountry  = $fromCurrency?->country   ?? 'origen';
+                $toCountry    = $toCurrency?->country     ?? 'destino';
+                $vesRate      = $transaction->exchangeRate?->ves_rate ?? 0;
+            @endphp
             <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow border border-white/50 overflow-hidden">
                 <div class="bg-gradient-to-r from-cj-morado-profundo to-cj-morado-medio px-6 py-4 flex justify-between items-center">
                     <div>
-                        <p class="text-white/70 text-xs uppercase tracking-wider">Cliente envía</p>
-                        <p class="text-white text-2xl font-bold">S/ {{ number_format($transaction->amount_pen, 2) }}</p>
+                        <p class="text-white/70 text-xs uppercase tracking-wider">{{ $fromFlag }} Cliente envía</p>
+                        <p class="text-white text-2xl font-bold">{{ $fromSymbol }} {{ number_format($transaction->amount_pen, 2) }}</p>
                     </div>
                     <svg class="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                     <div class="text-right">
-                        <p class="text-white/70 text-xs uppercase tracking-wider">Familiar recibe</p>
-                        <p class="text-white text-2xl font-bold">Bs. {{ number_format($transaction->amount_ves, 2) }}</p>
+                        <p class="text-white/70 text-xs uppercase tracking-wider">{{ $toFlag }} Familiar recibe</p>
+                        <p class="text-white text-2xl font-bold">{{ $toSymbol }} {{ number_format($transaction->amount_ves, 2) }}</p>
                     </div>
                 </div>
                 <div class="px-6 py-4 space-y-3 text-sm">
                     <div class="flex justify-between">
                         <span class="text-cj-texto-claro">Tasa aplicada</span>
-                        <span class="font-mono font-semibold text-cj-morado-profundo">1 PEN = {{ number_format($transaction->exchangeRate->ves_rate ?? 0, 2) }} VES</span>
+                        <span class="font-mono font-semibold text-cj-morado-profundo">
+                            1 {{ $fromCode }} = {{ $vesRate >= 1 ? number_format($vesRate, 2) : number_format($vesRate, 6) }} {{ $toCode }}
+                        </span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-cj-texto-claro">Cliente</span>
@@ -76,10 +91,10 @@
                 </div>
             </div>
 
-            <!-- Receptor en Venezuela -->
+            <!-- Receptor en destino -->
             <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow border border-white/50 p-5">
                 <h3 class="font-bold text-cj-morado-profundo mb-4 flex items-center gap-2">
-                    <span>🇻🇪</span> Receptor en Venezuela
+                    <span>{{ $toFlag }}</span> Receptor en {{ ucfirst($toCountry) }}
                 </h3>
                 <div class="grid grid-cols-2 gap-4 text-sm">
                     <div>
@@ -87,8 +102,8 @@
                         <p class="font-semibold">{{ $transaction->recipient_bank }}</p>
                     </div>
                     <div>
-                        <p class="text-cj-texto-claro text-xs">Cédula</p>
-                        <p class="font-mono font-semibold">{{ $transaction->recipient_dni }}</p>
+                        <p class="text-cj-texto-claro text-xs">Documento</p>
+                        <p class="font-mono font-semibold">{{ $transaction->recipient_document_number ?? $transaction->recipient_dni ?? '—' }}</p>
                     </div>
                     <div>
                         <p class="text-cj-texto-claro text-xs">Teléfono</p>
@@ -107,10 +122,10 @@
                 </div>
             </div>
 
-            <!-- Transferencia desde Perú -->
+            <!-- Transferencia desde origen -->
             <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow border border-white/50 p-5">
                 <h3 class="font-bold text-cj-morado-profundo mb-4 flex items-center gap-2">
-                    <span>🇵🇪</span> Transferencia desde Perú
+                    <span>{{ $fromFlag }}</span> Transferencia desde {{ ucfirst($fromCountry) }}
                 </h3>
                 <div class="grid grid-cols-2 gap-4 text-sm">
                     <div>
@@ -118,8 +133,8 @@
                         <p class="font-semibold">{{ $transaction->sender_bank }}</p>
                     </div>
                     <div>
-                        <p class="text-cj-texto-claro text-xs">DNI del titular</p>
-                        <p class="font-mono font-semibold">{{ $transaction->sender_dni ?? '—' }}</p>
+                        <p class="text-cj-texto-claro text-xs">Documento del titular</p>
+                        <p class="font-mono font-semibold">{{ $transaction->sender_document_number ?? $transaction->sender_dni ?? '—' }}</p>
                     </div>
                     @if($transaction->sender_account_number)
                     <div class="col-span-2">
@@ -231,8 +246,8 @@
             </div>
 
             <div class="bg-gray-50 rounded-xl p-4 text-sm space-y-2">
-                <div class="flex justify-between"><span class="text-cj-texto-claro">Cliente envía</span><span class="font-bold">S/ {{ number_format($transaction->amount_pen, 2) }}</span></div>
-                <div class="flex justify-between"><span class="text-cj-texto-claro">Familiar recibe</span><span class="font-bold">Bs. {{ number_format($transaction->amount_ves, 2) }}</span></div>
+                <div class="flex justify-between"><span class="text-cj-texto-claro">{{ $fromFlag }} Cliente envía</span><span class="font-bold">{{ $fromSymbol }} {{ number_format($transaction->amount_pen, 2) }}</span></div>
+                <div class="flex justify-between"><span class="text-cj-texto-claro">{{ $toFlag }} Familiar recibe</span><span class="font-bold">{{ $toSymbol }} {{ number_format($transaction->amount_ves, 2) }}</span></div>
             </div>
 
             <label class="flex items-start gap-3 cursor-pointer">

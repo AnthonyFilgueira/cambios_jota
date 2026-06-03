@@ -48,6 +48,11 @@
                 class="px-4 py-2 rounded-lg text-sm font-bold transition-all">
                 💳 Métodos de pago
             </button>
+            <button @click="tab='tipos-cuenta'"
+                :class="tab==='tipos-cuenta' ? 'bg-white/20 text-white' : 'text-purple-300 hover:text-white'"
+                class="px-4 py-2 rounded-lg text-sm font-bold transition-all">
+                🏦 Tipos de cuenta
+            </button>
         </div>
     </div>
 
@@ -363,7 +368,8 @@
 
                     {{-- Panel de asignación de vendedores --}}
                     <div x-show="asignando" x-cloak class="border-t border-gray-100 p-4 bg-teal-50/50"
-                         x-data="asignacionVendedor({{ $account->id }}, {{ json_encode($account->sellers->pluck('id')->toArray()) }})">
+                         data-account-id="{{ $account->id }}"
+                         x-data="asignacionVendedor($el)">
                         <p class="text-xs font-bold text-teal-700 mb-3">Vendedores asignados a esta cuenta</p>
 
                         {{-- Vendedores ya asignados --}}
@@ -373,7 +379,9 @@
                                     <p class="text-sm font-bold text-gray-800">{{ $sellerAsignado->name }}</p>
                                     <p class="text-xs font-mono text-gray-400">{{ $sellerAsignado->code }}</p>
                                 </div>
-                                <button @click="desasignar({{ $account->id }}, {{ $sellerAsignado->id }})"
+                                <button
+                                    data-seller-id="{{ $sellerAsignado->id }}"
+                                    @click="desasignar($event.currentTarget.dataset.sellerId)"
                                     class="text-xs text-red-500 font-bold hover:text-red-700 transition-colors">
                                     Quitar
                                 </button>
@@ -389,7 +397,7 @@
                                     <option value="{{ $vendedor->id }}">{{ $vendedor->name }} ({{ $vendedor->code }})</option>
                                 @endforeach
                             </select>
-                            <button @click="asignar({{ $account->id }})"
+                            <button @click="asignar()"
                                 :disabled="!sellerIdSeleccionado"
                                 class="px-4 py-2 bg-cj-turquesa text-white font-bold rounded-xl text-xs disabled:opacity-40 transition-all">
                                 Asignar
@@ -540,6 +548,110 @@
         @endif
     </div>
 
+    {{-- ==================== TAB TIPOS DE CUENTA ==================== --}}
+    <div x-show="tab==='tipos-cuenta'" x-cloak>
+
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-bold text-cj-morado-profundo">🏦 Tipos de cuenta</h3>
+            <button @click="formCuentaTipoOpen=!formCuentaTipoOpen"
+                    :class="formCuentaTipoOpen ? 'bg-cj-morado-profundo text-white' : 'bg-white text-cj-morado-profundo border border-cj-morado-profundo/30'"
+                    class="px-4 py-2 rounded-xl text-sm font-bold transition-all">
+                + Agregar tipo
+            </button>
+        </div>
+
+        <div x-show="formCuentaTipoOpen" x-cloak class="bg-white/90 rounded-2xl shadow border border-white/50 p-5 mb-4">
+            <form action="{{ route('account-types.store', $country) }}" method="POST"
+                  class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                @csrf
+                <div>
+                    <label class="block text-xs font-semibold text-cj-texto-claro mb-1 uppercase tracking-wider">Nombre *</label>
+                    <input type="text" name="name" required placeholder="Ej: Cuenta de Ahorros"
+                           class="w-full p-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-cj-texto-claro mb-1 uppercase tracking-wider">Código *</label>
+                    <input type="text" name="code" required placeholder="Ej: ahorro"
+                           class="w-full p-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                </div>
+                <div>
+                    <button type="submit" class="w-full px-4 py-2.5 bg-cj-morado-profundo text-white rounded-xl font-semibold text-sm hover:bg-cj-morado-medio transition-all">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        @if($activeAccountTypes->isEmpty() && $inactiveAccountTypes->isEmpty())
+        <div class="bg-white/60 rounded-2xl p-8 text-center text-cj-texto-claro">
+            No hay tipos de cuenta para este país.
+        </div>
+        @else
+        <div class="space-y-2">
+            @foreach($activeAccountTypes as $at)
+            <div class="bg-white/90 rounded-2xl shadow border border-white/50 px-5 py-4 flex items-center justify-between gap-4"
+                 x-data="{ editAt: false }">
+                <div class="flex items-center gap-4 flex-1 min-w-0" x-show="!editAt">
+                    <span class="inline-flex items-center justify-center px-3 py-1.5 bg-teal-50 rounded-xl font-bold font-mono text-cj-turquesa text-xs">
+                        {{ $at->code }}
+                    </span>
+                    <p class="font-semibold text-cj-texto">{{ $at->name }}</p>
+                </div>
+
+                <div x-show="editAt" x-cloak class="flex-1">
+                    <form action="{{ route('account-types.update', [$country, $at]) }}" method="POST"
+                          class="flex gap-3 items-center">
+                        @csrf @method('PUT')
+                        <input type="text" name="name" value="{{ $at->name }}" placeholder="Nombre"
+                               class="flex-1 p-2 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                        <button type="submit" class="px-3 py-2 bg-cj-morado-profundo text-white rounded-xl text-sm font-semibold">Guardar</button>
+                        <button type="button" @click="editAt=false" class="px-3 py-2 bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold">✕</button>
+                    </form>
+                </div>
+
+                <div x-show="!editAt" class="flex items-center gap-2 flex-shrink-0">
+                    <button type="button" @click="editAt=true"
+                            class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition-all">
+                        Editar
+                    </button>
+                    <form action="{{ route('account-types.toggle', [$country, $at]) }}" method="POST">
+                        @csrf @method('PATCH')
+                        <button type="submit" class="relative w-11 h-6 rounded-full transition-colors bg-cj-turquesa focus:outline-none">
+                            <span class="absolute top-0.5 translate-x-5 h-5 w-5 rounded-full bg-white shadow transition-transform"></span>
+                        </button>
+                    </form>
+                    <form action="{{ route('account-types.destroy', [$country, $at]) }}" method="POST"
+                          onsubmit="return confirm('¿Eliminar este tipo de cuenta?')">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="px-2 py-1.5 text-red-400 hover:text-red-600 transition-all text-xs">✕</button>
+                    </form>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
+
+        @if($inactiveAccountTypes->count())
+            <p class="text-xs font-bold uppercase tracking-widest text-gray-400 mt-6 mb-3">Inactivos</p>
+            <div class="space-y-2 opacity-50">
+                @foreach($inactiveAccountTypes as $at)
+                    <div class="bg-white/70 rounded-xl px-4 py-3 flex items-center justify-between shadow border border-white/30">
+                        <div>
+                            <span class="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded mr-2">{{ $at->code }}</span>
+                            <span class="text-sm font-semibold text-gray-600">{{ $at->name }}</span>
+                        </div>
+                        <form action="{{ route('account-types.toggle', [$country, $at]) }}" method="POST">
+                            @csrf @method('PATCH')
+                            <button type="submit" class="relative w-11 h-6 rounded-full bg-gray-200 focus:outline-none">
+                                <span class="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow"></span>
+                            </button>
+                        </form>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+
     {{-- ==================== TAB MÉTODOS DE PAGO ==================== --}}
     <div x-show="tab==='pagos'" x-cloak>
 
@@ -554,7 +666,7 @@
 
         <div x-show="formPagoOpen" x-cloak class="bg-white/90 rounded-2xl shadow border border-white/50 p-5 mb-4">
             <form action="{{ route('payment-methods.store', $country) }}" method="POST"
-                  class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                  class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 @csrf
                 <div>
                     <label class="block text-xs font-semibold text-cj-texto-claro mb-1 uppercase tracking-wider">Nombre *</label>
@@ -567,8 +679,30 @@
                            class="w-full p-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
                 </div>
                 <div>
-                    <button type="submit" class="w-full px-4 py-2.5 bg-cj-morado-profundo text-white rounded-xl font-semibold text-sm hover:bg-cj-morado-medio transition-all">
-                        Guardar
+                    <label class="block text-xs font-semibold text-cj-texto-claro mb-1 uppercase tracking-wider">Lado *</label>
+                    <select name="side" required class="w-full p-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                        <option value="sender">Remitente (envía)</option>
+                        <option value="recipient">Beneficiario (recibe)</option>
+                        <option value="both">Ambos</option>
+                    </select>
+                </div>
+                <div class="sm:col-span-3">
+                    <label class="block text-xs font-semibold text-cj-texto-claro mb-2 uppercase tracking-wider">
+                        Campos requeridos
+                        <span class="normal-case font-normal text-gray-400 ml-1">(qué datos se pedirán en la transacción)</span>
+                    </label>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach(['bank' => 'Banco', 'account_number' => 'Nº Cuenta', 'account_type' => 'Tipo cuenta', 'phone' => 'Teléfono'] as $key => $label)
+                        <label class="flex items-center gap-2 px-3 py-1.5 border-2 border-gray-200 rounded-xl cursor-pointer hover:bg-purple-50 hover:border-cj-turquesa text-sm transition-all">
+                            <input type="checkbox" name="fields_required[]" value="{{ $key }}" class="rounded accent-cj-turquesa">
+                            {{ $label }}
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="sm:col-span-3 flex justify-end">
+                    <button type="submit" class="px-6 py-2.5 bg-cj-morado-profundo text-white rounded-xl font-semibold text-sm hover:bg-cj-morado-medio transition-all">
+                        Guardar método
                     </button>
                 </div>
             </form>
@@ -583,21 +717,51 @@
             @foreach($paymentMethods as $pm)
             <div class="bg-white/90 rounded-2xl shadow border border-white/50 px-5 py-4 flex items-center justify-between gap-4"
                  x-data="{ editPago: false }">
-                <div class="flex items-center gap-4 flex-1 min-w-0" x-show="!editPago">
+                <div class="flex items-center gap-3 flex-1 min-w-0 flex-wrap" x-show="!editPago">
                     <span class="inline-flex items-center justify-center px-3 py-1.5 bg-cj-morado-claro rounded-xl font-bold font-mono text-cj-morado-profundo text-xs">
                         {{ $pm->code }}
                     </span>
                     <p class="font-semibold text-cj-texto">{{ $pm->name }}</p>
+                    @if($pm->side === 'sender')
+                        <span class="text-xs bg-blue-100 text-blue-700 font-bold rounded-full px-2 py-0.5">Remitente</span>
+                    @elseif($pm->side === 'recipient')
+                        <span class="text-xs bg-green-100 text-green-700 font-bold rounded-full px-2 py-0.5">Beneficiario</span>
+                    @else
+                        <span class="text-xs bg-gray-100 text-gray-600 font-bold rounded-full px-2 py-0.5">Ambos</span>
+                    @endif
+                    @foreach($pm->fields_required ?? [] as $field)
+                        <span class="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-medium">{{ $field }}</span>
+                    @endforeach
                 </div>
 
                 <div x-show="editPago" x-cloak class="flex-1">
                     <form action="{{ route('payment-methods.update', [$country, $pm]) }}" method="POST"
-                          class="flex gap-3 items-center">
+                          class="space-y-3">
                         @csrf @method('PUT')
-                        <input type="text" name="name" value="{{ $pm->name }}" placeholder="Nombre"
-                               class="flex-1 p-2 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
-                        <button type="submit" class="px-3 py-2 bg-cj-morado-profundo text-white rounded-xl text-sm font-semibold">Guardar</button>
-                        <button type="button" @click="editPago=false" class="px-3 py-2 bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold">✕</button>
+                        <div class="flex gap-3 items-center">
+                            <input type="text" name="name" value="{{ $pm->name }}" placeholder="Nombre"
+                                   class="flex-1 p-2 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                            <select name="side" class="p-2 border-2 border-gray-200 rounded-xl text-sm focus:border-cj-turquesa transition-all">
+                                <option value="sender" {{ $pm->side === 'sender' ? 'selected' : '' }}>Remitente</option>
+                                <option value="recipient" {{ $pm->side === 'recipient' ? 'selected' : '' }}>Beneficiario</option>
+                                <option value="both" {{ $pm->side === 'both' ? 'selected' : '' }}>Ambos</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <span class="text-xs font-semibold text-gray-500 mr-1">Campos:</span>
+                            @foreach(['bank' => 'Banco', 'account_number' => 'Nº Cuenta', 'account_type' => 'Tipo cuenta', 'phone' => 'Teléfono'] as $key => $label)
+                            <label class="flex items-center gap-1.5 px-2.5 py-1 border border-gray-200 rounded-lg cursor-pointer hover:bg-purple-50 text-xs transition-all">
+                                <input type="checkbox" name="fields_required[]" value="{{ $key }}"
+                                       {{ in_array($key, $pm->fields_required ?? []) ? 'checked' : '' }}
+                                       class="rounded accent-cj-turquesa">
+                                {{ $label }}
+                            </label>
+                            @endforeach
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="submit" class="px-3 py-2 bg-cj-morado-profundo text-white rounded-xl text-sm font-semibold">Guardar</button>
+                            <button type="button" @click="editPago=false" class="px-3 py-2 bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold">✕</button>
+                        </div>
                     </form>
                 </div>
 
@@ -634,33 +798,31 @@ function paisDetalle() {
         formCuentaOpen: false,
         formDocOpen: false,
         formPagoOpen: false,
+        formCuentaTipoOpen: false,
     }
 }
 
-function asignacionVendedor(accountId, asignadosIds) {
+function asignacionVendedor(el) {
+    const accountId = el.dataset.accountId;
     return {
+        accountId: accountId,
         sellerIdSeleccionado: '',
-        asignadosIds: asignadosIds,
+        asignadosIds: [],
 
-        asignar(accountId) {
-            if (!this.sellerIdSeleccionado) return;
-            fetch(`/business-accounts/${accountId}/assign`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-                body: JSON.stringify({ seller_id: this.sellerIdSeleccionado }),
-            }).then(() => window.location.reload());
+        async init() {
+            const resp = await axios.get(`/api/business-accounts/${this.accountId}/assigned-sellers`);
+            this.asignadosIds = resp.data;
         },
 
-        desasignar(accountId, sellerId) {
-            fetch(`/business-accounts/${accountId}/unassign/${sellerId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-            }).then(() => window.location.reload());
+        asignar() {
+            if (!this.sellerIdSeleccionado) return;
+            axios.post(`/business-accounts/${this.accountId}/assign`, { seller_id: this.sellerIdSeleccionado })
+                .then(() => window.location.reload());
+        },
+
+        desasignar(sellerId) {
+            axios.delete(`/business-accounts/${this.accountId}/unassign/${sellerId}`)
+                .then(() => window.location.reload());
         },
     }
 }

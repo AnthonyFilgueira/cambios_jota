@@ -2,61 +2,14 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
+// Delegador por defecto → CambiosJota
+// Para otro cliente: php artisan db:seed --class=VipMoneyDatabaseSeeder
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        $this->command->info('🌱 Seeding database...');
-
-        // 1. Roles y Permisos (PRIMERO)
-        $this->call([
-            RolesAndPermissionsSeeder::class, // Crear roles y permisos
-        ]);
-
-        // 2. Usuario principal del sistema
-        $userAbreu = User::factory()->create([
-            'name' => 'abreu',
-            'email' => 'cambiosjottaa@innodite.com',
-            'password' => Hash::make('CambiosJota2026!'),
-        ]);
-        $userAbreu->assignRole('super-admin');
-
-        // 3. Seeders de configuración base (REQ 6 y 7)
-        $this->call([
-            CurrencySeeder::class,           // Divisas (PEN, VES, USD, etc.)
-            CurrencyPairSeeder::class,       // Pares de conversión
-            CorridorSeeder::class,           // Corredores
-            CorridorCurrencyPairSeeder::class, // Asignación de pares a corredores
-            ExchangeRateSeeder::class,       // Tasas de cambio activas
-        ]);
-
-        // 4. Seeder de datos de demostración
-        $this->call([
-            DemoDataSeeder::class,           // Usuarios, vendedores, ventas
-        ]);
-
-        // 5. Países, bancos y cuentas del negocio (DESPUÉS de vendedores para asignarles cuentas)
-        $this->call([
-            CountryBankSeeder::class,        // Perú + Venezuela + 3 cuentas asignadas a vendedores
-            DocumentTypeSeeder::class,       // Tipos de documento por país (PE y VE)
-            PaymentMethodSeeder::class,      // Métodos de pago por país
-            MultiCorridorSeeder::class,      // Chile + Colombia + nuevos pares (CLP→PEN, COP→VES, etc.)
-            MoreCorridorsSeeder::class,      // Argentina + Brasil + cuentas CL/CO/AR/BR + pares (ARS→PEN, BRL→PEN, etc.)
-        ]);
-
-        // 6. Incentivos de demostración (DESPUÉS de DemoDataSeeder — necesita users y sellers)
-        $this->call([
-            IncentiveSeeder::class,          // 7 incentivos de demo (5 activos, 2 inactivos)
-        ]);
-
-        $this->command->info('✅ Database seeding completed!');
+        $this->call([CambiosJotaDatabaseSeeder::class]);
     }
 }

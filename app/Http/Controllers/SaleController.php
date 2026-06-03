@@ -10,7 +10,19 @@ class SaleController extends Controller
 {
     public function index()
     {
-        $sales = Sale::with('seller')->latest('sale_date')->paginate(20);
+        $user = auth()->user();
+
+        if ($user->hasRole('vendedor')) {
+            $seller = $user->seller;
+            abort_if(!$seller, 403, 'No tienes perfil de vendedor asignado.');
+            $sales = Sale::with('seller')
+                ->where('seller_id', $seller->id)
+                ->latest('sale_date')
+                ->paginate(20);
+        } else {
+            $sales = Sale::with('seller')->latest('sale_date')->paginate(20);
+        }
+
         return view('sales.index', compact('sales'));
     }
 

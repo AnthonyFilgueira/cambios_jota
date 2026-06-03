@@ -30,10 +30,13 @@ use App\Http\Controllers\SettingController;
 
 // Simulador público
 Route::get('/', function () {
-    $rates = ExchangeRate::getActive();
+    return view('welcome');
+});
 
+// Endpoint público de pares de cambio activos (consumido via Axios)
+Route::get('/exchange-rates', function () {
     $pairs = \App\Models\ExchangeRate::with([
-            'currencyPair.fromCurrency.originCountry',
+            'currencyPair.fromCurrency',
             'currencyPair.toCurrency',
         ])
         ->whereNotNull('currency_pair_id')
@@ -42,32 +45,29 @@ Route::get('/', function () {
         ->map(function ($rate) {
             $from = $rate->currencyPair->fromCurrency;
             $to   = $rate->currencyPair->toCurrency;
-
             return [
                 'id'               => $rate->id,
-                'from_currency_id' => $from->id ?? null,
-                'from_code'        => $from->code,
-                'from_name'        => $from->name,
-                'from_country'     => $from->country,
-                'from_symbol'      => $from->symbol,
-                'from_country_id'  => $from->country_id,
-                'flag'             => $from->flag_emoji,
-                'to_code'          => $to->code       ?? 'VES',
-                'to_name'          => $to->name       ?? 'Bolívar Digital',
-                'to_symbol'        => $to->symbol     ?? 'Bs.',
-                'to_country'       => $to->country    ?? 'Venezuela',
-                'to_flag'          => $to->flag_emoji ?? '🇻🇪',
+                'from_currency_id' => $from?->id,
+                'from_code'        => $from?->code,
+                'from_name'        => $from?->name,
+                'from_symbol'      => $from?->symbol,
+                'from_flag'        => $from?->flag_emoji ?? '🏳',
+                'from_country'     => $from?->country    ?? '',
+                'from_country_id'  => $from?->country_id,
+                'to_code'          => $to?->code         ?? 'VES',
+                'to_name'          => $to?->name         ?? 'Bolívar Digital',
+                'to_symbol'        => $to?->symbol       ?? 'Bs.',
+                'to_flag'          => $to?->flag_emoji   ?? '🏳',
+                'to_country'       => $to?->country      ?? '',
+                'to_country_id'    => $to?->country_id,
                 'ves_rate'         => $rate->ves_rate,
                 'usd_rate'         => $rate->usd_rate,
                 'eur_rate'         => $rate->eur_rate,
                 'is_active'        => $rate->is_active,
             ];
         });
-
-    $bonusPreview = app(\App\Services\IncentiveService::class)->getReceptorPreview(auth()->user(), 0);
-
-    return view('welcome', compact('rates', 'pairs', 'bonusPreview'));
-});
+    return response()->json($pairs);
+})->name('exchange-rates');
 
 // API pública: buscar vendedor por código (usada en el formulario de transacción)
 Route::get('/api/sellers/search/{code}', function ($code) {
@@ -119,6 +119,34 @@ Route::get('/dashboard', function () {
     return redirect()->route('owner.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// ─── ENDPOINTS JSON (consumidos via Axios desde el frontend) ─────────────────
+
+Route::middleware('auth')->group(function () {
+
+    Route::get('/api/incentives/bonus-preview', function () {
+        $preview = app(\App\Services\IncentiveService::class)
+            ->getReceptorPreview(auth()->user(), 0);
+        return response()->json($preview['rules'] ?? []);
+    })->name('api.incentives.bonus-preview');
+
+    Route::get('/api/wallet/weekly-data', [WalletController::class, 'weeklyData'])
+        ->name('api.wallet.weeklyData');
+
+    Route::get('/api/currencies/active', function () {
+        return response()->json(
+            \App\Models\Currency::where('is_active', true)
+                ->orderBy('code')
+                ->get(['id', 'code', 'symbol', 'name'])
+        );
+    })->name('api.currencies.active');
+
+    Route::get('/api/business-accounts/{businessAccount}/assigned-sellers', function ($businessAccount) {
+        $account = \App\Models\BusinessAccount::with('sellers')->findOrFail($businessAccount);
+        return response()->json($account->sellers->pluck('id'));
+    })->name('api.businessAccounts.assignedSellers');
+
+});
+
 // ─── RUTAS AUTENTICADAS ───────────────────────────────────────────────────────
 
 Route::middleware('auth')->group(function () {
@@ -151,6 +179,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions/seller-accounts',           [TransactionController::class, 'getSellerAccounts'])->name('transactions.sellerAccounts');
     Route::get('/transactions/document-types',            [TransactionController::class, 'getDocumentTypes'])->name('transactions.documentTypes');
     Route::get('/transactions/payment-methods',           [TransactionController::class, 'getPaymentMethods'])->name('transactions.paymentMethods');
+    Route::get('/transactions/account-types',             [TransactionController::class, 'getAccountTypes'])->name('transactions.accountTypes');
     Route::get('/transactions/sender-banks',              [TransactionController::class, 'getSenderBanks'])->name('transactions.senderBanks');
     Route::get('/transactions/recipient-banks',           [TransactionController::class, 'getRecipientBanks'])->name('transactions.recipientBanks');
     Route::get('/transactions',                           [TransactionController::class, 'index'])->name('transactions.index');
@@ -221,6 +250,10 @@ Route::middleware('auth')->group(function () {
     Route::put('countries/{country}/payment-methods/{paymentMethod}',              [CountryController::class, 'updatePaymentMethod'])->name('payment-methods.update');
     Route::patch('countries/{country}/payment-methods/{paymentMethod}/toggle',     [CountryController::class, 'togglePaymentMethod'])->name('payment-methods.toggle');
     Route::delete('countries/{country}/payment-methods/{paymentMethod}',           [CountryController::class, 'destroyPaymentMethod'])->name('payment-methods.destroy');
+    Route::post('countries/{country}/account-types',                              [CountryController::class, 'storeAccountType'])->name('account-types.store');
+    Route::put('countries/{country}/account-types/{accountType}',                [CountryController::class, 'updateAccountType'])->name('account-types.update');
+    Route::patch('countries/{country}/account-types/{accountType}/toggle',       [CountryController::class, 'toggleAccountType'])->name('account-types.toggle');
+    Route::delete('countries/{country}/account-types/{accountType}',             [CountryController::class, 'destroyAccountType'])->name('account-types.destroy');
     Route::post('countries/{country}/document-types',                             [CountryController::class, 'storeDocumentType'])->name('document-types.store');
     Route::put('countries/{country}/document-types/{documentType}',              [CountryController::class, 'updateDocumentType'])->name('document-types.update');
     Route::patch('countries/{country}/document-types/{documentType}/toggle',     [CountryController::class, 'toggleDocumentType'])->name('document-types.toggle');

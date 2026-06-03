@@ -1,6 +1,6 @@
 # Manual de Usuario — Cambio J
 
-**Versión:** REQ-12 + Multi-Corredor (mayo 2026)
+**Versión:** REQ-13 — Tipos de operación y tipos de cuenta por país (mayo 2026)
 **Stack:** Laravel 12 · Alpine.js · Blade · Tailwind CSS · MySQL
 
 ---
@@ -18,8 +18,9 @@
 9. [Motor de Incentivos](#9-motor-de-incentivos)
 10. [Reportes y exportaciones](#10-reportes-y-exportaciones)
 11. [Campos nuevos de REQ-12](#11-campos-nuevos-de-req-12)
-12. [Comandos de mantenimiento](#12-comandos-de-mantenimiento)
-13. [Notas técnicas de la UX dinámica](#13-notas-técnicas-de-la-ux-dinámica)
+12. [REQ-13 — Tipos de operación y tipos de cuenta configurables por país](#12-req-13--tipos-de-operación-y-tipos-de-cuenta-configurables-por-país)
+13. [Comandos de mantenimiento](#13-comandos-de-mantenimiento)
+14. [Notas técnicas de la UX dinámica](#14-notas-técnicas-de-la-ux-dinámica)
 
 ---
 
@@ -142,23 +143,28 @@ Solo puede operar sus propias transacciones:
 - Si elegiste `ARS → PEN`, verás cuentas en **Argentina** (Banco Nación, Banco Galicia)
 - Debes transferir el monto exacto a una de estas cuentas antes de continuar
 
-#### PASO 3 — Elegir método de pago
-- Los métodos disponibles se cargan automáticamente según el **país de origen** del par seleccionado
-- Métodos por país:
-  | País | Métodos disponibles |
-  |------|---------------------|
-  | 🇵🇪 Perú | Transferencia Bancaria |
-  | 🇦🇷 Argentina | Transferencia Bancaria · CVU / Alias |
-  | 🇨🇱 Chile | Transferencia Bancaria |
-  | 🇨🇴 Colombia | Transferencia Bancaria · Nequi · Daviplata |
-  | 🇧🇷 Brasil | Transferencia Bancaria · PIX |
+#### PASO 3 — Elegir cómo vas a depositar (método del remitente) *(REQ-13)*
+- Aparece un selector de botones con los métodos disponibles para el **país de origen**
+- **Los campos del formulario cambian dinámicamente** según el método elegido:
 
-#### PASO 4 — Ingresar el número de operación
-- Solo aparece si el método de pago es **Transferencia bancaria**
-- Es el número de referencia que da tu banco al hacer la transferencia
-- Campo opcional pero recomendado para facilitar la conciliación
+  | País | Método | Campos que aparecen |
+  |------|--------|---------------------|
+  | 🇵🇪 Perú | Transferencia Bancaria | Banco · Nº de cuenta · Tipo de cuenta |
+  | 🇵🇪 Perú | Agente | Banco |
+  | 🇵🇪 Perú | Yape | Teléfono del remitente |
+  | 🇵🇪 Perú | Plin | Teléfono del remitente |
+  | 🇦🇷 Argentina | Transferencia Bancaria | Banco · Nº de cuenta · Tipo de cuenta |
+  | 🇦🇷 Argentina | CVU / Alias | Nº de cuenta / Alias |
+  | 🇨🇱 Chile | Transferencia Bancaria | Banco · Nº de cuenta · Tipo de cuenta |
+  | 🇨🇴 Colombia | Transferencia Bancaria | Banco · Nº de cuenta · Tipo de cuenta |
+  | 🇨🇴 Colombia | Nequi | Teléfono del remitente |
+  | 🇨🇴 Colombia | Daviplata | Teléfono del remitente |
+  | 🇧🇷 Brasil | Transferencia Bancaria | Banco · Nº de cuenta · Tipo de cuenta |
+  | 🇧🇷 Brasil | PIX | Teléfono del remitente |
 
-#### PASO 5 — Datos del remitente (quien envía)
+- Los campos que **siempre aparecen** (universales para cualquier método): Tipo de documento · Nº de documento · Nº de operación · Imagen del comprobante
+
+#### PASO 4 — Datos del remitente (quien envía)
 - **Tipo de documento**: se carga dinámicamente según el **país de origen** del par
   | País | Tipos de documento |
   |------|--------------------|
@@ -167,18 +173,24 @@ Solo puede operar sus propias transacciones:
   | 🇨🇱 Chile | RUT · RUN |
   | 🇨🇴 Colombia | CC · CE · NIT |
   | 🇧🇷 Brasil | CPF · CNPJ · RG |
-- **Banco del remitente**: banco desde el que se realizará la transferencia (cargado por país)
-- **Número de documento**: ingresa el número según el tipo seleccionado
+- **Número de operación**: número de referencia que da el banco al transferir (visible siempre)
+- **Campos condicionales** según el método elegido en Paso 3: banco, nº de cuenta, teléfono
 
-#### PASO 6 — Datos del destinatario (quien recibe)
+#### PASO 5 — Datos del destinatario (quien recibe) *(REQ-13)*
+- **Nombre completo del titular**: campo obligatorio (siempre visible)
 - **Tipo de documento**: cargado según el **país destino**
   - Si destino es Venezuela: Cédula (V) · Extranjero (E) · Jurídico (J) · Gubernamental (G)
   - Si destino es Perú: DNI · CE · RUC
 - **Número de documento**
-- **Banco destino**: banco receptor (cargado según el país destino)
-- **Número de cuenta**: solo si el método es transferencia bancaria
-- **Tipo de cuenta**: Ahorro / Corriente
-- **Teléfono**: número de contacto del destinatario
+- El resto de campos aparecen según el **método de pago del destinatario**:
+
+  | País destino | Método | Campos que aparecen |
+  |---|---|---|
+  | 🇻🇪 Venezuela | Transferencia Bancaria | Banco · Nº de cuenta · Tipo de cuenta |
+  | 🇻🇪 Venezuela | Pago Móvil | Teléfono · Banco |
+  | 🇵🇪 Perú | Transferencia Bancaria | Banco · Nº de cuenta · Tipo de cuenta |
+
+- **Tipo de cuenta**: se carga desde la BD (configurado por país) — actualmente Ahorro y Corriente para todos los países
 
 #### PASO 7 — Ver el bono/incentivo *(REQ-12)*
 - Si hay reglas de incentivo activas para la moneda seleccionada, aparece el preview del bono
@@ -445,20 +457,45 @@ Configura qué tipos de documento se muestran en el formulario de transacción s
 | 🇦🇷 Argentina | DNI · CUIT (Tributaria) · CUIL (Laboral) |
 | 🇧🇷 Brasil | CPF · CNPJ · RG |
 
-#### Pestaña Métodos de Pago
+#### Pestaña Métodos de Pago *(REQ-13 — Campos dinámicos por método)*
 
-Configura qué métodos de pago se ofrecen según el **país de origen** del remitente.
+Configura qué métodos de pago se ofrecen y **qué campos adicionales requiere cada método**.
+
+Cada método tiene ahora dos atributos nuevos:
+
+| Atributo | Valores posibles | Descripción |
+|----------|-----------------|-------------|
+| **Lado** (`side`) | `Remitente` / `Beneficiario` / `Ambos` | Indica si el método es para quien envía o quien recibe |
+| **Campos requeridos** (`fields_required`) | `phone`, `bank`, `account_number`, `account_type` | Los campos del formulario que este método activa |
+
+**Datos precargados (REQ-13):**
+
+| País | Lado | Método | Campos que activa |
+|------|------|--------|-------------------|
+| 🇵🇪 Perú | Remitente | Transferencia Bancaria | banco · nº cuenta · tipo cuenta |
+| 🇵🇪 Perú | Remitente | Agente | banco |
+| 🇵🇪 Perú | Remitente | Yape | teléfono |
+| 🇵🇪 Perú | Remitente | Plin | teléfono |
+| 🇻🇪 Venezuela | Beneficiario | Transferencia Bancaria | banco · nº cuenta · tipo cuenta |
+| 🇻🇪 Venezuela | Beneficiario | Pago Móvil | teléfono · banco |
+| 🇨🇱 Chile | Remitente | Transferencia Bancaria | banco · nº cuenta · tipo cuenta |
+| 🇨🇴 Colombia | Remitente | Transferencia Bancaria | banco · nº cuenta · tipo cuenta |
+| 🇨🇴 Colombia | Remitente | Nequi | teléfono |
+| 🇨🇴 Colombia | Remitente | Daviplata | teléfono |
+| 🇦🇷 Argentina | Remitente | Transferencia Bancaria | banco · nº cuenta · tipo cuenta |
+| 🇦🇷 Argentina | Remitente | CVU / Alias | nº cuenta |
+| 🇧🇷 Brasil | Remitente | Transferencia Bancaria | banco · nº cuenta · tipo cuenta |
+| 🇧🇷 Brasil | Remitente | PIX | teléfono |
+
+#### Pestaña Tipos de Cuenta *(REQ-13 — nuevo)*
+
+Configura los tipos de cuenta bancaria disponibles para cada país. Los tipos cargados se usan en el formulario de transacción (en lugar de los valores fijos anteriores).
 
 **Datos precargados:**
 
-| País | Métodos |
-|------|---------|
-| 🇵🇪 Perú | Transferencia bancaria |
-| 🇻🇪 Venezuela | (destino — no aplica métodos de pago) |
-| 🇨🇱 Chile | Transferencia bancaria |
-| 🇨🇴 Colombia | Transferencia bancaria · Nequi · Daviplata |
-| 🇦🇷 Argentina | Transferencia bancaria · CVU / Alias |
-| 🇧🇷 Brasil | Transferencia bancaria · PIX |
+| País | Tipos de cuenta |
+|------|----------------|
+| Todos los países | Cuenta de Ahorros · Cuenta Corriente |
 
 ---
 
@@ -638,7 +675,60 @@ Todos los siguientes campos se incorporaron en la última actualización mayor d
 
 ---
 
-## 12. Comandos de mantenimiento
+## 12. REQ-13 — Tipos de operación y tipos de cuenta configurables por país
+
+Esta actualización mayor reemplaza los campos hardcodeados del formulario de transacción por una arquitectura completamente dinámica: cada país define sus propios métodos de pago y tipos de cuenta desde el panel de administración.
+
+### Qué cambió para el Cliente
+
+**Antes de REQ-13:**
+- El formulario tenía campos fijos: banco, cuenta, teléfono para destino Venezuela con placeholder `0412-1234567`
+- `operation_type` solo podía ser `transferencia` o `pago_movil`
+- Los tipos de cuenta eran siempre Ahorro/Corriente (hardcodeados)
+- No había selector de método para el remitente
+
+**Después de REQ-13:**
+- El formulario muestra u oculta campos según el **método seleccionado** para el remitente y para el beneficiario
+- Los métodos de pago del remitente aparecen como **botones** en la sección "Tu transferencia desde origen"
+- Los tipos de cuenta se cargan desde la BD — el admin puede agregar o modificar los disponibles
+- El campo `recipient_name` (nombre del titular del beneficiario) es ahora obligatorio y siempre visible
+- Los placeholders son genéricos (sin referencias específicas a Venezuela)
+
+### Qué cambió para el Administrador
+
+**Nueva pestaña "Tipos de cuenta"** en `/countries/{id}`:
+- Crear, editar, activar/desactivar y eliminar tipos de cuenta por país
+- Inicialmente: Ahorro y Corriente para los 6 países activos
+
+**Campo "Lado" en Métodos de pago**:
+- Cada método ahora tiene un lado: `Remitente`, `Beneficiario` o `Ambos`
+- El formulario filtra automáticamente: muestra métodos del remitente en la sección de origen y métodos del beneficiario en la sección de destino
+
+**Campo "Campos requeridos" en Métodos de pago**:
+- Controla qué campos del formulario aparecen cuando el usuario selecciona ese método
+- Claves disponibles: `phone`, `bank`, `account_number`, `account_type`
+
+### Nuevos campos en transacciones
+
+| Campo | Descripción |
+|-------|-------------|
+| `sender_operation_type` | Método de pago elegido por el remitente (código) |
+| `sender_phone` | Teléfono del remitente para Yape, Plin, Nequi, PIX |
+| `recipient_name` | Nombre completo del titular del beneficiario |
+| `operation_type` | Ahora acepta cualquier código (ya no enum) |
+| `recipient_account_type` | Ahora acepta cualquier código (ya no enum restringido a ahorro/corriente) |
+
+### Nuevos endpoints API
+
+| Ruta | Descripción |
+|------|-------------|
+| `GET /transactions/payment-methods?country_id=X&side=sender` | Métodos de pago del remitente para ese país |
+| `GET /transactions/payment-methods?country_id=X&side=recipient` | Métodos del beneficiario |
+| `GET /transactions/account-types?country_id=X` | Tipos de cuenta del país destino |
+
+---
+
+## 13. Comandos de mantenimiento
 
 Todos los comandos se ejecutan con el prefijo `./vendor/bin/sail artisan`:
 
@@ -657,8 +747,11 @@ Todos los comandos se ejecutan con el prefijo `./vendor/bin/sail artisan`:
 # Tipos de documento (Perú y Venezuela)
 ./vendor/bin/sail artisan db:seed --class=DocumentTypeSeeder
 
-# Métodos de pago por país
+# Métodos de pago por país (con side + fields_required por REQ-13)
 ./vendor/bin/sail artisan db:seed --class=PaymentMethodSeeder
+
+# Tipos de cuenta por país (REQ-13)
+./vendor/bin/sail artisan db:seed --class=AccountTypeSeeder
 
 # Chile + Colombia + pares CLP→PEN, COP→VES, etc.
 ./vendor/bin/sail artisan db:seed --class=MultiCorridorSeeder
@@ -717,7 +810,7 @@ Todos los comandos se ejecutan con el prefijo `./vendor/bin/sail artisan`:
 
 ---
 
-## 13. Notas técnicas de la UX dinámica
+## 14. Notas técnicas de la UX dinámica
 
 ### Comportamiento del formulario de transacción
 
@@ -732,12 +825,15 @@ El formulario `/transactions/create` usa **Alpine.js** para reaccionar en tiempo
 **Al seleccionar una tasa:**
 1. El formulario lee los atributos `data-*` del `<option>` seleccionado (país, bandera, country_id)
 2. Se actualizan las cabeceras dinámicamente: "🇨🇱 Tu transferencia desde Chile" / "🇵🇪 Receptor en Perú"
-3. Se ejecutan 4 llamadas AJAX en paralelo:
+3. Se ejecutan **6 llamadas AJAX en paralelo** *(REQ-13 agrega 2 nuevas)*:
    - `GET /transactions/sender-banks?country_id={fromCountryId}` → bancos del remitente
    - `GET /transactions/document-types?country_id={fromCountryId}` → tipos de doc del remitente
    - `GET /transactions/recipient-banks?country_id={toCountryId}` → bancos del receptor
-   - `GET /transactions/seller-accounts?rate_id={selectedRateId}` → cuentas del negocio para ese corredor
+   - `GET /transactions/document-types?country_id={toCountryId}` → tipos de doc del receptor
+   - `GET /transactions/payment-methods?country_id={fromCountryId}&side=sender` → **métodos del remitente** *(REQ-13)*
+   - `GET /transactions/account-types?country_id={toCountryId}` → **tipos de cuenta del destino** *(REQ-13)*
 4. Las secciones del formulario se muestran con transición suave
+5. Los campos condicionales aparecen/desaparecen según el método seleccionado (`fields_required`)
 
 **Al cambiar la tasa:**
 - Todos los datos se limpian y se vuelven a cargar para el nuevo corredor
@@ -765,12 +861,14 @@ Los seeders deben ejecutarse en orden específico (ya configurado en `DatabaseSe
 2. `CurrencySeeder` → `CurrencyPairSeeder` → `ExchangeRateSeeder` — monedas y tasas base
 3. `DemoDataSeeder` — usuarios, vendedores de prueba
 4. `CountryBankSeeder` — Perú + Venezuela
-5. `DocumentTypeSeeder` + `PaymentMethodSeeder` — tipos de doc y métodos de pago PE/VE
-6. `MultiCorridorSeeder` — Chile + Colombia + pares CLP→PEN, COP→VES
-7. `MoreCorridorsSeeder` — Argentina + Brasil + cuentas CL/CO/AR/BR + pares ARS→PEN, BRL→PEN
-8. `IncentiveSeeder` — incentivos de demostración
+5. `DocumentTypeSeeder` — tipos de documento PE/VE
+6. `PaymentMethodSeeder` — **métodos de pago con `side` + `fields_required` (6 países, 14 métodos)** *(REQ-13)*
+7. `AccountTypeSeeder` — **tipos de cuenta por país (12 registros: ahorro+corriente × 6 países)** *(REQ-13)*
+8. `MultiCorridorSeeder` — Chile + Colombia + pares CLP→PEN, COP→VES
+9. `MoreCorridorsSeeder` — Argentina + Brasil + cuentas CL/CO/AR/BR + pares ARS→PEN, BRL→PEN
+10. `IncentiveSeeder` — incentivos de demostración
 
 ---
 
-*Documento actualizado — rama `feat/REQ-12-multi-mejoras` — mayo 2026.*
-*Refleja el estado tras la implementación de multi-corredor con 6 países activos, UX dinámica del formulario y suite de tests 38/38 PASS.*
+*Documento actualizado — rama `main` — mayo 2026.*
+*Refleja el estado tras la implementación de REQ-13: tipos de operación y tipos de cuenta configurables por país. 14 métodos de pago con `side`+`fields_required` para 6 países, 12 tipos de cuenta dinámicos, campos condicionales en el formulario de transacción. Suite de tests: 38/38 PASS.*

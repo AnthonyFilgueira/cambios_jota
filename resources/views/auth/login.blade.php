@@ -9,7 +9,7 @@
 
         <!-- Título -->
         <h2 class="text-2xl font-bold text-cj-texto">¡Bienvenido de nuevo!</h2>
-        <p class="text-sm text-cj-texto-claro mt-1">Ingresa a tu cuenta de Cambios Jotta</p>
+        <p class="text-sm text-cj-texto-claro mt-1">Ingresa a tu cuenta de {{ config('client.name') }}</p>
     </div>
 
     <!-- Session Status -->

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AccountType;
 use App\Models\Country;
 use App\Models\DocumentType;
 use App\Models\PaymentMethod;
@@ -40,12 +41,15 @@ class CountryController extends Controller
         $inactiveBanks    = $country->banks()->where('active', false)->get();
         $activeAccounts   = $country->businessAccounts()->where('active', true)->with('bank', 'sellers')->get();
         $inactiveAccounts = $country->businessAccounts()->where('active', false)->with('bank', 'sellers')->get();
-        $documentTypes  = DocumentType::where('country_id', $country->id)->orderBy('code')->get();
-        $paymentMethods = PaymentMethod::where('country_id', $country->id)->orderBy('name')->get();
+        $documentTypes      = DocumentType::where('country_id', $country->id)->orderBy('code')->get();
+        $paymentMethods     = PaymentMethod::where('country_id', $country->id)->orderBy('name')->get();
+        $activeAccountTypes   = AccountType::where('country_id', $country->id)->where('active', true)->orderBy('name')->get();
+        $inactiveAccountTypes = AccountType::where('country_id', $country->id)->where('active', false)->orderBy('name')->get();
 
         return view('countries.show', compact(
             'country', 'activeBanks', 'inactiveBanks',
-            'activeAccounts', 'inactiveAccounts', 'documentTypes', 'paymentMethods'
+            'activeAccounts', 'inactiveAccounts', 'documentTypes', 'paymentMethods',
+            'activeAccountTypes', 'inactiveAccountTypes'
         ));
     }
 
@@ -120,11 +124,15 @@ class CountryController extends Controller
     public function storePaymentMethod(Request $request, Country $country)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100',
-            'code' => 'required|string|max:50',
+            'name'              => 'required|string|max:100',
+            'code'              => 'required|string|max:50',
+            'side'              => 'required|in:sender,recipient,both',
+            'fields_required'   => 'nullable|array',
+            'fields_required.*' => 'in:bank,account_number,account_type,phone',
         ]);
 
-        $validated['country_id'] = $country->id;
+        $validated['country_id']      = $country->id;
+        $validated['fields_required'] = $request->input('fields_required', []);
         PaymentMethod::create($validated);
 
         return redirect()->route('countries.show', $country)
@@ -134,9 +142,13 @@ class CountryController extends Controller
     public function updatePaymentMethod(Request $request, Country $country, PaymentMethod $paymentMethod)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100',
+            'name'              => 'required|string|max:100',
+            'side'              => 'required|in:sender,recipient,both',
+            'fields_required'   => 'nullable|array',
+            'fields_required.*' => 'in:bank,account_number,account_type,phone',
         ]);
 
+        $validated['fields_required'] = $request->input('fields_required', []);
         $paymentMethod->update($validated);
 
         return redirect()->route('countries.show', $country)
@@ -156,5 +168,48 @@ class CountryController extends Controller
 
         return redirect()->route('countries.show', $country)
             ->with('success', 'Método de pago eliminado.');
+    }
+
+    // ─── ACCOUNT TYPES ───────────────────────────────────────────────────────────
+
+    public function storeAccountType(Request $request, Country $country)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:100',
+            'code' => 'required|string|max:50',
+        ]);
+
+        $validated['country_id'] = $country->id;
+        AccountType::create($validated);
+
+        return redirect()->route('countries.show', $country)
+            ->with('success', 'Tipo de cuenta creado.');
+    }
+
+    public function updateAccountType(Request $request, Country $country, AccountType $accountType)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:100',
+        ]);
+
+        $accountType->update($validated);
+
+        return redirect()->route('countries.show', $country)
+            ->with('success', 'Tipo de cuenta actualizado.');
+    }
+
+    public function toggleAccountType(Country $country, AccountType $accountType)
+    {
+        $accountType->update(['active' => !$accountType->active]);
+
+        return response()->json(['active' => $accountType->active]);
+    }
+
+    public function destroyAccountType(Country $country, AccountType $accountType)
+    {
+        $accountType->delete();
+
+        return redirect()->route('countries.show', $country)
+            ->with('success', 'Tipo de cuenta eliminado.');
     }
 }

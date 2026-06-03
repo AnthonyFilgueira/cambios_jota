@@ -24,9 +24,7 @@ class IncentiveController extends Controller
                     ->get()
                     ->filter(fn ($r) => !$r->isCurrentlyActive());
 
-        $currencies = Currency::where('is_active', true)->orderBy('code')->get();
-
-        return view('admin.incentives.index', compact('active', 'inactive', 'currencies'));
+        return view('admin.incentives.index', compact('active', 'inactive'));
     }
 
     public function store(Request $request)

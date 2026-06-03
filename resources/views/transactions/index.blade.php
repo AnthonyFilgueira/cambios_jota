@@ -147,43 +147,182 @@
                     <div x-show="openId === {{ $tx->id }}" x-collapse>
                         <div class="border-t border-gray-100 p-5 space-y-5 bg-gray-50/30">
 
-                            <!-- Timeline de estados -->
+                            <!-- Timeline de progreso rediseñado -->
                             @php
-                                $timelineSteps = [
-                                    ['key' => 'pending',    'label' => 'Solicitud recibida',      'icon' => '📤'],
-                                    ['key' => 'processing', 'label' => 'Aprobada por el vendedor', 'icon' => '✅'],
-                                    ['key' => 'completed',  'label' => 'Dinero enviado',           'icon' => '💸'],
+                                $steps = [
+                                    [
+                                        'key'   => 'pending',
+                                        'icon'  => '📤',
+                                        'label' => 'Solicitud enviada',
+                                        'desc'  => 'Estamos revisando tu solicitud',
+                                    ],
+                                    [
+                                        'key'   => 'processing',
+                                        'icon'  => '✅',
+                                        'label' => 'Aprobada',
+                                        'desc'  => 'El operador está realizando la transferencia',
+                                    ],
+                                    [
+                                        'key'   => 'completed',
+                                        'icon'  => '💸',
+                                        'label' => 'Dinero enviado',
+                                        'desc'  => 'Tu familiar ya puede recibir el dinero',
+                                    ],
                                 ];
-                                $statusOrder = ['pending' => 0, 'observed' => 0, 'processing' => 1, 'completed' => 2, 'cancelled' => -1];
-                                $currentStep = $statusOrder[$tx->status] ?? 0;
+                                $stepMap     = ['pending' => 0, 'observed' => 0, 'processing' => 1, 'completed' => 2, 'cancelled' => -1];
+                                $currentStep = $stepMap[$tx->status] ?? 0;
+
+                                // Timestamps de cada cambio de estado
+                                $logDates = ['pending' => $tx->created_at];
+                                foreach ($tx->logs->sortBy('created_at') as $log) {
+                                    if (!isset($logDates[$log->new_status])) {
+                                        $logDates[$log->new_status] = $log->created_at;
+                                    }
+                                }
+
+                                // Último log para motivo de cancelación
+                                $lastLog = $tx->logs->sortByDesc('created_at')->first();
+
+                                $statusDescriptions = [
+                                    'pending'    => 'Tu solicitud está siendo revisada por el operador.',
+                                    'observed'   => 'El operador necesita que corrijas algunos datos de tu solicitud.',
+                                    'processing' => 'Tu solicitud fue aprobada. El dinero está en camino.',
+                                    'completed'  => '¡Listo! La transferencia fue completada exitosamente.',
+                                ];
+                                $statusBadges = [
+                                    'pending'    => ['bg' => 'bg-yellow-100 text-yellow-800',  'dot' => 'bg-yellow-400', 'label' => 'Pendiente de revisión'],
+                                    'observed'   => ['bg' => 'bg-orange-100 text-orange-800',  'dot' => 'bg-orange-400', 'label' => 'Requiere corrección'],
+                                    'processing' => ['bg' => 'bg-blue-100 text-blue-800',      'dot' => 'bg-blue-400',   'label' => 'En proceso'],
+                                    'completed'  => ['bg' => 'bg-green-100 text-green-800',    'dot' => 'bg-green-500',  'label' => 'Completado'],
+                                ];
+                                $badge = $statusBadges[$tx->status] ?? $statusBadges['pending'];
                             @endphp
 
-                            @if($tx->status !== 'cancelled')
-                            <div>
-                                <p class="text-xs font-bold uppercase tracking-widest text-cj-texto-claro mb-3">Progreso</p>
-                                <div class="flex items-center gap-0">
-                                    @foreach($timelineSteps as $i => $step)
-                                    <div class="flex items-center {{ $i < count($timelineSteps) - 1 ? 'flex-1' : '' }}">
-                                        <div class="flex flex-col items-center">
-                                            <div class="w-9 h-9 rounded-full flex items-center justify-center text-base
-                                                         {{ $i <= $currentStep ? 'bg-cj-turquesa shadow-md shadow-teal-400/30' : 'bg-gray-200' }}">
-                                                {{ $step['icon'] }}
-                                            </div>
-                                            <p class="text-xs text-center mt-1 w-20
-                                                       {{ $i <= $currentStep ? 'font-semibold text-cj-texto' : 'text-cj-texto-claro' }}">
-                                                {{ $step['label'] }}
-                                            </p>
+                            @if($tx->status === 'cancelled')
+                            {{-- Estado: Cancelado --}}
+                            <div class="bg-red-50 border border-red-200 rounded-2xl p-4">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 text-lg">❌</div>
+                                    <div class="flex-1">
+                                        <p class="font-bold text-red-700 text-sm">Solicitud cancelada</p>
+                                        <p class="text-xs text-red-600 mt-0.5">
+                                            {{ $lastLog ? $lastLog->created_at->format('d/m/Y H:i') : $tx->updated_at->format('d/m/Y H:i') }}
+                                        </p>
+                                        @if($lastLog?->comment)
+                                        <p class="text-sm text-red-700 mt-2 bg-red-100 rounded-lg px-3 py-2 italic">
+                                            "{{ $lastLog->comment }}"
+                                        </p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            @else
+                            {{-- Tarjeta: Estado actual prominente --}}
+                            <div class="rounded-2xl border-2 p-4
+                                        {{ $tx->status === 'observed' ? 'bg-orange-50 border-orange-200' : ($tx->status === 'completed' ? 'bg-green-50 border-green-200' : ($tx->status === 'processing' ? 'bg-blue-50 border-blue-200' : 'bg-yellow-50 border-yellow-100')) }}">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="text-2xl">
+                                            @if($tx->status === 'pending') 🔍
+                                            @elseif($tx->status === 'observed') ⚠️
+                                            @elseif($tx->status === 'processing') ⚡
+                                            @else 🎉
+                                            @endif
                                         </div>
-                                        @if($i < count($timelineSteps) - 1)
-                                        <div class="flex-1 h-0.5 mb-6 {{ $i < $currentStep ? 'bg-cj-turquesa' : 'bg-gray-200' }}"></div>
+                                        <div>
+                                            <p class="text-sm font-bold text-gray-800">{{ $statusDescriptions[$tx->status] ?? '' }}</p>
+                                        </div>
+                                    </div>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0 {{ $badge['bg'] }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $badge['dot'] }}"></span>
+                                        {{ $badge['label'] }}
+                                    </span>
+                                </div>
+                                @if($tx->status === 'observed' && $tx->observation)
+                                <div class="mt-3 bg-white/70 rounded-xl px-3 py-2.5 border border-orange-200 space-y-2">
+                                    <p class="text-xs font-semibold text-orange-700">Observación del operador:</p>
+                                    <p class="text-sm text-orange-800 italic">"{{ $tx->observation }}"</p>
+                                    <a href="{{ route('transactions.edit', $tx) }}"
+                                       class="inline-flex items-center gap-1.5 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl transition-all shadow-sm">
+                                        ✏️ Corregir y reenviar
+                                    </a>
+                                </div>
+                                @endif
+                            </div>
+
+                            {{-- Timeline de pasos --}}
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-widest text-cj-texto-claro mb-4">Seguimiento</p>
+                                <div class="flex items-start gap-0">
+                                    @foreach($steps as $i => $step)
+                                    @php
+                                        $isDone   = $i < $currentStep;
+                                        $isActive = $i === $currentStep;
+                                        $isFuture = $i > $currentStep;
+                                        $isObservedActive = $isActive && $tx->status === 'observed';
+                                        $stepDate = match($step['key']) {
+                                            'pending'    => $logDates['pending']    ?? null,
+                                            'processing' => $logDates['processing'] ?? null,
+                                            'completed'  => $logDates['completed']  ?? null,
+                                            default      => null,
+                                        };
+                                    @endphp
+                                    <div class="flex items-start {{ $i < count($steps) - 1 ? 'flex-1' : '' }}">
+                                        <div class="flex flex-col items-center">
+                                            {{-- Círculo del paso --}}
+                                            <div class="relative">
+                                                @if($isDone)
+                                                <div class="w-10 h-10 rounded-full bg-cj-turquesa shadow-md shadow-teal-400/30 flex items-center justify-center">
+                                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                                    </svg>
+                                                </div>
+                                                @elseif($isObservedActive)
+                                                <div class="w-10 h-10 rounded-full bg-orange-400 shadow-md shadow-orange-400/30 flex items-center justify-center ring-4 ring-orange-200 animate-pulse">
+                                                    <span class="text-base leading-none">⚠️</span>
+                                                </div>
+                                                @elseif($isActive)
+                                                <div class="w-10 h-10 rounded-full bg-cj-morado-profundo shadow-md shadow-purple-400/30 flex items-center justify-center ring-4 ring-purple-200 animate-pulse">
+                                                    <span class="text-base leading-none">{{ $step['icon'] }}</span>
+                                                </div>
+                                                @else
+                                                <div class="w-10 h-10 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
+                                                    <span class="text-base leading-none opacity-40">{{ $step['icon'] }}</span>
+                                                </div>
+                                                @endif
+
+                                                @if($isActive)
+                                                <span class="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap
+                                                             {{ $isObservedActive ? 'bg-orange-500 text-white' : 'bg-cj-morado-profundo text-white' }}">
+                                                    Aquí
+                                                </span>
+                                                @endif
+                                            </div>
+
+                                            {{-- Label y fecha --}}
+                                            <div class="mt-2 text-center w-24">
+                                                <p class="text-xs {{ $isDone || $isActive ? 'font-bold text-cj-texto' : 'text-gray-400' }}">
+                                                    {{ $step['label'] }}
+                                                </p>
+                                                @if($isDone && $stepDate)
+                                                <p class="text-xs text-gray-400 mt-0.5">{{ $stepDate->format('d/m H:i') }}</p>
+                                                @elseif($isActive)
+                                                <p class="text-xs {{ $isObservedActive ? 'text-orange-500' : 'text-cj-morado-profundo' }} mt-0.5 font-medium">
+                                                    {{ $stepDate ? $stepDate->format('d/m H:i') : 'Ahora' }}
+                                                </p>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        {{-- Línea conectora --}}
+                                        @if($i < count($steps) - 1)
+                                        <div class="flex-1 h-0.5 mt-5 mx-1
+                                                    {{ $isDone ? 'bg-cj-turquesa' : 'bg-gray-200' }}"></div>
                                         @endif
                                     </div>
                                     @endforeach
                                 </div>
-                            </div>
-                            @else
-                            <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 font-semibold">
-                                Esta solicitud fue cancelada/denegada.
                             </div>
                             @endif
 

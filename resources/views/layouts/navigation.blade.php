@@ -12,11 +12,15 @@
             {{-- Logo --}}
             <div class="shrink-0 flex items-center gap-3">
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-gradient-to-br from-cj-morado-profundo to-cj-turquesa rounded-xl flex items-center justify-center shadow-md hover:scale-110 transition-transform">
-                        <span class="text-sm font-black text-white">CJ</span>
-                    </div>
+                    @if(config('client.logo'))
+                        <img src="{{ asset(config('client.logo')) }}" alt="{{ config('client.name') }}" class="h-9 w-auto hover:scale-110 transition-transform">
+                    @else
+                        <div class="w-9 h-9 bg-gradient-to-br from-cj-morado-profundo to-cj-turquesa rounded-xl flex items-center justify-center shadow-md hover:scale-110 transition-transform">
+                            <span class="text-sm font-black text-white">{{ strtoupper(substr(config('client.name'), 0, 2)) }}</span>
+                        </div>
+                    @endif
                     <div class="hidden sm:block">
-                        <p class="text-base font-bold text-cj-morado-profundo leading-none">Cambio J</p>
+                        <p class="text-base font-bold text-cj-morado-profundo leading-none">{{ config('client.name') }}</p>
                         <p class="text-xs text-gray-400">
                             @if($isAdmin) Administración @elseif($isSeller) Panel Vendedor @else Mi cuenta @endif
                         </p>
@@ -34,10 +38,10 @@
                 </x-nav-link>
 
                 {{-- Ventas dropdown --}}
-                <div class="relative" x-data="{ openVentas: false }" @mouseenter="openVentas=true" @mouseleave="openVentas=false">
-                    <button class="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-cj-morado-profundo rounded-lg hover:bg-purple-50 transition-all">
+                <div class="relative" x-data="{ openVentas: false }" @click.outside="openVentas=false">
+                    <button @click="openVentas = !openVentas" class="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-cj-morado-profundo rounded-lg hover:bg-purple-50 transition-all">
                         📋 Ventas
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <svg class="w-3 h-3 transition-transform" :class="openVentas ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="openVentas" x-cloak class="absolute top-full left-0 mt-1 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50">
                         <a href="{{ route('sales.index') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-cj-morado-profundo font-medium">📋 Todas las ventas</a>
@@ -54,10 +58,10 @@
                 </x-nav-link>
 
                 {{-- Gestión dropdown --}}
-                <div class="relative" x-data="{ openGestion: false }" @mouseenter="openGestion=true" @mouseleave="openGestion=false">
-                    <button class="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-cj-morado-profundo rounded-lg hover:bg-purple-50 transition-all">
+                <div class="relative" x-data="{ openGestion: false }" @click.outside="openGestion=false">
+                    <button @click="openGestion = !openGestion" class="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-cj-morado-profundo rounded-lg hover:bg-purple-50 transition-all">
                         👥 Gestión
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <svg class="w-3 h-3 transition-transform" :class="openGestion ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="openGestion" x-cloak class="absolute top-full left-0 mt-1 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50">
                         <a href="{{ route('sellers.index') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-cj-morado-profundo font-medium">👥 Vendedores</a>
@@ -68,10 +72,10 @@
                 </div>
 
                 {{-- Configuración dropdown --}}
-                <div class="relative" x-data="{ openConfig: false }" @mouseenter="openConfig=true" @mouseleave="openConfig=false">
-                    <button class="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-cj-morado-profundo rounded-lg hover:bg-purple-50 transition-all">
+                <div class="relative" x-data="{ openConfig: false }" @click.outside="openConfig=false">
+                    <button @click="openConfig = !openConfig" class="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-cj-morado-profundo rounded-lg hover:bg-purple-50 transition-all">
                         ⚙️ Config
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <svg class="w-3 h-3 transition-transform" :class="openConfig ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="openConfig" x-cloak class="absolute top-full left-0 mt-1 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50">
                         <p class="px-4 py-1 text-xs font-bold uppercase tracking-widest text-gray-400">Finanzas</p>
@@ -101,14 +105,8 @@
                 <x-nav-link :href="route('seller.bandeja')" :active="request()->routeIs('seller.bandeja')">
                     ⏳ Bandeja
                 </x-nav-link>
-                <x-nav-link :href="route('sales.index')" :active="request()->routeIs('sales.index')">
-                    📋 Mis Ventas
-                </x-nav-link>
                 <x-nav-link :href="route('wallet.index')" :active="request()->routeIs('wallet.index')">
                     💰 Mi Monedero
-                </x-nav-link>
-                <x-nav-link :href="route('exchange_rates.index')" :active="request()->routeIs('exchange_rates.index')">
-                    💱 Tasas
                 </x-nav-link>
             </div>
             @endif
@@ -225,9 +223,7 @@
             @if($isSeller)
                 <x-responsive-nav-link :href="route('seller.dashboard')">🏠 Mi Panel</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('seller.bandeja')">⏳ Bandeja de solicitudes</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('sales.index')">📋 Mis ventas</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('wallet.index')">💰 Mi Monedero</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('exchange_rates.index')">💱 Tasas del día</x-responsive-nav-link>
             @endif
 
             @if($isClient)

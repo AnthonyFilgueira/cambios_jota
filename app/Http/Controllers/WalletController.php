@@ -37,8 +37,21 @@ class WalletController extends Controller
         $totalLiquidated  = abs($seller->walletTransactions()->where('type', 'liquidation')->sum('amount'));
         $totalCommissions = $seller->walletTransactions()->where('type', 'commission')->sum('amount');
 
-        // Datos para gráfico semanal (últimas 8 semanas)
-        $weeklyData = collect(range(7, 0))->map(function ($weeksAgo) use ($seller) {
+        return view('wallet.index', compact(
+            'seller', 'transactions', 'balance', 'type', 'days',
+            'totalEarned', 'totalLiquidated', 'totalCommissions'
+        ));
+    }
+
+    public function weeklyData(): \Illuminate\Http\JsonResponse
+    {
+        $seller = Auth::user()->seller;
+
+        if (!$seller) {
+            return response()->json([], 403);
+        }
+
+        $data = collect(range(7, 0))->map(function ($weeksAgo) use ($seller) {
             $start = now()->startOfWeek()->subWeeks($weeksAgo);
             $end   = $start->copy()->endOfWeek();
             return [
@@ -50,9 +63,6 @@ class WalletController extends Controller
             ];
         });
 
-        return view('wallet.index', compact(
-            'seller', 'transactions', 'balance', 'type', 'days',
-            'totalEarned', 'totalLiquidated', 'totalCommissions', 'weeklyData'
-        ));
+        return response()->json($data);
     }
 }

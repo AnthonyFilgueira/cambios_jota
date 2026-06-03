@@ -271,7 +271,9 @@ class Seller extends Model
         $query = $this->sales()->whereBetween('sale_date', [$start, $end]);
 
         if ($status) {
-            $query->where('approval_status', $status);
+            is_array($status)
+                ? $query->whereIn('approval_status', $status)
+                : $query->where('approval_status', $status);
         }
 
         return $query->count();
@@ -394,15 +396,17 @@ class Seller extends Model
     public function metricsBetween($start, $end)
     {
         return [
-            'total_sales' => $this->salesCountBetween($start, $end),
-            'approved_sales' => $this->salesCountBetween($start, $end, 'approved'),
+            'total_sales'     => $this->salesCountBetween($start, $end),
+            'pending_sales'   => $this->salesCountBetween($start, $end, ['pending_seller', 'pending_admin']),
+            'approved_sales'  => $this->salesCountBetween($start, $end, 'approved'),
+            'observed_sales'  => $this->salesCountBetween($start, $end, 'observed'),
             'completed_sales' => $this->salesCountBetween($start, $end, 'completed'),
-            'rejected_sales' => $this->salesCountBetween($start, $end, 'rejected'),
-            'total_amount' => $this->totalSalesBetween($start, $end),
-            'average_ticket' => $this->averageTicketBetween($start, $end),
+            'rejected_sales'  => $this->salesCountBetween($start, $end, 'rejected'),
+            'total_amount'    => $this->totalSalesBetween($start, $end),
+            'average_ticket'  => $this->averageTicketBetween($start, $end),
             'conversion_rate' => $this->conversionRateBetween($start, $end),
             'seller_commission' => $this->sellerCommissionTotal($start, $end),
-            'boss_commission' => $this->bossCommissionTotal($start, $end),
+            'boss_commission'   => $this->bossCommissionTotal($start, $end),
         ];
     }
 

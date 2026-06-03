@@ -27,10 +27,14 @@
                     <!-- Logo y Marca -->
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-gradient-to-br from-cj-morado-profundo to-cj-turquesa rounded-lg flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300">
-                            <span class="text-lg font-bold text-white">CJ</span>
+                            @if(config('client.logo'))
+                                <img src="{{ asset(config('client.logo')) }}" alt="{{ config('client.name') }}" class="h-8 w-auto">
+                            @else
+                                <span class="text-lg font-bold text-white">{{ strtoupper(substr(config('client.name'), 0, 2)) }}</span>
+                            @endif
                         </div>
                         <div>
-                            <h1 class="text-lg font-bold text-cj-texto">Cambios Jotta</h1>
+                            <h1 class="text-lg font-bold text-cj-texto">{{ config('client.name') }}</h1>
                             <p class="text-xs text-cj-texto-claro hidden sm:block">Envíos Internacionales</p>
                         </div>
                     </div>
@@ -108,14 +112,15 @@
                         x-model="selectedPairId"
                         @change="cambiarPar()"
                         class="w-full p-3 border-2 border-cj-morado-profundo/20 rounded-xl focus:border-cj-turquesa focus:ring-2 focus:ring-cj-turquesa/20 transition-all font-semibold text-cj-texto">
+                        <option value="" x-show="loadingPairs">Cargando tasas...</option>
                         <template x-for="pair in pairs" :key="pair.id">
-                            <option :value="pair.id" x-text="`${pair.flag} ${pair.from_country} → ${pair.to_country} ${pair.to_flag}`"></option>
+                            <option :value="pair.id" x-text="`${pair.from_flag} ${pair.from_country} → ${pair.to_country} ${pair.to_flag}`"></option>
                         </template>
                     </select>
 
                     <!-- Indicador visual de ruta -->
                     <div class="mt-3 flex items-center justify-center gap-3 text-sm">
-                        <span x-text="currentPair.flag" class="text-2xl"></span>
+                        <span x-text="currentPair.from_flag" class="text-2xl"></span>
                         <span x-text="currentPair.from_country" class="font-semibold text-cj-texto"></span>
                         <span class="text-cj-morado-profundo text-xl font-bold">→</span>
                         <span class="font-semibold text-cj-texto" x-text="currentPair.to_country || 'Venezuela'"></span>
@@ -374,22 +379,18 @@
 
             function simulador() {
                 return {
-                    pairs: @json($pairs),
-                    selectedPairId: {{ (collect($pairs)->firstWhere('is_active', true) ?? collect($pairs)->first())['id'] ?? 0 }},
+                    pairs: [],
+                    selectedPairId: 0,
+                    loadingPairs: true,
                     currentPair: {},
-                    tasas: {
-                        usd: {{ $rates->usd_rate }},
-                        eur: {{ $rates->eur_rate }},
-                        ves: {{ $rates->ves_rate }}
-                    },
+                    tasas: { usd: 0, eur: 0, ves: 0 },
                     inputUSD: '',
                     inputEUR: '',
                     inputOrigen: '',
                     montoEnviar: 0,
                     vesRecibir: 0,
 
-                    // Reglas de bonos con tipo y valor para recalcular en el cliente
-                    bonusRules: @json($bonusPreview['rules'] ?? []),
+                    bonusRules: [],
                     bonusModalShown: false,
 
                     // Computed: bono total según el monto actual
@@ -398,7 +399,29 @@
                     },
 
                     init() {
-                        this.cambiarPar();
+                        this.loadExchangeRates();
+                        this.loadBonusRules();
+                    },
+
+                    async loadBonusRules() {
+                        try {
+                            const resp = await axios.get('/api/incentives/bonus-preview');
+                            this.bonusRules = resp.data;
+                        } catch (e) { this.bonusRules = []; }
+                    },
+
+                    async loadExchangeRates() {
+                        try {
+                            const resp = await axios.get('/exchange-rates');
+                            this.pairs = resp.data;
+                            const first = this.pairs.find(p => p.is_active) ?? this.pairs[0];
+                            if (first) {
+                                this.selectedPairId = first.id;
+                                this.cambiarPar();
+                            }
+                        } finally {
+                            this.loadingPairs = false;
+                        }
                     },
 
                     cambiarPar() {

@@ -101,17 +101,41 @@
                         </div>
                     </div>
 
-                    <!-- Footer - Configuración de Comisiones -->
-                    <div class="flex items-center justify-between text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
-                        <div class="flex items-center gap-4">
-                            <span class="flex items-center">
-                                <span class="font-semibold text-gray-700 mr-1">Comisión Vendedor:</span>
-                                <span class="bg-purple-100 text-purple-700 px-2 py-1 rounded font-bold">{{ $seller->seller_commission }}%</span>
-                            </span>
-                            <span class="text-gray-300">|</span>
-                            <span class="flex items-center">
-                                <span class="font-semibold text-gray-700 mr-1">Comisión Jefe:</span>
-                                <span class="bg-pink-100 text-pink-700 px-2 py-1 rounded font-bold">{{ $seller->boss_commission }}%</span>
+                    <!-- Cuentas asignadas + Clientes -->
+                    <div class="mt-4 space-y-3">
+                        {{-- Cuentas bancarias --}}
+                        <div>
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">🏦 Cuentas asignadas</p>
+                            @if($seller->businessAccounts->count())
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($seller->businessAccounts as $account)
+                                        <span class="inline-flex items-center gap-1 bg-teal-50 border border-teal-200 text-teal-800 text-xs px-2.5 py-1 rounded-lg font-medium">
+                                            {{ $account->country->emoji ?? '' }}
+                                            {{ $account->alias ?? $account->bank->name }}
+                                            <span class="text-teal-500 font-mono">({{ $account->country->code_iso ?? '' }})</span>
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @else
+                                <span class="text-xs text-gray-400 italic">Sin cuentas asignadas</span>
+                            @endif
+                        </div>
+
+                        {{-- Footer: comisiones + clientes --}}
+                        <div class="flex items-center justify-between text-sm text-gray-600 bg-gray-50 rounded-xl p-3">
+                            <div class="flex items-center gap-4">
+                                <span class="flex items-center gap-1">
+                                    <span class="text-gray-500 text-xs">Comisión vendedor:</span>
+                                    <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-bold text-xs">{{ $seller->seller_commission }}%</span>
+                                </span>
+                                <span class="text-gray-300">|</span>
+                                <span class="flex items-center gap-1">
+                                    <span class="text-gray-500 text-xs">Comisión dueño:</span>
+                                    <span class="bg-pink-100 text-pink-700 px-2 py-0.5 rounded font-bold text-xs">{{ $seller->boss_commission }}%</span>
+                                </span>
+                            </div>
+                            <span class="flex items-center gap-1 text-xs text-gray-500">
+                                👥 <strong class="text-gray-700">{{ $seller->clients_count ?? 0 }}</strong> cliente{{ ($seller->clients_count ?? 0) != 1 ? 's' : '' }} asignado{{ ($seller->clients_count ?? 0) != 1 ? 's' : '' }}
                             </span>
                         </div>
                     </div>

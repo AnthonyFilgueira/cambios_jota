@@ -34,10 +34,13 @@ class Transaction extends Model
         'recipient_document_type',
         'recipient_document_number',
         'recipient_phone',
+        'recipient_name',
 
         // Datos de transferencia desde Perú
+        'sender_operation_type',
         'sender_bank',
         'sender_account_number',
+        'sender_phone',
         'sender_dni',
         'sender_document_type',
         'sender_document_number',

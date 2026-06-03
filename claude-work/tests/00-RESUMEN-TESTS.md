@@ -1,5 +1,5 @@
 # Resumen de Tests — Cambio J
-> Rama: `feat/REQ-12-multi-mejoras` | Fecha: 2026-05-28 | PHP Suite: 38/38 PASS
+> Rama: `main` | Fecha: 2026-05-28 | PHP Suite: 38/38 PASS
 
 ## Resultado global del suite PHP
 
@@ -26,6 +26,7 @@ Antes de las correcciones de esta sesión: **2 tests fallaban**. Ahora: **38/38 
 | TEST-008 | Wallet y Comisiones del Vendedor | PASS ✅ | `TEST-008-wallet-y-comisiones/informe.md` |
 | TEST-009 | Reportes y Exportación (CSV / PDF) | PASS ✅ | `TEST-009-reportes-y-exportacion/informe.md` |
 | TEST-010 | Multi-Corredor y Nuevos Países | PASS ✅ | `TEST-010-multi-corredor-nuevos-paises/informe.md` |
+| TEST-011 | REQ-13 — Tipos de Operación por País (manual) | PASS ✅ | `TEST-011-tipos-operacion-por-pais/informe.md` |
 
 ---
 
@@ -55,14 +56,15 @@ Antes de las correcciones de esta sesión: **2 tests fallaban**. Ahora: **38/38 
 
 ---
 
-## Estado de la BD en local (post-seeder)
+## Estado de la BD en local (post-seeder REQ-13)
 
 | Entidad | Cantidad |
 |---------|---------|
 | Países activos | 6 (PE, VE, CL, CO, AR, BR) |
 | Bancos activos totales | 43 |
 | Tipos de documento | 15 |
-| Métodos de pago | 10 |
+| Métodos de pago | 14 (con `side` + `fields_required` — REQ-13) |
+| Tipos de cuenta | 12 (ahorro + corriente × 6 países — REQ-13) |
 | Cuentas del negocio | 11 |
 | Tasas de cambio activas | 10 |
 | Usuarios | 13 |
@@ -102,5 +104,8 @@ Antes de las correcciones de esta sesión: **2 tests fallaban**. Ahora: **38/38 
 1. **Alpine.js v3 + scopes anidados:** `$watch()` en `x-data` hijo NO observa propiedades del padre → todos los watchers en `transactionForm()` padre.
 2. **Blade `@json()` con chaining:** `@json(collect()->map(...)->values())` falla con parser de Blade (cuenta paréntesis). Siempre pre-computar en bloque `@php`.
 3. **RefreshDatabase en tests:** No ejecuta seeders → roles Spatie no existen → crear con `Role::firstOrCreate()` en `beforeEach`.
-4. **Seeder idempotente:** `firstOrCreate` en todos los seeders → seguro ejecutar múltiples veces.
+4. **Seeder idempotente:** `updateOrCreate` en todos los seeders → seguro ejecutar múltiples veces.
 5. **Monedas vinculadas a países:** La lógica de qué cuentas mostrar depende de `CurrencyPair → from_currency → country_id`. Si una moneda no tiene `country_id` → no se filtran cuentas.
+6. **`fields_required` como JSON:** `PaymentMethod.fields_required` es un array JSON; en Alpine.js se recibe como array nativo → `Array.isArray(pm.fields_required)` debe ser `true`. El cast Eloquent `'fields_required' => 'array'` garantiza esto desde el servidor.
+7. **`side` filter en endpoint:** `GET /transactions/payment-methods?side=sender` usa `whereIn('side', ['sender', 'both'])` → un método marcado como `both` aparece tanto para el remitente como para el beneficiario.
+8. **`operation_type` ya no es enum:** La columna fue migrada a `varchar(50) nullable` para soportar códigos como `transferencia_bancaria`, `yape`, `pix`, etc.

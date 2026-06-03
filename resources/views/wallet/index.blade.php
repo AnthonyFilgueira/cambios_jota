@@ -129,51 +129,55 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
-        const ctx = document.getElementById('walletChart').getContext('2d');
-        const weeklyData = @json($weeklyData);
-
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: weeklyData.map(d => d.label),
-                datasets: [{
-                    label: 'Comisiones (S/)',
-                    data: weeklyData.map(d => d.amount),
-                    backgroundColor: weeklyData.map((d, i) =>
-                        i === weeklyData.length - 1
-                            ? 'rgba(13,148,136,0.9)'   // última semana turquesa
-                            : 'rgba(76,29,149,0.25)'    // anteriores morado claro
-                    ),
-                    borderColor: weeklyData.map((d, i) =>
-                        i === weeklyData.length - 1 ? 'rgb(13,148,136)' : 'rgba(76,29,149,0.5)'
-                    ),
-                    borderWidth: 2,
-                    borderRadius: 8,
-                    borderSkipped: false,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: ctx => 'S/ ' + ctx.parsed.y.toLocaleString('es-PE', {minimumFractionDigits: 2})
-                        }
-                    }
+        function initWalletChart(weeklyData) {
+            const ctx = document.getElementById('walletChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: weeklyData.map(d => d.label),
+                    datasets: [{
+                        label: 'Comisiones (S/)',
+                        data: weeklyData.map(d => d.amount),
+                        backgroundColor: weeklyData.map((d, i) =>
+                            i === weeklyData.length - 1
+                                ? 'rgba(13,148,136,0.9)'
+                                : 'rgba(76,29,149,0.25)'
+                        ),
+                        borderColor: weeklyData.map((d, i) =>
+                            i === weeklyData.length - 1 ? 'rgb(13,148,136)' : 'rgba(76,29,149,0.5)'
+                        ),
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }]
                 },
-                scales: {
-                    x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-                    y: {
-                        grid: { color: 'rgba(0,0,0,0.05)' },
-                        ticks: {
-                            font: { size: 11 },
-                            callback: v => 'S/ ' + v.toLocaleString('es-PE')
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => 'S/ ' + ctx.parsed.y.toLocaleString('es-PE', {minimumFractionDigits: 2})
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                        y: {
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: {
+                                font: { size: 11 },
+                                callback: v => 'S/ ' + v.toLocaleString('es-PE')
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
+
+        axios.get('/api/wallet/weekly-data')
+            .then(resp => initWalletChart(resp.data))
+            .catch(() => initWalletChart([]));
     </script>
 </x-app-layout>

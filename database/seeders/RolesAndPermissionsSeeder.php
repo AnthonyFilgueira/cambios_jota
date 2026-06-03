@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Models\Module;
@@ -30,7 +32,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $moduleMap = [];
         foreach ($modules as $m) {
-            $mod = Module::create($m);
+            $mod = Module::firstOrCreate(['slug' => $m['slug']], $m);
             $moduleMap[$m['slug']] = $mod->id;
         }
 
@@ -110,27 +112,29 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $createdPerms = [];
         foreach ($permissions as $p) {
-            $perm = Permission::create([
-                'name'      => $p['name'],
-                'label'     => $p['label'],
-                'module_id' => $moduleMap[$p['module']],
-            ]);
+            $perm = Permission::firstOrCreate(
+                ['name' => $p['name']],
+                ['label' => $p['label'], 'module_id' => $moduleMap[$p['module']]]
+            );
             $createdPerms[$p['name']] = $perm;
         }
 
         // ─── ROLES ───────────────────────────────────────────────────────
 
         // super-admin: acceso total
-        $superAdmin = Role::create(['name' => 'super-admin']);
-        $superAdmin->givePermissionTo(Permission::all());
+        $superAdmin = Role::firstOrCreate(['name' => 'super-admin']);
+        $superAdmin->syncPermissions(Permission::all());
 
         // admin (dueño): todo excepto gestionar roles
-        $admin = Role::create(['name' => 'admin']);
-        $admin->givePermissionTo(array_filter(array_keys($createdPerms), fn($n) => $n !== 'manage-roles'));
+        $admin = Role::firstOrCreate(['name' => 'admin']);
+        $admin->syncPermissions(array_values(array_filter(
+            array_keys($createdPerms),
+            fn($n) => $n !== 'manage-roles'
+        )));
 
         // contador: solo lectura de finanzas
-        $contador = Role::create(['name' => 'contador']);
-        $contador->givePermissionTo([
+        $contador = Role::firstOrCreate(['name' => 'contador']);
+        $contador->syncPermissions([
             'view-owner-dashboard',
             'view-sales', 'view-own-sales',
             'view-sellers',
@@ -142,9 +146,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'view-countries',
         ]);
 
-        // vendedor: gestión de sus ventas y comisiones
-        $vendedor = Role::create(['name' => 'vendedor']);
-        $vendedor->givePermissionTo([
+        // vendedor: gestión de sus ventas y comisiones; solo VER tasas (no gestionar)
+        $vendedor = Role::firstOrCreate(['name' => 'vendedor']);
+        $vendedor->syncPermissions([
             'view-seller-dashboard',
             'view-own-sales', 'create-sales', 'edit-sales',
             'approve-sales', 'reject-sales', 'observe-sales',
@@ -154,14 +158,14 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         // cliente: solo sus transacciones
-        $cliente = Role::create(['name' => 'cliente']);
-        $cliente->givePermissionTo([
+        $cliente = Role::firstOrCreate(['name' => 'cliente']);
+        $cliente->syncPermissions([
             'view-client-dashboard',
             'view-own-transactions',
             'create-transactions',
         ]);
 
-        $this->command->info('✅ Roles y permisos creados con módulos');
+        $this->command->info('✅ Roles y permisos sincronizados correctamente');
         $this->command->info('📦 Módulos: ' . count($modules));
         $this->command->info('🔑 Permisos: ' . count($permissions));
         $this->command->info('👤 Roles: super-admin, admin, contador, vendedor, cliente');

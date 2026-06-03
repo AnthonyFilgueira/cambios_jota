@@ -143,17 +143,39 @@ class TransactionController extends Controller
     public function getPaymentMethods(Request $request)
     {
         $countryId = $request->input('country_id');
+        $side      = $request->input('side'); // 'sender' | 'recipient' | null (all)
 
-        if (!$countryId) {
+        if (! $countryId) {
             return response()->json([]);
         }
 
-        $methods = \App\Models\PaymentMethod::where('country_id', $countryId)
+        $query = \App\Models\PaymentMethod::where('country_id', $countryId)
             ->where('active', true)
-            ->orderBy('name')
-            ->get(['id', 'code', 'name']);
+            ->orderBy('name');
 
-        return response()->json($methods);
+        if ($side) {
+            $query->whereIn('side', [$side, 'both']);
+        }
+
+        return response()->json(
+            $query->get(['id', 'code', 'name', 'side', 'fields_required'])
+        );
+    }
+
+    public function getAccountTypes(Request $request)
+    {
+        $countryId = $request->input('country_id');
+
+        if (! $countryId) {
+            return response()->json([]);
+        }
+
+        return response()->json(
+            \App\Models\AccountType::where('country_id', $countryId)
+                ->where('active', true)
+                ->orderBy('name')
+                ->get(['id', 'code', 'name'])
+        );
     }
 
     public function getSenderBanks(Request $request)
@@ -195,15 +217,12 @@ class TransactionController extends Controller
     {
         $user   = auth()->user()->load('assignedSeller.businessAccounts.bank');
         $seller = $user->assignedSeller;
-        $pairs  = $this->getCurrencyPairs();
 
         $sellerAccounts = $seller
             ? $seller->businessAccounts->where('active', true)->values()
             : collect();
 
-        $bonusPreview = app(IncentiveService::class)->getReceptorPreview($user, 0);
-
-        return view('transactions.create', compact('pairs', 'seller', 'sellerAccounts', 'bonusPreview'));
+        return view('transactions.create', compact('seller', 'sellerAccounts'));
     }
 
     /**
@@ -254,32 +273,34 @@ class TransactionController extends Controller
      */
     public function store(Request $request)
     {
-        $operationType = $request->input('operation_type', 'transferencia');
-
         $validated = $request->validate([
             'amount_pen'       => 'required|numeric|min:1',
             'amount_ves'       => 'required|numeric|min:1',
             'exchange_rate_id' => 'required|exists:exchange_rates,id',
-            'operation_type'   => 'required|in:transferencia,pago_movil',
+            'operation_type'   => 'nullable|string|max:50',
+            'sender_operation_type' => 'nullable|string|max:50',
             'notes'            => 'nullable|string|max:500',
 
             // Tasas BCV (snapshot)
             'usd_bcv_rate' => 'nullable|numeric',
             'eur_bcv_rate' => 'nullable|numeric',
 
-            // Datos bancarios del receptor (Venezuela) — comunes
-            'recipient_bank' => 'required|string|max:255',
-            'recipient_dni'  => 'required|string|max:30',
-            'recipient_phone' => 'required|string|max:30',
+            // Receptor — todos condicionales según método
+            'recipient_name'           => 'required|string|max:150',
+            'recipient_bank'           => 'nullable|string|max:255',
+            'recipient_phone'          => 'nullable|string|max:30',
+            'recipient_account_number' => 'nullable|string|max:255',
+            'recipient_account_type'   => 'nullable|string|max:50',
+            'recipient_document_type'  => 'required|string|max:20',
+            'recipient_document_number'=> 'required|string|max:50',
 
-            // Solo transferencia
-            'recipient_account_number' => 'required_if:operation_type,transferencia|nullable|string|max:255',
-            'recipient_account_type'   => 'required_if:operation_type,transferencia|nullable|in:ahorro,corriente',
-
-            // Datos de transferencia desde Perú
-            'sender_bank'           => 'required|string|max:255',
+            // Remitente — todos condicionales según método
+            'sender_bank'           => 'nullable|string|max:255',
             'sender_account_number' => 'nullable|string|max:255',
-            'sender_dni'            => 'required|string|max:30',
+            'sender_phone'          => 'nullable|string|max:30',
+            'sender_document_type'  => 'required|string|max:20',
+            'sender_document_number'=> 'required|string|max:50',
+            'operation_number'      => 'nullable|string|max:100',
 
             // Comprobante
             'voucher' => 'required|file|mimes:jpg,jpeg,png,pdf|max:10240',
@@ -306,12 +327,6 @@ class TransactionController extends Controller
 
         // Subida de comprobante
         $validated['voucher'] = $request->file('voucher')->store('vouchers', 'public');
-
-        // Limpiar campos condicionales si es pago móvil
-        if ($operationType === 'pago_movil') {
-            $validated['recipient_account_number'] = null;
-            $validated['recipient_account_type']   = null;
-        }
 
         $transaction = Transaction::create($validated);
 
@@ -355,7 +370,7 @@ class TransactionController extends Controller
             abort(403);
         }
 
-        $transaction->load(['seller', 'exchangeRate']);
+        $transaction->load(['seller', 'exchangeRate.currencyPair.fromCurrency', 'exchangeRate.currencyPair.toCurrency']);
 
         return view('transactions.confirmacion', compact('transaction'));
     }
@@ -570,15 +585,12 @@ class TransactionController extends Controller
 
         $user   = auth()->user()->load('assignedSeller.businessAccounts.bank');
         $seller = $user->assignedSeller;
-        $pairs  = $this->getCurrencyPairs();
 
         $sellerAccounts = $seller
             ? $seller->businessAccounts->where('active', true)->values()
             : collect();
 
-        $bonusPreview = app(IncentiveService::class)->getReceptorPreview($user, 0);
-
-        return view('transactions.create', compact('pairs', 'seller', 'sellerAccounts', 'bonusPreview', 'transaction'));
+        return view('transactions.create', compact('seller', 'sellerAccounts', 'transaction'));
     }
 
     /**
@@ -593,26 +605,30 @@ class TransactionController extends Controller
             abort(403, 'Solo puedes editar solicitudes con observaciones pendientes.');
         }
 
-        $operationType = $request->input('operation_type', 'transferencia');
-
         $validated = $request->validate([
             'amount_pen'       => 'required|numeric|min:1',
             'amount_ves'       => 'required|numeric|min:1',
             'exchange_rate_id' => 'required|exists:exchange_rates,id',
-            'operation_type'   => 'required|in:transferencia,pago_movil',
+            'operation_type'   => 'nullable|string|max:50',
+            'sender_operation_type' => 'nullable|string|max:50',
             'notes'            => 'nullable|string|max:500',
             'usd_bcv_rate'     => 'nullable|numeric',
             'eur_bcv_rate'     => 'nullable|numeric',
-            'recipient_bank'   => 'required|string|max:255',
-            'recipient_dni'    => 'required|string|max:30',
-            'recipient_phone'  => 'required|string|max:30',
-            'recipient_account_number' => 'required_if:operation_type,transferencia|nullable|string|max:255',
-            'recipient_account_type'   => 'required_if:operation_type,transferencia|nullable|in:ahorro,corriente',
-            'sender_bank'       => 'required|string|max:255',
+            'recipient_name'           => 'required|string|max:150',
+            'recipient_bank'           => 'nullable|string|max:255',
+            'recipient_phone'          => 'nullable|string|max:30',
+            'recipient_account_number' => 'nullable|string|max:255',
+            'recipient_account_type'   => 'nullable|string|max:50',
+            'recipient_document_type'  => 'required|string|max:20',
+            'recipient_document_number'=> 'required|string|max:50',
+            'sender_bank'           => 'nullable|string|max:255',
             'sender_account_number' => 'nullable|string|max:255',
-            'sender_dni'        => 'required|string|max:30',
-            'bonus_amount_pen'  => 'nullable|numeric|min:0',
-            'voucher'           => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'sender_phone'          => 'nullable|string|max:30',
+            'sender_document_type'  => 'required|string|max:20',
+            'sender_document_number'=> 'required|string|max:50',
+            'operation_number'      => 'nullable|string|max:100',
+            'bonus_amount_pen'      => 'nullable|numeric|min:0',
+            'voucher'               => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
         ]);
 
         // Actualizar comprobante solo si se sube uno nuevo

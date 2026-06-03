@@ -128,13 +128,13 @@
                         <span class="text-gray-400 font-normal normal-case tracking-normal ml-1">— vacío = aplica a todas las monedas</span>
                     </p>
                     <select name="currency_id" x-model="currencyId" @change="onCurrencyChange()"
+                            data-old-currency-id="{{ old('currency_id', '') }}"
                             class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cj-morado-profundo focus:ring-2 focus:ring-cj-morado-profundo/20 transition-all text-cj-texto">
                         <option value="">Todas las monedas (incentivo global)</option>
-                        @foreach($currencies as $currency)
-                        <option value="{{ $currency->id }}" {{ old('currency_id') == $currency->id ? 'selected' : '' }}>
-                            {{ $currency->symbol }} {{ $currency->code }} — {{ $currency->name }}
-                        </option>
-                        @endforeach
+                        <template x-for="currency in currencies" :key="currency.id">
+                            <option :value="currency.id" :selected="currency.id == currencyId"
+                                    x-text="`${currency.symbol} ${currency.code} — ${currency.name}`"></option>
+                        </template>
                     </select>
                     <p class="text-xs text-cj-texto-claro mt-2">Si seleccionas una moneda, el incentivo solo se activará cuando el par de cambio involucre esa moneda origen.</p>
                 </div>
@@ -521,19 +521,27 @@
     @push('scripts')
     <script>
     function incentivosApp() {
-        const currencies = @json($currencies->map(fn($c) => ['id' => $c->id, 'symbol' => $c->symbol, 'code' => $c->code, 'name' => $c->name]));
-        const oldCurrencyId = {{ old('currency_id') ? (int) old('currency_id') : 'null' }};
-        const defaultCurrency = oldCurrencyId ? currencies.find(c => c.id === oldCurrencyId) : null;
-
         return {
             tipo: 'extra_receptor',
             targetType: 'todos_clientes',
             valueType: 'fixed',
             valor: 10,
-            currencyId: oldCurrencyId,
-            currencySymbol: defaultCurrency ? defaultCurrency.symbol : 'S/',
-            currencyCode: defaultCurrency ? defaultCurrency.code : 'PEN',
-            currencies: currencies,
+            currencyId: '',
+            currencySymbol: 'S/',
+            currencyCode: 'PEN',
+            currencies: [],
+
+            async init() {
+                const resp = await axios.get('/api/currencies/active');
+                this.currencies = resp.data;
+                const select = document.querySelector('[data-old-currency-id]');
+                const oldId  = select ? parseInt(select.dataset.oldCurrencyId) || '' : '';
+                if (oldId) {
+                    this.currencyId = oldId;
+                    this.onCurrencyChange();
+                }
+            },
+
             onCurrencyChange() {
                 const found = this.currencyId
                     ? this.currencies.find(c => c.id == this.currencyId)

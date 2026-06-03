@@ -12,6 +12,7 @@ class PaymentMethod extends Model
         'country_id',
         'name',
         'code',
+        'side',
         'fields_required',
         'active',
     ];
@@ -24,5 +25,15 @@ class PaymentMethod extends Model
     public function country(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Country::class);
+    }
+
+    public function scopeForSender(\Illuminate\Database\Eloquent\Builder $q): \Illuminate\Database\Eloquent\Builder
+    {
+        return $q->whereIn('side', ['sender', 'both']);
+    }
+
+    public function scopeForRecipient(\Illuminate\Database\Eloquent\Builder $q): \Illuminate\Database\Eloquent\Builder
+    {
+        return $q->whereIn('side', ['recipient', 'both']);
     }
 }

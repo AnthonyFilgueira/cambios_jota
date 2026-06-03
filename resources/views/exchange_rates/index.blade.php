@@ -6,9 +6,11 @@
                 <h1 class="text-2xl font-bold text-cj-texto">Consola de Tasas de Cambio</h1>
                 <p class="text-sm text-cj-texto-claro mt-1">Gestión de tasas base y márgenes por par de divisas</p>
             </div>
+            @can('create-exchange-rates')
             <a href="{{ route('exchange_rates.create') }}" class="inline-block bg-cj-morado-profundo text-white px-4 py-2 rounded-lg hover:bg-cj-morado-medio transition-colors">
                 Nueva Tasa
             </a>
+            @endcan
         </div>
 
         <!-- Mensajes de sesión -->
@@ -27,34 +29,30 @@
         <!-- Tasas activas + Referencias BCV -->
         <div class="bg-gradient-to-r from-cj-morado-profundo to-cj-turquesa text-white rounded-lg p-6 mb-6 shadow-lg">
             <h2 class="text-lg font-semibold mb-4">Tasas de Referencia BCV y Activas</h2>
-            <div class="grid grid-cols-3 gap-4">
-                <div class="text-center">
-                    <div class="text-sm opacity-90 mb-1">USD → VES (BCV)</div>
-                    <div class="text-2xl font-bold">{{ number_format($activeRate->usd_rate ?? 0, 2) }}</div>
-                    <div class="text-xs opacity-75 mt-1">Referencia del mercado</div>
+            <div class="flex flex-wrap gap-4">
+                <!-- Referencias BCV globales -->
+                <div class="text-center min-w-[110px]">
+                    <div class="text-xs opacity-80 mb-1 uppercase tracking-wider">USD → VES (BCV)</div>
+                    <div class="text-2xl font-bold font-mono">{{ number_format($activeRate->usd_rate ?? 0, 2) }}</div>
+                    <div class="text-xs opacity-70 mt-1">Referencia del mercado</div>
                 </div>
-                <div class="text-center">
-                    <div class="text-sm opacity-90 mb-1">EUR → VES (BCV)</div>
-                    <div class="text-2xl font-bold">{{ number_format($activeRate->eur_rate ?? 0, 2) }}</div>
-                    <div class="text-xs opacity-75 mt-1">Referencia del mercado</div>
+                <div class="text-center min-w-[110px] border-l border-white/30 pl-4">
+                    <div class="text-xs opacity-80 mb-1 uppercase tracking-wider">EUR → VES (BCV)</div>
+                    <div class="text-2xl font-bold font-mono">{{ number_format($activeRate->eur_rate ?? 0, 2) }}</div>
+                    <div class="text-xs opacity-70 mt-1">Referencia del mercado</div>
                 </div>
-                <div class="text-center border-l border-white/30">
-                    <div class="text-sm opacity-90 mb-1">
-                        @if($activeRate && $activeRate->currencyPair)
-                            {{ $activeRate->currencyPair->display_name }}
-                        @else
-                            PEN → VES
-                        @endif
-                    </div>
-                    <div class="text-2xl font-bold">{{ number_format($activeRate->ves_rate ?? 0, 5) }}</div>
-                    <div class="text-xs opacity-75 mt-1">
-                        @if($activeRate && $activeRate->is_active)
-                            ✓ Tasa activa
-                        @else
-                            Tasa de referencia
-                        @endif
-                    </div>
+                <!-- Tasa activa por cada par -->
+                @forelse($activeRates as $ar)
+                <div class="text-center min-w-[130px] border-l border-white/30 pl-4">
+                    <div class="text-xs opacity-80 mb-1 uppercase tracking-wider">{{ $ar->pair_name }}</div>
+                    <div class="text-2xl font-bold font-mono">{{ number_format($ar->ves_rate ?? 0, 5) }}</div>
+                    <div class="text-xs opacity-70 mt-1">✓ Activa</div>
                 </div>
+                @empty
+                <div class="text-center min-w-[130px] border-l border-white/30 pl-4">
+                    <div class="text-xs opacity-80 mb-1">Sin tasas activas</div>
+                </div>
+                @endforelse
             </div>
         </div>
 
@@ -118,7 +116,7 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Par</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tasa VES</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tasa</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">USD (BCV)</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">EUR (BCV)</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Última Act.</th>
@@ -188,6 +186,7 @@
                                 <!-- Acciones -->
                                 <td class="px-4 py-4 whitespace-nowrap text-sm space-x-2">
                                     <div class="flex gap-2">
+                                        @can('activate-exchange-rates')
                                         @if(!$rate->is_active)
                                             <form action="{{ route('exchange_rates.activate', $rate) }}" method="POST" class="inline">
                                                 @csrf
@@ -196,6 +195,8 @@
                                                 </button>
                                             </form>
                                         @endif
+                                        @endcan
+                                        @can('edit-exchange-rates')
                                         <a href="{{ route('exchange_rates.edit', $rate) }}"
                                            class="text-cj-morado-profundo hover:underline font-medium text-xs">
                                             Editar
@@ -210,6 +211,12 @@
                                                 </button>
                                             </form>
                                         @endif
+                                        @endcan
+                                        @cannot('edit-exchange-rates')
+                                        @cannot('activate-exchange-rates')
+                                        <span class="text-xs text-gray-400 italic">Solo lectura</span>
+                                        @endcannot
+                                        @endcannot
                                     </div>
                                 </td>
                             </tr>

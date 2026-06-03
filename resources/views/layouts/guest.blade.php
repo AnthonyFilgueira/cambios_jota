@@ -5,7 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Cambios Jotta') }}</title>
+        <title>{{ config('client.name') }}</title>
+        <link rel="icon" href="{{ asset(config('client.favicon', 'favicon.ico')) }}" type="image/x-icon">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -14,7 +15,7 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased relative overflow-hidden">
+    <body class="font-sans antialiased relative overflow-x-hidden">
         <!-- Fondo principal con gradiente animado -->
         <div class="fixed inset-0 -z-20 bg-gradient-to-br from-purple-600 via-pink-500 to-teal-400 animate-gradient-shift"></div>
 
@@ -43,7 +44,7 @@
 
             <!-- Footer -->
             <div class="mt-6 text-center text-xs text-cj-texto-claro">
-                <p>&copy; {{ date('Y') }} Cambios Jotta. Todos los derechos reservados.</p>
+                <p>&copy; {{ date('Y') }} {{ config('client.name') }}. Todos los derechos reservados.</p>
             </div>
         </div>
     </body>
