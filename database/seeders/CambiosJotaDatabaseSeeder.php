@@ -177,7 +177,11 @@ class CambiosJotaDatabaseSeeder extends Seeder
             );
         }
 
-        // 10. Tipos de cuenta, documento y métodos de pago (PE + VE) — ya son idempotentes
+        // 10. Vincular divisas a sus países (country_id en currencies)
+        $pen->update(['country_id' => $peru->id]);
+        $ves->update(['country_id' => $venezuela->id]);
+
+        // 11. Tipos de cuenta, documento y métodos de pago (PE + VE) — ya son idempotentes
         $this->call([
             AccountTypeSeeder::class,   // Ahorros + Corriente para PE y VE
             DocumentTypeSeeder::class,
