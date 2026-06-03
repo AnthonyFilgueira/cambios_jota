@@ -22,13 +22,16 @@ class CambiosJotaDatabaseSeeder extends Seeder
     {
         $this->command->info('🌱 [CambiosJota] Seeding database...');
 
-        // 1. Limpiar toda la base de datos
+        // 1. Verificar que las migraciones se han ejecutado
+        $this->validateRequiredTables();
+
+        // 2. Limpiar toda la base de datos
         $this->resetDatabase();
 
-        // 2. Roles y permisos
+        // 3. Roles y permisos
         $this->call([RolesAndPermissionsSeeder::class]);
 
-        // 3. Administrador CambiosJota
+        // 4. Administrador CambiosJota
         $admin = User::create([
             'email'             => 'cambiosjottaa@innodite.com',
             'name'              => 'abreu',
@@ -149,6 +152,25 @@ class CambiosJotaDatabaseSeeder extends Seeder
         ]);
 
         $this->command->info('✅ [CambiosJota] Database seeding completed!');
+    }
+
+    private function validateRequiredTables(): void
+    {
+        $required = [
+            'users', 'roles', 'permissions',
+            'currencies', 'currency_pairs', 'corridors', 'countries', 'banks',
+            'account_types', 'document_types', 'payment_methods',
+            'exchange_rates', 'transactions',
+        ];
+
+        $missing = array_values(array_filter($required, fn($t) => !Schema::hasTable($t)));
+
+        if (!empty($missing)) {
+            throw new \RuntimeException(
+                '❌ Tablas faltantes: ' . implode(', ', $missing) . "\n" .
+                '   Ejecuta `php artisan migrate` antes de correr este seeder.'
+            );
+        }
     }
 
     private function resetDatabase(): void
