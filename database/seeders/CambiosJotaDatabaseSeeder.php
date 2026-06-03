@@ -177,8 +177,9 @@ class CambiosJotaDatabaseSeeder extends Seeder
             );
         }
 
-        // 10. Tipos de documento y métodos de pago (PE + VE) — ya son idempotentes
+        // 10. Tipos de cuenta, documento y métodos de pago (PE + VE) — ya son idempotentes
         $this->call([
+            AccountTypeSeeder::class,   // Ahorros + Corriente para PE y VE
             DocumentTypeSeeder::class,
             PaymentMethodSeeder::class,
         ]);
