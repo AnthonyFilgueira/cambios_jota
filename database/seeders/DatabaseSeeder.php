@@ -2,49 +2,14 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
-// CambiosJota — solo corredor Perú ↔ Venezuela, sin datos de demo
+// Delegador por defecto → CambiosJota
+// Para otro cliente: php artisan db:seed --class=VipMoneyDatabaseSeeder
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->command->info('🌱 [CambiosJota] Seeding database...');
-
-        // 1. Roles y permisos
-        $this->call([
-            RolesAndPermissionsSeeder::class,
-        ]);
-
-        // 2. Usuario administrador CambiosJota
-        $admin = User::updateOrCreate(
-            ['email' => 'cambiosjottaa@innodite.com'],
-            [
-                'name'              => 'abreu',
-                'password'          => Hash::make('CambiosJota2026!'),
-                'email_verified_at' => now(),
-            ]
-        );
-        $admin->assignRole('super-admin');
-
-        // 3. Configuración base — solo Perú + Venezuela (PE ↔ VE)
-        $this->call([
-            CurrencySeeder::class,
-            CurrencyPairSeeder::class,
-            CorridorSeeder::class,
-            CorridorCurrencyPairSeeder::class,
-            ExchangeRateSeeder::class,
-        ]);
-
-        // 4. Países, bancos, tipos de documento y métodos de pago (PE + VE)
-        $this->call([
-            CountryBankSeeder::class,
-            DocumentTypeSeeder::class,
-            PaymentMethodSeeder::class,
-        ]);
-
-        $this->command->info('✅ [CambiosJota] Database seeding completed!');
+        $this->call([CambiosJotaDatabaseSeeder::class]);
     }
 }
