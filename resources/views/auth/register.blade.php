@@ -246,7 +246,7 @@
                    class="mt-0.5 h-4 w-4 rounded border-gray-300 text-cj-morado-profundo focus:ring-cj-turquesa" />
             <label for="terms" class="text-xs text-cj-texto-claro leading-relaxed cursor-pointer">
                 Al registrarme acepto los <a href="#" class="text-cj-morado-profundo font-semibold hover:underline">Términos y Condiciones</a>
-                y la <a href="#" class="text-cj-morado-profundo font-semibold hover:underline">Política de Privacidad</a> de Cambio J.
+                y la <a href="#" class="text-cj-morado-profundo font-semibold hover:underline">Política de Privacidad</a> de {{ config('client.name') }}.
             </label>
         </div>
 

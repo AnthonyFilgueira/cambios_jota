@@ -12,11 +12,15 @@
             {{-- Logo --}}
             <div class="shrink-0 flex items-center gap-3">
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-gradient-to-br from-cj-morado-profundo to-cj-turquesa rounded-xl flex items-center justify-center shadow-md hover:scale-110 transition-transform">
-                        <span class="text-sm font-black text-white">CJ</span>
-                    </div>
+                    @if(config('client.logo'))
+                        <img src="{{ asset(config('client.logo')) }}" alt="{{ config('client.name') }}" class="h-9 w-auto hover:scale-110 transition-transform">
+                    @else
+                        <div class="w-9 h-9 bg-gradient-to-br from-cj-morado-profundo to-cj-turquesa rounded-xl flex items-center justify-center shadow-md hover:scale-110 transition-transform">
+                            <span class="text-sm font-black text-white">{{ strtoupper(substr(config('client.name'), 0, 2)) }}</span>
+                        </div>
+                    @endif
                     <div class="hidden sm:block">
-                        <p class="text-base font-bold text-cj-morado-profundo leading-none">Cambio J</p>
+                        <p class="text-base font-bold text-cj-morado-profundo leading-none">{{ config('client.name') }}</p>
                         <p class="text-xs text-gray-400">
                             @if($isAdmin) Administración @elseif($isSeller) Panel Vendedor @else Mi cuenta @endif
                         </p>

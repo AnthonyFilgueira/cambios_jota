@@ -27,10 +27,14 @@
                     <!-- Logo y Marca -->
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-gradient-to-br from-cj-morado-profundo to-cj-turquesa rounded-lg flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300">
-                            <span class="text-lg font-bold text-white">CJ</span>
+                            @if(config('client.logo'))
+                                <img src="{{ asset(config('client.logo')) }}" alt="{{ config('client.name') }}" class="h-8 w-auto">
+                            @else
+                                <span class="text-lg font-bold text-white">{{ strtoupper(substr(config('client.name'), 0, 2)) }}</span>
+                            @endif
                         </div>
                         <div>
-                            <h1 class="text-lg font-bold text-cj-texto">Cambios Jotta</h1>
+                            <h1 class="text-lg font-bold text-cj-texto">{{ config('client.name') }}</h1>
                             <p class="text-xs text-cj-texto-claro hidden sm:block">Envíos Internacionales</p>
                         </div>
                     </div>

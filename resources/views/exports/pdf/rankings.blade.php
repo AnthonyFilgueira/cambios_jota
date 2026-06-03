@@ -105,7 +105,7 @@
 <body>
     <div class="header">
         <h1>🏆 Rankings de Vendedores</h1>
-        <p>Cambio J - Plataforma de Gestión de Divisas</p>
+        <p>{{ config('client.name') }} - Plataforma de Gestión de Divisas</p>
     </div>
 
     <div class="info-box">
@@ -165,7 +165,7 @@
     </table>
 
     <div class="footer">
-        <p>Documento generado automáticamente por Cambio J | {{ $generatedAt }}</p>
+        <p>Documento generado automáticamente por {{ config('client.name') }} | {{ $generatedAt }}</p>
         <p>Este reporte contiene información confidencial</p>
     </div>
 </body>

@@ -63,7 +63,7 @@
 </head>
 <body>
     <div class="header">
-        <h1 style="margin: 0;">Cambio J</h1>
+        <h1 style="margin: 0;">{{ config('client.name') }}</h1>
         <p style="margin: 10px 0 0 0;">Transferencia Completada</p>
     </div>
 
@@ -110,7 +110,7 @@
     <div class="footer">
         <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
         <p>
-            <strong>Cambio J</strong><br>
+            <strong>{{ config('client.name') }}</strong><br>
             Sistema de Gestión de Divisas
         </p>
     </div>

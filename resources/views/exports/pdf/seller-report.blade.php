@@ -208,7 +208,7 @@
     @endif
 
     <div class="footer">
-        <p>Documento generado automáticamente por Cambio J | {{ $generatedAt }}</p>
+        <p>Documento generado automáticamente por {{ config('client.name') }} | {{ $generatedAt }}</p>
         <p>Este reporte contiene información confidencial</p>
     </div>
 </body>
