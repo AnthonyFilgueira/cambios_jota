@@ -8,14 +8,6 @@ use Illuminate\Http\Request;
 
 class ExchangeRateController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('permission:view-exchange-rates')->only(['index']);
-        $this->middleware('permission:create-exchange-rates')->only(['create', 'store']);
-        $this->middleware('permission:edit-exchange-rates')->only(['edit', 'update', 'destroy']);
-        $this->middleware('permission:activate-exchange-rates')->only(['activate']);
-    }
-
     public function index(Request $request)
     {
         // Query base: tasas con sus pares
