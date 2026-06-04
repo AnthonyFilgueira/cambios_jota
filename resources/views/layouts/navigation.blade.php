@@ -201,14 +201,18 @@
             @if($isAdmin)
                 <p class="text-xs font-bold uppercase tracking-widest text-gray-400 px-2 py-1">Operaciones</p>
                 <x-responsive-nav-link :href="route('owner.dashboard')">🏠 Dashboard</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('sales.index')">📋 Ventas</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('sales.index')">📋 Todas las ventas</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('sales.pending.admin')">⏳ Pendientes aprobación</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('sales.approved')">✅ Aprobadas</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('sales.observed')">👁️ Observadas</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('sales.create')">➕ Nueva venta</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('transactions.manage')">💸 Transacciones</x-responsive-nav-link>
 
                 <p class="text-xs font-bold uppercase tracking-widest text-gray-400 px-2 py-1 mt-2">Gestión</p>
                 <x-responsive-nav-link :href="route('sellers.index')">👥 Vendedores</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('liquidations.index')">💰 Liquidaciones</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('reports.index')">📊 Reportes</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('reports.rankings')">🏆 Rankings</x-responsive-nav-link>
 
                 <p class="text-xs font-bold uppercase tracking-widest text-gray-400 px-2 py-1 mt-2">Configuración</p>
                 <x-responsive-nav-link :href="route('exchange_rates.index')">💱 Tasas de cambio</x-responsive-nav-link>
@@ -218,6 +222,9 @@
                 <x-responsive-nav-link :href="route('corridor-matrix.index')">🗂️ Matriz corredores</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('countries.index')">🌍 Países y Cuentas</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.roles.index')">🔑 Roles y Permisos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.incentives.index')">⭐ Incentivos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.audit-logs')">🔍 Auditoría</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.settings')">⚙️ Configuración</x-responsive-nav-link>
             @endif
 
             @if($isSeller)
