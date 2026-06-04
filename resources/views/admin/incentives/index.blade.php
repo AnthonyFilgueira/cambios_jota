@@ -283,12 +283,7 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0">
-                            <form action="{{ route('admin.incentives.toggle', $rule) }}" method="POST">
-                                @csrf @method('PATCH')
-                                <button type="submit" class="px-3 py-1.5 text-xs font-semibold bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-all whitespace-nowrap">
-                                    Pausar
-                                </button>
-                            </form>
+                            <x-toggle-switch :route="route('admin.incentives.toggle', $rule)" :checked="true" />
                             <form action="{{ route('admin.incentives.destroy', $rule) }}" method="POST">
                                 @csrf @method('DELETE')
                                 <button type="submit" onclick="return confirm('¿Eliminar el incentivo «{{ $rule->name }}»? Esta acción no se puede deshacer.')"
@@ -326,12 +321,7 @@
                                 </div>
                             </div>
                         </div>
-                        <form action="{{ route('admin.incentives.toggle', $rule) }}" method="POST" class="flex-shrink-0">
-                            @csrf @method('PATCH')
-                            <button type="submit" class="px-3 py-1.5 text-xs font-semibold bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-all">
-                                Reactivar
-                            </button>
-                        </form>
+                        <x-toggle-switch :route="route('admin.incentives.toggle', $rule)" :checked="false" />
                     </div>
                     @endforeach
                 </div>

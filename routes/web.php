@@ -226,9 +226,22 @@ Route::middleware('auth')->group(function () {
     // Liquidaciones
     Route::resource('liquidations', LiquidationController::class);
 
-    // Tasas de cambio
-    Route::resource('exchange_rates', ExchangeRateController::class);
-    Route::post('exchange_rates/{exchangeRate}/activate', [ExchangeRateController::class, 'activate'])->name('exchange_rates.activate');
+    // Tasas de cambio (permisos Spatie a nivel de ruta — $this->middleware() fue eliminado en Laravel 12)
+    Route::middleware('permission:view-exchange-rates')
+        ->get('exchange_rates', [ExchangeRateController::class, 'index'])
+        ->name('exchange_rates.index');
+    Route::middleware('permission:create-exchange-rates')->group(function () {
+        Route::get('exchange_rates/create', [ExchangeRateController::class, 'create'])->name('exchange_rates.create');
+        Route::post('exchange_rates', [ExchangeRateController::class, 'store'])->name('exchange_rates.store');
+    });
+    Route::middleware('permission:edit-exchange-rates')->group(function () {
+        Route::get('exchange_rates/{exchangeRate}/edit', [ExchangeRateController::class, 'edit'])->name('exchange_rates.edit');
+        Route::put('exchange_rates/{exchangeRate}', [ExchangeRateController::class, 'update'])->name('exchange_rates.update');
+        Route::delete('exchange_rates/{exchangeRate}', [ExchangeRateController::class, 'destroy'])->name('exchange_rates.destroy');
+    });
+    Route::middleware('permission:activate-exchange-rates')
+        ->post('exchange_rates/{exchangeRate}/activate', [ExchangeRateController::class, 'activate'])
+        ->name('exchange_rates.activate');
 
     // Divisas, pares y corredores
     Route::resource('currencies', CurrencyController::class)->except(['show', 'destroy']);

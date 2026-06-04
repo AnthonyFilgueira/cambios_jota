@@ -132,16 +132,11 @@
                                         </div>
                                     </div>
 
-                                    <input type="checkbox"
-                                           name="business_accounts[]"
-                                           value="{{ $account->id }}"
-                                           id="account_{{ $account->id }}"
-                                           class="peer sr-only"
-                                           @if(is_array(old('business_accounts')) && in_array($account->id, old('business_accounts'))) checked @endif>
-                                    <div class="relative w-11 h-6 bg-gray-200 peer-checked:bg-purple-600 rounded-full transition-colors shrink-0
-                                                after:content-[''] after:absolute after:top-0.5 after:left-0.5
-                                                after:bg-white after:rounded-full after:h-5 after:w-5
-                                                after:transition-all peer-checked:after:translate-x-5"></div>
+                                    <x-toggle-switch
+                                        name="business_accounts[]"
+                                        value="{{ $account->id }}"
+                                        id="account_{{ $account->id }}"
+                                        :checked="is_array(old('business_accounts')) && in_array($account->id, old('business_accounts'))" />
                                 </label>
                             @endforeach
                         </div>

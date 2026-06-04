@@ -129,13 +129,7 @@
                                 @endif
                             </p>
                         </div>
-                        <form action="{{ route('banks.toggleActive', [$country, $bank]) }}" method="POST">
-                            @csrf @method('PATCH')
-                            <button type="submit"
-                                class="relative w-11 h-6 rounded-full transition-colors bg-cj-morado-profundo focus:outline-none">
-                                <span class="absolute top-0.5 right-0.5 h-5 w-5 rounded-full bg-white shadow"></span>
-                            </button>
-                        </form>
+                        <x-toggle-switch :route="route('banks.toggleActive', [$country, $bank])" :checked="true" />
                     </div>
                     <div class="border-t border-gray-100">
                         <button @click="editando = !editando"
@@ -182,12 +176,7 @@
                 @foreach($inactiveBanks as $bank)
                     <div class="bg-white/70 rounded-xl px-4 py-3 flex items-center justify-between shadow border border-white/30">
                         <span class="text-sm font-semibold text-gray-600">{{ $bank->name }}</span>
-                        <form action="{{ route('banks.toggleActive', [$country, $bank]) }}" method="POST">
-                            @csrf @method('PATCH')
-                            <button type="submit" class="relative w-11 h-6 rounded-full bg-gray-200 focus:outline-none">
-                                <span class="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow"></span>
-                            </button>
-                        </form>
+                        <x-toggle-switch :route="route('banks.toggleActive', [$country, $bank])" :checked="false" />
                     </div>
                 @endforeach
             </div>
@@ -298,13 +287,7 @@
                                 Asignada a {{ $account->sellers->count() }} vendedor(es)
                             </div>
                         </div>
-                        <form action="{{ route('business-accounts.toggleActive', [$country, $account]) }}" method="POST">
-                            @csrf @method('PATCH')
-                            <button type="submit"
-                                class="relative w-11 h-6 rounded-full bg-cj-morado-profundo focus:outline-none mt-1">
-                                <span class="absolute top-0.5 right-0.5 h-5 w-5 rounded-full bg-white shadow"></span>
-                            </button>
-                        </form>
+                        <x-toggle-switch :route="route('business-accounts.toggleActive', [$country, $account])" :checked="true" />
                     </div>
 
                     {{-- Acciones --}}
@@ -423,12 +406,7 @@
                             <p class="text-sm font-semibold text-gray-600">{{ $account->alias ?: $account->bank->name }}</p>
                             <p class="font-mono text-xs text-gray-400">{{ $account->account_number }}</p>
                         </div>
-                        <form action="{{ route('business-accounts.toggleActive', [$country, $account]) }}" method="POST">
-                            @csrf @method('PATCH')
-                            <button type="submit" class="relative w-11 h-6 rounded-full bg-gray-200 focus:outline-none">
-                                <span class="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow"></span>
-                            </button>
-                        </form>
+                        <x-toggle-switch :route="route('business-accounts.toggleActive', [$country, $account])" :checked="false" />
                     </div>
                 @endforeach
             </div>
@@ -530,12 +508,7 @@
                             class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition-all">
                         Editar
                     </button>
-                    <form action="{{ route('document-types.toggle', [$country, $dt]) }}" method="POST">
-                        @csrf @method('PATCH')
-                        <button type="submit" class="relative w-11 h-6 rounded-full transition-colors {{ $dt->active ? 'bg-cj-turquesa' : 'bg-gray-200' }} focus:outline-none">
-                            <span class="absolute top-0.5 transition-transform {{ $dt->active ? 'translate-x-5' : 'translate-x-0.5' }} h-5 w-5 rounded-full bg-white shadow"></span>
-                        </button>
-                    </form>
+                    <x-toggle-switch :route="route('document-types.toggle', [$country, $dt])" :checked="$dt->active" />
                     <form action="{{ route('document-types.destroy', [$country, $dt]) }}" method="POST"
                           onsubmit="return confirm('¿Eliminar este tipo de documento?')">
                         @csrf @method('DELETE')
@@ -614,12 +587,7 @@
                             class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition-all">
                         Editar
                     </button>
-                    <form action="{{ route('account-types.toggle', [$country, $at]) }}" method="POST">
-                        @csrf @method('PATCH')
-                        <button type="submit" class="relative w-11 h-6 rounded-full transition-colors bg-cj-turquesa focus:outline-none">
-                            <span class="absolute top-0.5 translate-x-5 h-5 w-5 rounded-full bg-white shadow transition-transform"></span>
-                        </button>
-                    </form>
+                    <x-toggle-switch :route="route('account-types.toggle', [$country, $at])" :checked="true" />
                     <form action="{{ route('account-types.destroy', [$country, $at]) }}" method="POST"
                           onsubmit="return confirm('¿Eliminar este tipo de cuenta?')">
                         @csrf @method('DELETE')
@@ -640,12 +608,7 @@
                             <span class="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded mr-2">{{ $at->code }}</span>
                             <span class="text-sm font-semibold text-gray-600">{{ $at->name }}</span>
                         </div>
-                        <form action="{{ route('account-types.toggle', [$country, $at]) }}" method="POST">
-                            @csrf @method('PATCH')
-                            <button type="submit" class="relative w-11 h-6 rounded-full bg-gray-200 focus:outline-none">
-                                <span class="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow"></span>
-                            </button>
-                        </form>
+                        <x-toggle-switch :route="route('account-types.toggle', [$country, $at])" :checked="false" />
                     </div>
                 @endforeach
             </div>
@@ -770,12 +733,7 @@
                             class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition-all">
                         Editar
                     </button>
-                    <form action="{{ route('payment-methods.toggle', [$country, $pm]) }}" method="POST">
-                        @csrf @method('PATCH')
-                        <button type="submit" class="relative w-11 h-6 rounded-full transition-colors {{ $pm->active ? 'bg-cj-turquesa' : 'bg-gray-200' }} focus:outline-none">
-                            <span class="absolute top-0.5 transition-transform {{ $pm->active ? 'translate-x-5' : 'translate-x-0.5' }} h-5 w-5 rounded-full bg-white shadow"></span>
-                        </button>
-                    </form>
+                    <x-toggle-switch :route="route('payment-methods.toggle', [$country, $pm])" :checked="$pm->active" />
                     <form action="{{ route('payment-methods.destroy', [$country, $pm]) }}" method="POST"
                           onsubmit="return confirm('¿Eliminar este método de pago?')">
                         @csrf @method('DELETE')
